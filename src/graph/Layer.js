@@ -1,0 +1,56 @@
+
+/** @constructor */
+var Layer = function(){
+	
+	LayerBase.call(this);
+
+	this.filters = new Stack();
+	this.masks = new Stack();
+	
+	this.collapse = false;
+	
+	this.position = new Vector();
+	this.anchor = new Vector();
+	this.scale = new Vector(1,1,1);
+	this.rotation = new Vector();
+	this.orientation = new Vector();
+	this.opacity = 1;
+	
+};
+
+Layer.prototype = new LayerBase();
+Layer.prototype.constructor = Layer;
+
+Layer.prototype.getLocalMatrix = function(){
+	
+	var t = this,
+		p = t.position,
+		a = t.anchor,
+		s = t.scale,
+		r = t.rotation,
+		o = t.orientation;
+	
+	return 	new Matrix()
+			.translation(-a.x,-a.y, -a.z)
+			.scale(s.x, s.y, s.z)
+			.rotate(r.x, r.y, r.z)
+			.rotate(o.x, o.y, o.z)
+			.translate(p.x,p.y, -p.z);
+};
+
+Layer.prototype.getLocalMatrix2D = function(){
+	
+	var t = this,
+		p = t.position,
+		a = t.anchor,
+		s = t.scale;
+
+	return 	new Matrix()
+			.translation(-a.x, -a.y, 0)
+			.scale(s.x, s.y, 1)
+			.rotate(0, 0, t.rotation.z)
+			.translate(p.x, p.y, 0);
+};
+
+
+externs['Layer'] = Layer;

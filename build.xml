@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="js-signals" default="" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+
+
+
+    <!-- properties -->
+
+    <property file="${basedir}/build/build.properties" />
+
+    <!-- custom tasks -->
+
+	
+	<taskdef name="jscomp" classname="com.google.javascript.jscomp.ant.CompileTask" classpath="${basedir}/build/closure_compiler/compiler.jar"/>
+
+
+    <!-- targets -->
+
+    <target name="-purgeJsDeploy">
+        <delete>
+            <fileset dir="${dist.dir}" includes="${dist.name} ${dist.min.name}" />
+        </delete>
+    	<delete file="${dist.dir}/${dist.name}.temp"/>
+    </target>
+	
+	<target name="-purgeJSX">
+		<delete>
+			<fileset dir="${tool.dir}" includes="${tool.layerName}" />
+		</delete>
+	</target>
+	
+	<target name="compileJsx" depends="-purgeJSX">
+		
+		<echo message="Building ${tool.layerName}" />
+		
+		<concat destfile="${tool.dir}/${tool.layerName}" fixlastline="yes">
+		    <filelist dir="${src.dir}/libs" files="
+		    	signals.min.js,
+		    	json2.js
+		    "/>
+		    <filelist dir="${src.dir}/tools" files="
+		    	LayerWatcher.js,
+		    	LayerSetting.js
+		    "/>
+		</concat>
+		<echo message="${tool.layerName} built." />
+	</target>
+
+    <target name="compile" depends="-purgeJsDeploy">
+
+        <echo message="Building ${dist.name}..." />
+
+        <buildnumber file="${build.dir}/build.number"/>
+
+        <tstamp>
+            <format property="build.date" pattern="yyyy/MM/dd hh:mm aa" unit="hour"/>
+        </tstamp>
+        
+    	<concat destfile="${dist.dir}/${dist.name}.temp" fixlastline="yes">
+    		<filelist dir="${src.dir}/libs" files="signals.min.js"/>
+    		<filelist dir="${src.dir}/utils" files="
+    			Capabilities.js,
+    			Curve.js
+    		"/>
+    		<filelist dir="${src.dir}/core" files="Stack.js"/>
+    		<filelist dir="${src.dir}/geom" files="
+    			BezierEasing.js,
+    			Matrix.js,
+    			Vector.js,
+    			Rectangle.js
+    		"/>
+    		<filelist dir="${src.dir}/path" files="
+    		    Line.js,
+    			QuadCurve.js,
+    			Path.js,
+    			CubicCurve.js
+    		"/>
+    		<filelist dir="${src.dir}/animation" files="
+    		    KeyFrame.js,
+    			SpatialKeyFrame.js,
+    			HoldSpatialKeyFrame.js,
+    			Keys.js,
+    			SpatialKeys.js
+    		"/>
+    		<filelist dir="${src.dir}/graph" files="
+    			LayerBase.js,
+    			Layer.js,
+    			Camera.js,
+    			Solid.js,
+    			Composition.js,
+    			Text.js
+    		"/>
+    		<filelist dir="${src.dir}/renderers/dom" files="
+    			LayerDomElement.js,
+    			SolidDomElement.js,
+    			TextDomElement.js,
+    			CompositionDomElement.js,
+    			DomRenderer.js
+    		"/>
+    	</concat>
+    	
+    	<loadfile property="license.txt" srcFile="${src.dir}/license.txt"/>
+    	    	
+    	<loadfile property="sources.js" srcFile="${dist.dir}/${dist.name}.temp"/>
+    	
+    	
+    	
+        <replace>
+            <fileset dir="${dist.dir}" includes="${dist.name}" />
+            <replacefilter token="//::LICENSE:://" value="${license.txt}" />
+            <replacefilter token="//::SOURCE:://" value="${sources.js}" />
+            <!-- version number, build number/date should come after other replaces -->
+        	<replacefilter token="::NAME::" value="${product.name}" />
+            <replacefilter token="::VERSION_NUMBER::" value="${version.number}" />
+            <replacefilter token="::BUILD_NUMBER::" value="${build.number}" />
+            <replacefilter token="::BUILD_DATE::" value="${build.date}" />
+        </replace>
+    	
+    	<delete file="${dist.dir}/${dist.name}.temp"/>
+
+        <echo message="${dist.name} built." />
+    </target>
+
+    <target name="lint">
+        <echo message="JSLinting ${dist.name}..."/>
+
+        <apply executable="java">
+            <filelist dir="${dist.dir}">
+                <file name="${dist.name}"/>
+            </filelist>
+            <arg line="-jar"/>
+            <arg path="${jslint.jar}"/>
+        </apply>
+
+        <echo message="JSLinted ${dist.name}."/>
+    </target>
+
+    <target name="minify">
+        <echo message="Building ${dist.min.name}..." />
+
+        <jscomp compilationLevel="simple" debug="false" output="${dist.dir}/${dist.min.name}">
+            <externs dir="${build.dir}">
+                <file name="externs.js"/>
+            </externs>
+            <sources dir="${dist.dir}">
+                <file name="${dist.name}"/>
+            </sources>
+        </jscomp>
+
+        <echo message="${dist.min.name} built." />
+    </target>
+
+    <target name="-purgeDocs">
+        <delete dir="${docs.dir}" />
+        <mkdir dir="${docs.dir}"/>
+    </target>
+
+    <target name="generateDocs" depends="-purgeDocs">
+        <echo message="Generating documentation" />
+    	<exec executable="java">
+            <arg line="-jar" />
+            <arg path="${jsdoc-toolkit.dir}/jsrun.jar" />
+            <arg value="${jsdoc-toolkit.dir}/app/run.js" />
+    		<arg value="${dist.dir}/${dist.name}" />
+            <arg value="-t=${jsdoc-toolkit.dir}/templates/jsdoc" />
+            <arg value="-d=${docs.dir}" />
+        </exec>
+        <echo message="Documentation generated" />
+    </target>
+	
+
+    <target name="build" depends="compile, minify">
+        <echo message="Build Complete." />
+    </target>
+
+    <target name="deploy" depends="build, generateDocs">
+        <echo message="Build Complete." />
+    </target>
+
+</project>
