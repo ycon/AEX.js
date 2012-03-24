@@ -32,6 +32,8 @@
 		
 		<echo message="Building ${tool.layerName}" />
 		
+		
+		
 		<concat destfile="${tool.dir}/${tool.layerName}" fixlastline="yes">
 		    <filelist dir="${src.dir}/libs" files="
 		    	signals.min.js,
@@ -102,6 +104,7 @@
     	    	
     	<loadfile property="sources.js" srcFile="${dist.dir}/${dist.name}.temp"/>
     	
+    	<copyfile src="${src.dir}/wrapper.js" dest="${dist.dir}/${dist.name}"/>
     	
     	
         <replace>
@@ -117,7 +120,7 @@
     	
     	<delete file="${dist.dir}/${dist.name}.temp"/>
 
-        <echo message="${dist.name} built." />
+        <echo message="${dist.dir}/${dist.name} built." />
     </target>
 
     <target name="lint">
