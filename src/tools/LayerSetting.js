@@ -1,59 +1,58 @@
 var LayerSetting = function(panel){
+
+	panel.layout.layout(true);
+	panel.layout.resize();
+	panel.onResizing = panel.onResize = function () {this.layout.resize();};
 	
 	this.panel = panel;
+	this.panel.alignment = 'left';
+	this.panel.margins = 0;
+	this.panel.spacing = 0;
 	
-	//this.panel.alignChildren = "left";
+	this.watcher = new LayerWatcher(panel);
 	
-	this.panel.add("panel", [25,15,355,130], "Messages");
-	
-	var btn = this.panel.add('button', undefined,"toto");
-	
-	btn.size = [200, 100];
-	
-	//this.watcher = new LayerWatcher(panel);
-	
-	//this.watcher.changed.add(this.change,this);
-	//this.watcher.start();
+	this.watcher.changed.add(this.change,this);
+	this.watcher.start();
 };
 
 LayerSetting.prototype = {
-		change : function(layer){
-			this.layer = layer;
-			writeLn(layer);
-		},
-
-		set : function(key,val){
-			if (this.layer.comment == "" || !layer.comment){
-				
-				this.layer.comment = "{}";
-				
-			}
-			
-			var obj = JSON.parse(this.layer.comment);
-			
-			obj[key] = val;
-			
-			this.layer.comment = JSON.stringify(obj);
-			
-			
-		},
 		
-		get : function(key){
+		change : function(layer){
 			
-			if (this.layer.comment == "" || !this.layer.comment){
+			if (this.layerPanel){
 				
-				this.layer.comment = "{}";
+				this.layerPanel.clear();
 				
 			}
 			
-			return JSON.parse(this.layer.comment)[key];
+			if (layer){
+				
+				this.layerPanel = new LayerPanel(this.panel,layer);
+				
+			} else {
+				
+				if ( 	app && app.project 
+						&& app.project.activeItem 
+						&& app.project.activeItem.typeName == "Composition"){
+					
+					this.layerPanel = new ItemSubPanel(this.panel,app.project.activeItem);
+
+				} else {
+					
+					this.layerPanel = null;
+					
+				}
+				
+			}
+			
+			this.panel.layout.layout(true);
+			this.panel.layout.resize();
+			
+			
+			this.layer = layer;
 			
 		}
 		
-		
 };
-
-
-
 
 var base = new LayerSetting(this);

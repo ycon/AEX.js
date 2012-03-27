@@ -41,7 +41,10 @@
 		    "/>
 		    <filelist dir="${src.dir}/tools" files="
 		    	LayerWatcher.js,
-		    	LayerSetting.js
+		    	LayerSetting.js,
+		    	PanelBase.js,
+		    	LayerPanel.js,
+		    	ItemSubPanel.js
 		    "/>
 		</concat>
 		<echo message="${tool.layerName} built." />
