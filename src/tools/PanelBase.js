@@ -41,7 +41,7 @@ PanelBase.prototype = {
 				
 				field.addEventListener('keyup',function(e){
 					writeLn(self.layer);
-					self.set(prop,field.text);
+					self.set(prop,(field.text != '') ? field.text : undefined);
 				});
 				
 			})(prop,field,this);

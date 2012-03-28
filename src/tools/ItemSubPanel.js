@@ -56,6 +56,31 @@ ItemSubPanel.prototype.setBrowse = function(){
 
 ItemSubPanel.prototype.exportComp = function(){
 	
+	var result = JSON.stringify(ProjectExporter.getProject(this.item),undefined,(this.get("indent") === true) ? "\t" : 0);
+	
+	if (this.get('src')){
+		
+		var file = new File(this.get('src'));
+	    file.encoding = "UTF8";
+	    file.open("w");
+	    file.write(result);
+        file.close();
+	    
+	} else {
+		
+		var win = new Window('dialog',"Exporting "+this.item.name, undefined, {closeButton: true});
+		var txt = win.add ("edittext", [0, 0, 400, 400], "", {multiline: true});
+		txt.text = result;
+		txt.active = true;
+		
+		win.add("statictext", undefined, "press Esc to close window");
+		
+		win.show();
+		
+		
+		
+	}
+	
 };
 
 
