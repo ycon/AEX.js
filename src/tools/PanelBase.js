@@ -31,7 +31,7 @@ PanelBase.prototype = {
 			if (!name){
 				name = prop;
 			}
-			var stat = group.add("statictext", undefined, name+' :')
+			var stat = group.add("statictext", undefined, name+' :');
 			stat.alignment = 'left';
 
 			var field = group.add("edittext", undefined, this.get(prop));
@@ -153,4 +153,4 @@ PanelBase.prototype = {
 			return JSON.parse(this.layer.comment)[key];
 			
 		}
-}
+};

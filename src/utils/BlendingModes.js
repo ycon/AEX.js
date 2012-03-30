@@ -24,7 +24,7 @@ var BlendingModes = {
 					return "lighten";
 					break;
 				case BlendingMode.LINEAR_LIGHT:
-					return "hardlight"
+					return "hardlight";
 					break;
 				case BlendingMode.MULTIPLY:
 					return "multiply";
@@ -49,4 +49,4 @@ var BlendingModes = {
 					break;
 			}
 		}
-}
+};

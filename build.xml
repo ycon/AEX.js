@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="js-signals" default="" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+<project name="aex" default="" basedir=".">
 
 
 
@@ -22,17 +22,16 @@
     	<delete file="${dist.dir}/${dist.name}.temp"/>
     </target>
 	
-	<target name="-purgeJSX">
+	<target name="-purgeTool">
 		<delete>
 			<fileset dir="${tool.dir}" includes="${tool.layerName}" />
 		</delete>
 	</target>
 	
-	<target name="compileJsx" depends="-purgeJSX">
+	
+	<target name="compileTools" depends="-purgeTool">
 		
 		<echo message="Building ${tool.layerName}" />
-		
-		
 		
 		<concat destfile="${tool.dir}/${tool.layerName}" fixlastline="yes">
 			
@@ -56,7 +55,41 @@
 		    "/>
 		</concat>
 		<echo message="${tool.layerName} built." />
+		
 	</target>
+	
+	<target name="-copytoCS5" if="tool.dir.cs5.exists">
+		
+		<copy file="${tool.dir}/${tool.layerName}" toFile="${tool.dir.cs5}/${tool.layerName}"/>
+		<echo message="Tool copied to ${tool.dir.cs5}" />
+		
+	</target>
+	
+	<target name="-copytoCS5.5" if="tool.dir.cs5.5.exists">
+		
+		<copy file="${tool.dir}/${tool.layerName}" toFile="${tool.dir.cs5.5}/${tool.layerName}"/>
+		<echo message="Tool copied to ${tool.dir.cs5.5}" />
+		
+	</target>
+	
+	<target name="deployTools" depends="compileTools">
+		
+		<echo message="Deploying Tools" />
+		
+		
+		<property name="tool.dir.cs5" value="/Applications/Adobe After Effects CS5/Scripts/ScriptUI Panels"/>
+		<available file="${tool.dir.cs5}" type="dir" property="tool.dir.cs5.exists"/>
+		
+		<property name="tool.dir.cs5.5" value="/Applications/Adobe After Effects CS5.5/Scripts/ScriptUI Panels"/>
+		<available file="${tool.dir.cs5.5}" type="dir" property="tool.dir.cs5.5.exists"/>
+
+		
+		<antcall target="-copytoCS5"/>
+		<antcall target="-copytoCS5.5"/>
+		
+		
+	</target>
+	
 
     <target name="compile" depends="-purgeJsDeploy">
 
@@ -182,12 +215,12 @@
     </target>
 	
 
-    <target name="build" depends="compile, minify">
+    <target name="build" depends="compile, minify, compileTools">
         <echo message="Build Complete." />
     </target>
 
-    <target name="deploy" depends="build, generateDocs">
-        <echo message="Build Complete." />
+    <target name="deploy" depends="build, generateDocs, deployTools">
+        <echo message="Deploy Complete." />
     </target>
 
 </project>
