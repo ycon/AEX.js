@@ -1,7 +1,8 @@
-var  ItemSubPanel = function(panel,item,width){
+
+var  ItemSubPanel = function( panel, item, width, context ){
 	
 	
-	PanelBase.call(this,panel,item,width);
+	PanelBase.call(this,panel,item,width,context);
 	
 	this.item = item;
 	
@@ -56,7 +57,13 @@ ItemSubPanel.prototype.setBrowse = function(){
 
 ItemSubPanel.prototype.exportComp = function(){
 	
+	var watcher = this.context.watcher;
+	
+	watcher.stop();
+	
 	var result = JSON.stringify(ProjectExporter.getProject(this.item),undefined,(this.get("indent") === true) ? "\t" : 0);
+	
+	
 	
 	if (this.get('src')){
 		
@@ -66,6 +73,8 @@ ItemSubPanel.prototype.exportComp = function(){
 	    file.write(result);
         file.close();
 	    
+        watcher.start();
+        
 	} else {
 		
 		var win = new Window('dialog',"Exporting "+this.item.name, undefined, {closeButton: true});
@@ -75,9 +84,12 @@ ItemSubPanel.prototype.exportComp = function(){
 		
 		win.add("statictext", undefined, "press Esc to close window");
 		
+		
+		win.onClose = function(){
+
+		};
+		
 		win.show();
-		
-		
 		
 	}
 	

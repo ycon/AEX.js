@@ -88,7 +88,7 @@ var ProjectExporter = {
 			
 			layer = comp.layers[i];
 			
-			if (layer.parent != null) {
+			if ( layer.parent != null && JSON.parse(layer.comment || "{}").exportable !== false ) {
 				
 				parents.push(layer.parent);
 	            
@@ -101,19 +101,18 @@ var ProjectExporter = {
 			}
 		}
 		
-		for ( var i = 1; i < comp.layers.length; i++) {
+		for ( var i = 1; i <= comp.layers.length; i++) {
 			
 			layer = comp.layers[i];
 			layer_opt = JSON.parse(layer.comment || "{}");
 			
-			if ( layer.active 
-				 || layer.isTrackMatte 
-				 || parents.indexOf(layer) !== -1
-				 || layer_opt.exportable !== false ) {
+			var exportable = layer_opt.exportable !== false;
+			
+			if ( exportable  && ( layer.enabled || layer.isTrackMatte || parents.indexOf(layer) !== -1 ) ){
 				
 				result.layers.push( this.getLayer( layer, layer_opt, project ) );
 				
-			}
+			};
 			
 		}
 
@@ -139,65 +138,142 @@ var ProjectExporter = {
 			result.stretch = layer.stretch;
 		}
 		
-		var properties = this.getProperties(layer,project,false,options);
-		var type = layer.toString();
+		switch ( layer.autoOrient ){
+			case AutoOrientType.ALONG_PATH:
+				result.autoOrient = 'path';
+				break;
+			case AutoOrientType.CAMERA_OR_POINT_OF_INTEREST:
+				if ( ! (layer instanceof CameraLayer) ) result.autoOrient = 'camera';
+				break;
+			default:
+				if ( layer instanceof CameraLayer ) result.autoOrient = 'none';
+		}
 		
-		switch (type){
+		var properties = this.getProperties( layer, project, false, options );
 		
-			case "[object AVLayer]":
-			case "[object TextLayer]":
-			case "[object ShapeLayer]":
-				
-				result.width = layer.width;
-				result.height = layer.height;
-			    
-			    if (layer.adjustmentLayer) result.adjustmentLayer = true;
-			    if (layer.threeDLayer) result.is3D = true;
-			    if (layer.threeDPerChar) result.have3DCharacter = true;
-			    if (!layer.collapseTransformation) result.collapse = false;
-			    if (layer.audioActive) result.audioActive = true;
-			    if (layer.blendingMode !== BlendingMode.NORMAL) result.blendingMode = BlendingModes.getString(l.blendingMode);
-			    if (layer.autoOrient) result.autoOrient = true;
-			    
-			    if (layer.hasTrackMatte) {
-			    	
-					switch(layer.trackMatteType){
-					
-						case TrackMatteType.ALPHA:
-							result.trackType = "alpha";
-							break;
-							
-						case TrackMatteType.ALPHA_INVERTED:
-							result.trackType = "alpha_inverted";
-							break;
-							
-						case TrackMatteType.LUMA:
-							result.trackType = "luma";
-							break;
-							
-						case TrackMatteType.LUMA_INVERTED:
-							result.trackType = "luma_inverted";
-							break;
-					}
-					
+		for(var prop_name in properties){
+			
+	        result[prop_name] = properties[prop_name];
+	        
+	    }
+
+		if (layer instanceof AVLayer || layer instanceof TextLayer || layer instanceof ShapeLayer){
+
+			if (layer.adjustmentLayer) result.adjustmentLayer = true;
+			if (layer.threeDLayer) result.is3D = true;
+			if (layer.threeDPerChar) result.have3DCharacter = true;
+			if (layer.collapseTransformation) result.collapse = true;
+			//if (layer.audioActive) result.audioActive = true;
+			if (layer.blendingMode !== BlendingMode.NORMAL) result.blendingMode = BlendingModes.getString(l.blendingMode);
+
+			if (layer.hasTrackMatte) {
+
+				switch(layer.trackMatteType){
+
+					case TrackMatteType.ALPHA:
+						result.trackType = "alpha";
+						break;
+	
+					case TrackMatteType.ALPHA_INVERTED:
+						result.trackType = "alpha_inverted";
+						break;
+	
+					case TrackMatteType.LUMA:
+						result.trackType = "luma";
+						break;
+	
+					case TrackMatteType.LUMA_INVERTED:
+						result.trackType = "luma_inverted";
+						break;
 				}
 
-	            break;
-	    }
-		
-		if ( type === "[object TextLayer]" ){
+			}
 			
-		} else if ( type === "[object ShapeLayer]" ) {
+			PropertyCleaner.cleanAVLayer( result, layer, project, options );
+			
+			if ( layer.source && !layer.nullLayer ){
+				
+		        result.source = this.getItem( layer.source, project );
+		        
+		    }
+			
+			
+			
+		}
+		
+		
+		
+		if ( layer instanceof TextLayer ){
+			
+			PropertyCleaner.cleanTextLayer(result, layer, project, options);
+			
+		} else if ( layer instanceof ShapeLayer ) {
+			
+		} else if (layer instanceof CameraLayer) {
+			
+			PropertyCleaner.cleanCameraLayer(result, layer, project, options);
 			
 		}
 		
 		return result;
 	},
 	
-	getProperties : function( layer, context, fct, options ){
+	getProperties : function( item, project, removeStyle, options ){
 		
-		var result = {};
+		var result,i;
 		
+		switch( item.propertyType ){
+		
+	        case PropertyType.INDEXED_GROUP:
+	        	
+	            result = [];
+	            
+	            for( i=1; i<=item.numProperties; i++ ){
+	            	
+	                if ( this.canParseProperty( item.property(i), removeStyle, true ) ){
+	                	
+	                    result.push( this.getProperties( item.property(i), project, removeStyle, options ) );
+	                    
+	                }
+	                
+	            }
+	            
+	            break;
+	            
+	        case PropertyType.NAMED_GROUP:
+	        	
+	            result = {};
+	            
+	            for( i = 1; i <= item.numProperties; i++ ){
+	            	
+	                if ( this.canParseProperty( item.property(i), removeStyle ) ){
+	                	
+	                    result[ this.legalizeName( item.property(i).name ) ] = this.getProperties( item.property(i), project, removeStyle, options );
+	                    
+	                }
+	                
+	            }
+	            
+	            if ( item.parentProperty ){
+	            	
+	                if ( item.parentProperty.propertyType == PropertyType.INDEXED_GROUP ){
+	                	
+	                    item.type = this.legalizeName(item.matchName);
+	                    
+	                }
+	                
+	            }
+	            
+	            break;
+	            
+	        default:
+	        	
+	        	var divider = (item.matchName.match(/opacity$|scale$|/gi)) ? 100 : 1;
+	        	
+	        	result = PropertyExporter.getProperty( item, project, options, divider );
+	        
+	    }
+
 		return result;
 	},
 	
@@ -209,6 +285,77 @@ var ProjectExporter = {
 		
 		return "#" + Math.floor( ( r<<16 ) + ( g<<8 ) + b ).toString(16);
 		
+	},
+	
+	legalizeName : function( val ){
+		
+		var name = val.replace(/[^a-z0-9A-Z_]/g,"");
+		
+		return name[0].toLowerCase() +name.slice(1);
+
+	},
+	
+	canParseProperty : function ( prop, removeStyle, deep ){
+		
+	    if (!deep){
+	    	
+	    	if (!prop.isModified 
+	    		&& prop.name != "Position" 
+	    		&& prop.name != "Anchor Point" 
+	    		&& prop.name != "Zoom" 
+	    		&& prop.name != "Point of Interest"  
+	    		&& !removeStyle ) {
+	    		return false;
+	    		
+	    	}
+	    	
+	    }
+	    
+	    if ( removeStyle && !( prop.canSetEnabled && prop.enabled ) ) {
+	        return false;
+	        
+	    }
+	     
+	    if (prop.canSetEnabled){
+	    	
+	        if (prop.enabled == false){
+	        	return false;
+	        }
+	        
+	    }
+	    
+	    if (!prop.active){
+	    	return false;
+	    }
+	    
+	    if ( removeStyle ){
+	    	return true;
+	    }
+	    
+	    switch( prop.propertyType ){
+	    
+	        case PropertyType.INDEXED_GROUP:
+	        case PropertyType.NAMED_GROUP:
+	            
+	            if ( !prop.numProperties ){
+	            	return false;
+	            }
+	            
+	            for( var i = 1; i <= prop.numProperties; i++ ){
+	            	
+	                if ( this.canParseProperty( prop.property(i), removeStyle, true ) ){
+	                	return true;
+	                	
+	                }
+	                
+	            }
+	            return false;
+	            
+	            break;
+	            
+	        default:
+	    }
+	    return true;
 	}
 	
 	

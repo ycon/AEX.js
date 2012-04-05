@@ -528,54 +528,434 @@ if (!Array.prototype.indexOf)
 
 var BlendingModes = {
 		
-		getString : function(val){
-			
-			switch(val){
-	
-				case BlendingMode.ADD:
-					return "add";
-					break;
-				case BlendingMode.COLOR_BURN:
-					return "subtract";
-					break;
-				case BlendingMode.DARKEN:
-					return "darken";
-					break;
-				case BlendingMode.DIFFERENCE:
-					return "difference";
-					break;
-				case BlendingMode.HARD_LIGHT:
-					return "hardlight";
-					break;
-				case BlendingMode.LIGHTEN:
-					return "lighten";
-					break;
-				case BlendingMode.LINEAR_LIGHT:
-					return "hardlight";
-					break;
-				case BlendingMode.MULTIPLY:
-					return "multiply";
-					break;
-				case BlendingMode.NORMAL:
-					return "normal";
-					break;
-				case BlendingMode.OVERLAY:
-					return "overlay";
-					break;
-				case BlendingMode.SCREEN:
-					return "screen";
-					break;
-				case BlendingMode.SILHOUETE_ALPHA:
-					return "erase";
-					break;
-				case BlendingMode.STENCIL_ALPHA:
-					return "alpha";
-					break;
-				default:
-					return "normal";
-					break;
-			}
+	getString : function(val){
+
+		switch(val){
+
+			case BlendingMode.ADD:
+				return "add";
+				break;
+			case BlendingMode.COLOR_BURN:
+				return "subtract";
+				break;
+			case BlendingMode.DARKEN:
+				return "darken";
+				break;
+			case BlendingMode.DIFFERENCE:
+				return "difference";
+				break;
+			case BlendingMode.HARD_LIGHT:
+				return "hardlight";
+				break;
+			case BlendingMode.LIGHTEN:
+				return "lighten";
+				break;
+			case BlendingMode.LINEAR_LIGHT:
+				return "hardlight";
+				break;
+			case BlendingMode.MULTIPLY:
+				return "multiply";
+				break;
+			case BlendingMode.NORMAL:
+				return "normal";
+				break;
+			case BlendingMode.OVERLAY:
+				return "overlay";
+				break;
+			case BlendingMode.SCREEN:
+				return "screen";
+				break;
+			case BlendingMode.SILHOUETE_ALPHA:
+				return "erase";
+				break;
+			case BlendingMode.STENCIL_ALPHA:
+				return "alpha";
+				break;
+			default:
+				return "normal";
+			break;
 		}
+	},
+
+	getMaskString : function(val){
+
+		switch(val){
+			case MaskMode.NONE:
+				return 'none';
+				break;
+			case MaskMode.ADD:
+				return 'add';
+				break;
+			case MaskMode.SUBTRACT:
+				return 'subtract';
+				break;
+			case MaskMode.INTERSECT:
+				return 'intersect';
+				break;
+			case MaskMode.LIGHTEN:
+				return 'lighten';
+				break;
+			case MaskMode.DARKEN:
+				return 'darken';
+				break;
+			case MaskMode.DIFFERENCE:
+				return 'difference';
+				break;
+			default:
+				return 'add';
+		}
+	}
+};
+
+var PropertyCleaner = {
+	
+	cleanAVLayer : function( result, layer , project ){
+		
+		var i,mask,mask_res;
+
+		for( i = 1; i <= layer.Masks.numProperties; i++ ){
+			
+			mask_res = result.masks[i-1];
+			mask = layer.Masks.property(i);
+			
+			mask_res.maskMode = BlendingModes.getMaskString(mask.maskMode);
+			mask_res.inverted = mask.inverted;
+			delete mask_res.type;
+
+		}
+		
+		
+		delete result.layerStyles;
+		
+		if ( ProjectExporter.canParseProperty( layer.property("Layer Styles"), true ) ){
+			
+			result.layerStyles =  ProjectExporter.getProperties( layer.property("Layer Styles"), project, true, options );
+			result.layerStyles.blendingOptions = ProjectExporter.getProperties( layer.property("Layer Styles").property("Blending Options"), project, false, options );
+			
+		}
+
+		if ( result.effects ){
+			
+	        for( i = 0; i < result.effects.length; i++ ){
+	        	
+	            result.effects[i].type = result.effects[i].type.replace("aDBE","");
+	            
+	        }
+	    }
+		
+		if (result.is3D){
+			
+			this.cleanRotation(result.transform);
+	        
+			delete result.materialOptions;
+			
+			//delete result.transform.xPosition;
+			//delete result.transform.yPosition;
+			//delete result.transform.zPosition;
+			
+		} else {
+			
+			result.transform.rotation = result.transform.xRotation;
+			delete result.transform.xRotation;
+			delete result.transform.yRotation;
+			delete result.transform.orientation;
+			
+			//delete result.transform.xPosition;
+			//delete result.transform.yPosition;
+			
+		}
+		
+	},
+	
+	cleanTextLayer : function(result, layer, project, options){
+		
+		result.type = "Text";
+		result.text.sourceText.valign = options.valign || 'top';
+		result.text.sourceText.text = "["+result.text.sourceText.text+"]";
+
+		if (options.leading){
+			
+			layer.text.sourceText.leading = options.leading;
+			
+		}
+		
+		if (layer.Masks.numProperties >= 1){
+			
+			result.text.bounds = this.getMaskBounds(layer.Masks.property(1));
+			
+		}
+
+	},
+	
+	cleanCameraLayer : function( result, layer , project ){
+		result.type = "Camera";
+
+	    if (result.transform){
+	        //delete result.transform.xPosition;
+	        //delete result.transform.yPosition;
+	        //delete result.transform.zPosition;
+	    	
+	    	this.cleanRotation(result.transform);
+	        
+	    	
+	    	
+	        if (result.transform.pointofInterest){
+	        	//$.write(layer.Transform["Point of Interest"].active);
+	        	result.transform.target = result.transform.pointofInterest;
+	        	delete result.transform.pointofInterest;
+	        }
+
+	        delete result.transform.opacity;
+	        
+	        if (result.cameraOptions){
+	            result.transform.zoom = result.cameraOptions.zoom;
+	        }
+	    }
+	    delete result.cameraOptions;
+	},
+	
+	getMaskBounds : function(m_obj){
+		
+		var v  = m_obj.maskShape.value.vertices,
+			max_x = -1000000000000000000,
+			max_y = -1000000000000000000,
+			result = {};
+		
+		result.x = 1000000000000000000;
+		result.y = 1000000000000000000;
+		
+		for(var i=0;i<v.length;i++){
+			
+			result.x = Math.min(result.x,v[i][0]);
+			result.y = Math.min(result.y,v[i][1]);
+			max_x = Math.max(max_x,v[i][0]);
+			max_y = Math.max(max_y,v[i][1]);
+			
+		}
+		
+		result.width = (max_x-result.x).toFixed(2);
+		result.height = (max_y-result.y).toFixed(2);
+		result.x = result.x.toFixed(2);
+		result.y = result.y.toFixed(2);
+
+		return result;
+	},
+	
+	cleanRotation : function( obj ) {
+		
+		obj.rotation = [ obj.xRotation || 0,
+		                 obj.yRotation || 0,
+		                 obj.zRotation || 0
+		               ];
+		
+		delete obj.xRotation;
+		delete obj.yRotation;
+		delete obj.zRotation;
+	}
+};
+
+var PropertyExporter = {
+		
+	getProperty : function( prop, project, options ){
+		
+		/*
+		var keys = [[value,time,type,ease,path]];
+		var val = [[value,time]];
+		var val = [value];
+		var val = value;
+		var val = [[0],0,0];
+		var val = [0,0,0];
+		
+		var val = ["L",0,0,"C",100,100,100,100,100,100,100,100,100,100,100,100];
+
+		*/
+		
+		if (prop.isTimeVarying){
+			
+			var keys = [],
+				y,
+				key,
+				ease,
+				time,
+				in_type,
+				out_type,
+				type,
+				in_anchor,
+				out_anchor,
+				anchors,
+				bezier_type = KeyframeInterpolationType.BEZIER,
+				linear_type = KeyframeInterpolationType.LINEAR,
+				old_type = 1,
+				old_time = 0,
+				old_time_dif = 0,
+				old_ease = [],
+				old_anchors = [];
+			
+			for ( var i = 1; i <= prop.numKeys; i++ ) {
+				
+
+				key = [this.getSimpleProperty( prop, prop.keyValue(i) )];
+				
+				time = prop.keyTime(i)-old_time;
+				key.push(time);
+				
+				in_type = prop.keyInInterpolationType(i);
+				out_type = prop.keyInInterpolationType(i);
+				
+				/*
+				
+				key :	[ value, time, ease, anchors ]
+						[ value, time, ease ]
+						[ value, time ]
+						value
+				
+				types:
+				
+				1 = holdIn + holdOut
+				2 = holdIn + linearOut
+				3 = holdIn + bezierOut
+				4 = linearIn + holdOut
+				5 = linearIn + linearOut
+				6 = linearIn + bezierOut
+				7 = bezierIn + holdOut
+				8 = bezierIn + linearOut
+				9 = bezierIn + bezierOut
+				
+				*/
+				
+				type = 1;
+				
+				if (out_type === linear_type){
+					type = 2;
+				} else if (out_type === bezier_type){
+					type = 3;
+				}
+				
+				if (in_type === linear_type){
+					type += 3;
+				} else if (in_type === bezier_type){
+					type += 6;
+				}
+				
+				ease = [];
+				
+				if ( type > 6 ){
+					ease = ease.concat(this.getEaseData( prop.keyInTemporalEase(i) ));
+				}
+				
+				if ( type%3 === 0 ){
+					ease = ease.concat(this.getEaseData( prop.keyOutTemporalEase(i) ));
+				}
+				
+				key.push(type);
+				
+				if ( ease.length && ease.join(',') !== old_ease.join(',') ){
+					key.push(ease);
+				}
+				
+				old_ease = ease;
+				
+				if (prop.isSpatial){
+
+					in_anchor = prop.keyInSpatialTangent(i);
+					out_anchor = prop.keyOutSpatialTangent(i);
+					anchors = [];
+					
+					for ( y = 0; y < in_anchor.length; i++) {
+						anchors.push(in_anchor[y]);
+					}
+					
+					for ( y = 0; y < out_anchor.length; i++) {
+						anchors.push(out_anchor[y]);
+					}
+					
+					if (anchors != old_anchors){
+						key.push(anchors);
+					}
+
+				} else {
+					anchors = undefined;
+				}
+				
+				old_anchors = anchors;
+				
+				
+				if (key.length == 3 && type === old_type) {
+					key.pop();
+				}
+				
+				old_type = type;
+				
+				if (key.length === 2 && time === old_time_dif) {
+					key.pop();
+				}
+				
+				old_time_dif = time;
+				old_time += old_time_dif;
+				
+				if (keys.length && !key.length) {
+					keys.push(key[0]);
+				} else {
+					keys.push(key);
+				}
+				
+			}
+			
+			return keys;
+			
+		} else {
+			return this.getSimpleProperty( prop, prop.valueAtTime( 0, true ) );
+		}
+
+	},
+	
+	getEaseData : function(data){
+		
+		var result = [];
+		
+		for ( var i = 0; i < data.length; i++) {
+			
+			result.push( data[i].speed, data[i].influence );
+			
+		}
+		
+		return result;
+	},
+	
+	getSimpleProperty : function( prop, value){
+		
+		var divider = (prop.unitsText === "percent") ? 100 : 1;
+		
+        switch (prop.propertyValueType){
+        	case PropertyValueType.MARKER:
+        		return this.getMarker(value);
+	        case PropertyValueType.SHAPE:
+	        	return this.getShape(value);
+	        case PropertyValueType.TEXT_DOCUMENT:
+	        	return this.getText(value);
+	            break;
+	        case PropertyValueType.TwoD_SPATIAL:
+            case PropertyValueType.TwoD:
+            	return [value[0]/divider,value[1]/divider];
+            	
+	        default :
+	        	
+	        	return [value[0]/divider,value[1]/divider,value[2]/divider];
+	    }
+        
+	},
+	
+	getMarker : function(val){
+		return "marker";
+	},
+	
+	getShape : function(val){
+		return "shape";
+	},
+
+	getText : function(val){
+		return "text";
+	},
 };
 ﻿
 
@@ -667,7 +1047,7 @@ var ProjectExporter = {
 			
 			layer = comp.layers[i];
 			
-			if (layer.parent != null) {
+			if ( layer.parent != null && JSON.parse(layer.comment || "{}").exportable !== false ) {
 				
 				parents.push(layer.parent);
 	            
@@ -680,19 +1060,18 @@ var ProjectExporter = {
 			}
 		}
 		
-		for ( var i = 1; i < comp.layers.length; i++) {
+		for ( var i = 1; i <= comp.layers.length; i++) {
 			
 			layer = comp.layers[i];
 			layer_opt = JSON.parse(layer.comment || "{}");
 			
-			if ( layer.active 
-				 || layer.isTrackMatte 
-				 || parents.indexOf(layer) !== -1
-				 || layer_opt.exportable !== false ) {
+			var exportable = layer_opt.exportable !== false;
+			
+			if ( exportable  && ( layer.enabled || layer.isTrackMatte || parents.indexOf(layer) !== -1 ) ){
 				
 				result.layers.push( this.getLayer( layer, layer_opt, project ) );
 				
-			}
+			};
 			
 		}
 
@@ -718,65 +1097,142 @@ var ProjectExporter = {
 			result.stretch = layer.stretch;
 		}
 		
-		var properties = this.getProperties(layer,project,false,options);
-		var type = layer.toString();
+		switch ( layer.autoOrient ){
+			case AutoOrientType.ALONG_PATH:
+				result.autoOrient = 'path';
+				break;
+			case AutoOrientType.CAMERA_OR_POINT_OF_INTEREST:
+				if ( ! (layer instanceof CameraLayer) ) result.autoOrient = 'camera';
+				break;
+			default:
+				if ( layer instanceof CameraLayer ) result.autoOrient = 'none';
+		}
 		
-		switch (type){
+		var properties = this.getProperties( layer, project, false, options );
 		
-			case "[object AVLayer]":
-			case "[object TextLayer]":
-			case "[object ShapeLayer]":
-				
-				result.width = layer.width;
-				result.height = layer.height;
-			    
-			    if (layer.adjustmentLayer) result.adjustmentLayer = true;
-			    if (layer.threeDLayer) result.is3D = true;
-			    if (layer.threeDPerChar) result.have3DCharacter = true;
-			    if (!layer.collapseTransformation) result.collapse = false;
-			    if (layer.audioActive) result.audioActive = true;
-			    if (layer.blendingMode !== BlendingMode.NORMAL) result.blendingMode = BlendingModes.getString(l.blendingMode);
-			    if (layer.autoOrient) result.autoOrient = true;
-			    
-			    if (layer.hasTrackMatte) {
-			    	
-					switch(layer.trackMatteType){
-					
-						case TrackMatteType.ALPHA:
-							result.trackType = "alpha";
-							break;
-							
-						case TrackMatteType.ALPHA_INVERTED:
-							result.trackType = "alpha_inverted";
-							break;
-							
-						case TrackMatteType.LUMA:
-							result.trackType = "luma";
-							break;
-							
-						case TrackMatteType.LUMA_INVERTED:
-							result.trackType = "luma_inverted";
-							break;
-					}
-					
+		for(var prop_name in properties){
+			
+	        result[prop_name] = properties[prop_name];
+	        
+	    }
+
+		if (layer instanceof AVLayer || layer instanceof TextLayer || layer instanceof ShapeLayer){
+
+			if (layer.adjustmentLayer) result.adjustmentLayer = true;
+			if (layer.threeDLayer) result.is3D = true;
+			if (layer.threeDPerChar) result.have3DCharacter = true;
+			if (layer.collapseTransformation) result.collapse = true;
+			//if (layer.audioActive) result.audioActive = true;
+			if (layer.blendingMode !== BlendingMode.NORMAL) result.blendingMode = BlendingModes.getString(l.blendingMode);
+
+			if (layer.hasTrackMatte) {
+
+				switch(layer.trackMatteType){
+
+					case TrackMatteType.ALPHA:
+						result.trackType = "alpha";
+						break;
+	
+					case TrackMatteType.ALPHA_INVERTED:
+						result.trackType = "alpha_inverted";
+						break;
+	
+					case TrackMatteType.LUMA:
+						result.trackType = "luma";
+						break;
+	
+					case TrackMatteType.LUMA_INVERTED:
+						result.trackType = "luma_inverted";
+						break;
 				}
 
-	            break;
-	    }
-		
-		if ( type === "[object TextLayer]" ){
+			}
 			
-		} else if ( type === "[object ShapeLayer]" ) {
+			PropertyCleaner.cleanAVLayer( result, layer, project, options );
+			
+			if ( layer.source && !layer.nullLayer ){
+				
+		        result.source = this.getItem( layer.source, project );
+		        
+		    }
+			
+			
+			
+		}
+		
+		
+		
+		if ( layer instanceof TextLayer ){
+			
+			PropertyCleaner.cleanTextLayer(result, layer, project, options);
+			
+		} else if ( layer instanceof ShapeLayer ) {
+			
+		} else if (layer instanceof CameraLayer) {
+			
+			PropertyCleaner.cleanCameraLayer(result, layer, project, options);
 			
 		}
 		
 		return result;
 	},
 	
-	getProperties : function( layer, context, fct, options ){
+	getProperties : function( item, project, removeStyle, options ){
 		
-		var result = {};
+		var result,i;
 		
+		switch( item.propertyType ){
+		
+	        case PropertyType.INDEXED_GROUP:
+	        	
+	            result = [];
+	            
+	            for( i=1; i<=item.numProperties; i++ ){
+	            	
+	                if ( this.canParseProperty( item.property(i), removeStyle, true ) ){
+	                	
+	                    result.push( this.getProperties( item.property(i), project, removeStyle, options ) );
+	                    
+	                }
+	                
+	            }
+	            
+	            break;
+	            
+	        case PropertyType.NAMED_GROUP:
+	        	
+	            result = {};
+	            
+	            for( i = 1; i <= item.numProperties; i++ ){
+	            	
+	                if ( this.canParseProperty( item.property(i), removeStyle ) ){
+	                	
+	                    result[ this.legalizeName( item.property(i).name ) ] = this.getProperties( item.property(i), project, removeStyle, options );
+	                    
+	                }
+	                
+	            }
+	            
+	            if ( item.parentProperty ){
+	            	
+	                if ( item.parentProperty.propertyType == PropertyType.INDEXED_GROUP ){
+	                	
+	                    item.type = this.legalizeName(item.matchName);
+	                    
+	                }
+	                
+	            }
+	            
+	            break;
+	            
+	        default:
+	        	
+	        	var divider = (item.matchName.match(/opacity$|scale$|/gi)) ? 100 : 1;
+	        	
+	        	result = PropertyExporter.getProperty( item, project, options, divider );
+	        
+	    }
+
 		return result;
 	},
 	
@@ -788,6 +1244,77 @@ var ProjectExporter = {
 		
 		return "#" + Math.floor( ( r<<16 ) + ( g<<8 ) + b ).toString(16);
 		
+	},
+	
+	legalizeName : function( val ){
+		
+		var name = val.replace(/[^a-z0-9A-Z_]/g,"");
+		
+		return name[0].toLowerCase() +name.slice(1);
+
+	},
+	
+	canParseProperty : function ( prop, removeStyle, deep ){
+		
+	    if (!deep){
+	    	
+	    	if (!prop.isModified 
+	    		&& prop.name != "Position" 
+	    		&& prop.name != "Anchor Point" 
+	    		&& prop.name != "Zoom" 
+	    		&& prop.name != "Point of Interest"  
+	    		&& !removeStyle ) {
+	    		return false;
+	    		
+	    	}
+	    	
+	    }
+	    
+	    if ( removeStyle && !( prop.canSetEnabled && prop.enabled ) ) {
+	        return false;
+	        
+	    }
+	     
+	    if (prop.canSetEnabled){
+	    	
+	        if (prop.enabled == false){
+	        	return false;
+	        }
+	        
+	    }
+	    
+	    if (!prop.active){
+	    	return false;
+	    }
+	    
+	    if ( removeStyle ){
+	    	return true;
+	    }
+	    
+	    switch( prop.propertyType ){
+	    
+	        case PropertyType.INDEXED_GROUP:
+	        case PropertyType.NAMED_GROUP:
+	            
+	            if ( !prop.numProperties ){
+	            	return false;
+	            }
+	            
+	            for( var i = 1; i <= prop.numProperties; i++ ){
+	            	
+	                if ( this.canParseProperty( prop.property(i), removeStyle, true ) ){
+	                	return true;
+	                	
+	                }
+	                
+	            }
+	            return false;
+	            
+	            break;
+	            
+	        default:
+	    }
+	    return true;
 	}
 	
 	
@@ -907,7 +1434,7 @@ LayerSetting.prototype = {
 			
 			if (layer){
 				
-				this.layerPanel = new LayerPanel(this.panel,layer);
+				this.layerPanel = new LayerPanel(this.panel,layer,this);
 				
 			} else {
 				
@@ -915,7 +1442,7 @@ LayerSetting.prototype = {
 						&& app.project.activeItem 
 						&& app.project.activeItem.typeName == "Composition"){
 					
-					this.layerPanel = new ItemSubPanel(this.panel,app.project.activeItem);
+					this.layerPanel = new ItemSubPanel(this.panel,app.project.activeItem,undefined,this);
 
 				} else {
 					
@@ -936,10 +1463,11 @@ LayerSetting.prototype = {
 };
 
 var base = new LayerSetting(this);
-var PanelBase = function(panel,layer,width){
+var PanelBase = function(panel,layer,width,context){
 
 	this.panel = panel;
 	this.layer = layer;
+	this.context = context;
 	
 	if (panel && layer){
 		
@@ -1092,13 +1620,13 @@ PanelBase.prototype = {
 			
 		}
 };
-var LayerPanel = function(panel,layer){
+var LayerPanel = function(panel,layerm,context){
 
 	PanelBase.call(this,panel,layer);
 	
 	this.group.add("statictext", undefined, layer.name).alignment = 'left';
 
-	this.setBoolean('export',"Exportable",true);
+	this.setBoolean('exportable',"Exportable",true);
 			
 			
 	if (this.layer instanceof TextLayer){
@@ -1109,7 +1637,7 @@ var LayerPanel = function(panel,layer){
 		
 		var holder = this.group.add("panel",undefined,layer.source.name);
 		holder.margins = 0;
-		this.itemPanel = new ItemSubPanel(holder,layer.source,this.width-10);
+		this.itemPanel = new ItemSubPanel(holder,layer.source,this.width-10,context);
 		
 	}
 			
@@ -1123,10 +1651,11 @@ var LayerPanel = function(panel,layer){
 LayerPanel.prototype = new PanelBase();
 LayerPanel.prototype.constructor = LayerPanel;
 
-var  ItemSubPanel = function(panel,item,width){
+
+var  ItemSubPanel = function( panel, item, width, context ){
 	
 	
-	PanelBase.call(this,panel,item,width);
+	PanelBase.call(this,panel,item,width,context);
 	
 	this.item = item;
 	
@@ -1181,7 +1710,13 @@ ItemSubPanel.prototype.setBrowse = function(){
 
 ItemSubPanel.prototype.exportComp = function(){
 	
+	var watcher = this.context.watcher;
+	
+	watcher.stop();
+	
 	var result = JSON.stringify(ProjectExporter.getProject(this.item),undefined,(this.get("indent") === true) ? "\t" : 0);
+	
+	
 	
 	if (this.get('src')){
 		
@@ -1191,6 +1726,8 @@ ItemSubPanel.prototype.exportComp = function(){
 	    file.write(result);
         file.close();
 	    
+        watcher.start();
+        
 	} else {
 		
 		var win = new Window('dialog',"Exporting "+this.item.name, undefined, {closeButton: true});
@@ -1200,9 +1737,12 @@ ItemSubPanel.prototype.exportComp = function(){
 		
 		win.add("statictext", undefined, "press Esc to close window");
 		
+		
+		win.onClose = function(){
+
+		};
+		
 		win.show();
-		
-		
 		
 	}
 	

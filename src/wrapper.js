@@ -1,14 +1,14 @@
 
-/*jslint onevar:true, undef:true, newcap:true, regexp:true, bitwise:true, maxerr:50, indent:4, white:false, nomen:false, plusplus:false */
-/*global define:false, require:false, exports:false, module:false*/
-
 //::LICENSE:://
+
+
 (function(global){
 
 /**
 * @namespace ::NAME:: namespace - Kick ass Animation Library
 * @name ::NAME::
 */
+
 var externs = /** @lends ::NAME:: */{
 	/**
 	* ::NAME:: Version Number

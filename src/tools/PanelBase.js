@@ -1,7 +1,8 @@
-var PanelBase = function(panel,layer,width){
+var PanelBase = function(panel,layer,width,context){
 
 	this.panel = panel;
 	this.layer = layer;
+	this.context = context;
 	
 	if (panel && layer){
 		

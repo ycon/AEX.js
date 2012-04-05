@@ -27,7 +27,7 @@ LayerSetting.prototype = {
 			
 			if (layer){
 				
-				this.layerPanel = new LayerPanel(this.panel,layer);
+				this.layerPanel = new LayerPanel(this.panel,layer,this);
 				
 			} else {
 				
@@ -35,7 +35,7 @@ LayerSetting.prototype = {
 						&& app.project.activeItem 
 						&& app.project.activeItem.typeName == "Composition"){
 					
-					this.layerPanel = new ItemSubPanel(this.panel,app.project.activeItem);
+					this.layerPanel = new ItemSubPanel(this.panel,app.project.activeItem,undefined,this);
 
 				} else {
 					

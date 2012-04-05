@@ -40,12 +40,18 @@
 		    	json2.js
 		    "/>
 			
+			<!--<filelist dir="${src.dir}/geom" files="
+				Vector.js
+			"/>-->
+			
 			<filelist dir="${src.dir}/utils" files="
 				IndexOf.js,
 				BlendingModes.js
 			"/>
 			
 		    <filelist dir="${src.dir}/tools" files="
+		    	PropertyCleaner.js,
+		    	PropertyExporter.js,
 		    	ProjectExporter.js,
 		    	LayerWatcher.js,
 		    	LayerSetting.js,
@@ -148,7 +154,7 @@
     	    	
     	<loadfile property="sources.js" srcFile="${dist.dir}/${dist.name}.temp"/>
     	
-    	<copyfile src="${src.dir}/wrapper.js" dest="${dist.dir}/${dist.name}"/>
+    	<copy file="${src.dir}/wrapper.js" toFile="${dist.dir}/${dist.name}"/>
     	
     	
         <replace>
