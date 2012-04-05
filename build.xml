@@ -29,20 +29,23 @@
 	</target>
 	
 	
-	<target name="compileTools" depends="-purgeTool">
+	<target name="compileTools" depends="-purgeTool, compile">
 		
 		<echo message="Building ${tool.layerName}" />
 		
 		<concat destfile="${tool.dir}/${tool.layerName}" fixlastline="yes">
+			
+			
+			<filelist dir="${dist.dir}" files="
+				${dist.name}
+			"/>
+			
 			
 		    <filelist dir="${src.dir}/libs" files="
 		    	signals.min.js,
 		    	json2.js
 		    "/>
 			
-			<!--<filelist dir="${src.dir}/geom" files="
-				Vector.js
-			"/>-->
 			
 			<filelist dir="${src.dir}/utils" files="
 				IndexOf.js,

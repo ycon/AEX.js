@@ -1,12 +1,11 @@
 
-/*jslint onevar:true, undef:true, newcap:true, regexp:true, bitwise:true, maxerr:50, indent:4, white:false, nomen:false, plusplus:false */
-/*global define:false, require:false, exports:false, module:false*/
-
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 16891 (2012/03/30 02:30 PM)
+ * Version: 0.1.1 - Build: 17041 (2012/04/05 05:04 PM)
  */
+
+
 
 (function(global){
 
@@ -14,6 +13,7 @@
 * @namespace AE namespace - Kick ass Animation Library
 * @name AE
 */
+
 var externs = /** @lends AE */{
 	/**
 	* AE Version Number
@@ -166,6 +166,23 @@ var cubicToQuadratic = function(p1,c1,c2,p2,path,precision){
 		
 	} else {
 		// Lets do some curve spliting!
+		/*
+		var begin =p1.clone();
+		var end = p2.clone();
+		var mid = c1.clone().lerp(c2,d);
+		
+		var d1_c1 = begin.lerp(c1,d).clone();
+		var d1_c2 = begin.lerp(mid,d).clone();
+		
+		var d2_c2 = end.lerp(c2,1-d).clone();
+		var d2_c1 = mid.lerp(end,d).clone();
+		
+		mid.lerp(begin,1-d);
+		end.set(p2);
+		begin.set(p1);
+		*/
+		
+		
 		
 		var d1_p1 = p1.clone(),
 			d1_c1 = d1_p1.clone().lerp(c1,d),
