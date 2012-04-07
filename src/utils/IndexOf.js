@@ -22,3 +22,12 @@ if (!Array.prototype.indexOf)
   };
 }
 
+if (!isArray){
+	
+	var isArray = function (o) {
+		return Object.prototype.toString.call(o) === '[object Array]';
+	};
+	
+}
+
+

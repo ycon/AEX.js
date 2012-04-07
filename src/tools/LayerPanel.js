@@ -1,4 +1,4 @@
-var LayerPanel = function(panel,layerm,context){
+var LayerPanel = function(panel,layer,context){
 
 	PanelBase.call(this,panel,layer);
 	

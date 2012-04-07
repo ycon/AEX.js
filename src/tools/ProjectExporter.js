@@ -268,9 +268,7 @@ var ProjectExporter = {
 	            
 	        default:
 	        	
-	        	var divider = (item.matchName.match(/opacity$|scale$|/gi)) ? 100 : 1;
-	        	
-	        	result = PropertyExporter.getProperty( item, project, options, divider );
+	        	result = PropertyExporter.getProperty( item, project, options );
 	        
 	    }
 
@@ -283,7 +281,9 @@ var ProjectExporter = {
 		var g = Math.floor( Math.min( Math.max( color[1], 0 ), 1 )*0xFF );
 		var b = Math.floor( Math.min( Math.max( color[2], 0 ), 1 )*0xFF );
 		
-		return "#" + Math.floor( ( r<<16 ) + ( g<<8 ) + b ).toString(16);
+		var str = Math.floor( ( r<<16 ) + ( g<<8 ) + b ).toString(16);
+		
+		return "#" + "000000".slice(0, 6-str.length) + str;
 		
 	},
 	

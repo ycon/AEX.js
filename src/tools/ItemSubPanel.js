@@ -65,9 +65,9 @@ ItemSubPanel.prototype.exportComp = function(){
 	
 	
 	
-	if (this.get('src')){
+	if (this.get('location')){
 		
-		var file = new File(this.get('src'));
+		var file = new File(this.get('location'));
 	    file.encoding = "UTF8";
 	    file.open("w");
 	    file.write(result);

@@ -35,18 +35,19 @@
 		
 		<concat destfile="${tool.dir}/${tool.layerName}" fixlastline="yes">
 			
-			
-			<filelist dir="${dist.dir}" files="
-				${dist.name}
+			<filelist dir="${src.dir}/utils" files="
+				AfterEffects.js
 			"/>
 			
-			
-		    <filelist dir="${src.dir}/libs" files="
+			<filelist dir="${src.dir}/libs" files="
 		    	signals.min.js,
 		    	json2.js
 		    "/>
 			
-			
+			<filelist dir="${dist.dir}" files="
+				${dist.name}
+			"/>
+
 			<filelist dir="${src.dir}/utils" files="
 				IndexOf.js,
 				BlendingModes.js

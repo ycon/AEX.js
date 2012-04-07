@@ -50,6 +50,10 @@ Keys.prototype = {
 		return this.length_;
 	},
 	
+	num : function(){
+		return this.keys_.length;
+	},
+	
 	get : function(pos){
 		
 		

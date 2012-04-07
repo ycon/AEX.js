@@ -5,6 +5,7 @@ var LayerBase = function(){
 	this.is3D = true;
 	this.parent = null;
 	this.visible = true;
+	this.name = null;
 	
 };
 
