@@ -2,7 +2,7 @@
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17206 (2012/04/07 12:42 AM)
+ * Version: 0.1.1 - Build: 17229 (2012/04/08 09:10 AM)
  */
 
 
@@ -241,7 +241,7 @@ var _Stack = {
 		this.on.add.dispatch(item,pos,this);
 	},
 	check : function(item){
-		if (!(item instanceof this._type)){
+		if (!(item instanceof this.type_)){
 			throw("not the right type");
 		}
 	}
@@ -251,11 +251,11 @@ var _Stack = {
 /** @constructor */
 var Stack = function(type){
 	
-	this._items = [];
+	this.items_ = [];
 
-	this._type = Object;
-	if (type && type.prototype instanceof this._type){
-		this._type = type;
+	this.type_ = Object;
+	if (type && type.prototype instanceof this.type_){
+		this.type_ = type;
 	}
 	
 	this.on = {
@@ -271,17 +271,17 @@ Stack.prototype = {
 	constructor : Stack,
 	
 	/** @private */
-	_items : null,
+	items_ : null,
 	
 	/** @private */
-	_type : null,
+	type_ : null,
 	
 	/**
 	 * @param item
 	 * @returns {Number}
 	 */
 	index : function(item){
-		return this._items.indexOf(item);
+		return this.items_.indexOf(item);
 	},
 
 	/**
@@ -298,7 +298,7 @@ Stack.prototype = {
 	 * @returns {Object}
 	 */
 	get : function(i){
-		return this._items[i];
+		return this.items_[i];
 	},
 	
 	/**
@@ -306,7 +306,7 @@ Stack.prototype = {
 	 * @returns {Number}
 	 */
 	getLength : function(){
-		return this._items.length;
+		return this.items_.length;
 	},
 	
 	/**
@@ -319,7 +319,7 @@ Stack.prototype = {
 		_Stack.check.call(this,item);
 		
 		if (!this.have(item)){
-			this._items.push(item);
+			this.items_.push(item);
 			_Stack.add.call(this,item,this.length-1);
 		} else {
 			throw("item already present");
@@ -335,7 +335,7 @@ Stack.prototype = {
 		
 		_Stack.check.call(this,item);
 		
-		var items = this._items;
+		var items = this.items_;
 		
 		
 		
@@ -360,7 +360,7 @@ Stack.prototype = {
 	 */
 	remove : function(item){
 		
-		var items = this._items;
+		var items = this.items_;
 		var pos = items.indexOf(item);
 		
 		if (pos !== -1){
@@ -382,7 +382,7 @@ Stack.prototype = {
 	 */
 	swap : function(item1,item2){
 		
-		var items = this._items;
+		var items = this.items_;
 		var pos1 = items.indexOf(item1);
 		var pos2 = items.indexOf(item2);
 		
@@ -401,7 +401,7 @@ Stack.prototype = {
 	 * @param {function} func
 	 */
 	each : function(func){
-		var items = this._items;
+		var items = this.items_;
 		var l = items.length;
 		
 		for ( var i = 0; i < l; i++) {
@@ -1649,6 +1649,10 @@ Keys.prototype = {
 		return this.length_;
 	},
 	
+	num : function(){
+		return this.keys_.length;
+	},
+	
 	get : function(pos){
 		
 		
@@ -1838,6 +1842,7 @@ var LayerBase = function(){
 	this.is3D = true;
 	this.parent = null;
 	this.visible = true;
+	this.name = null;
 	
 };
 

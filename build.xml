@@ -14,24 +14,12 @@
 
 
     <!-- targets -->
-
-    <target name="-purgeJsDeploy">
-        <delete>
-            <fileset dir="${dist.dir}" includes="${dist.name} ${dist.min.name}" />
-        </delete>
-    	<delete file="${dist.dir}/${dist.name}.temp"/>
-    </target>
 	
-	<target name="-purgeTool">
-		<delete>
-			<fileset dir="${tool.dir}" includes="${tool.layerName}" />
-		</delete>
-	</target>
-	
-	
-	<target name="compileTools" depends="-purgeTool, compile">
+	<target name="compileTools" depends="compile">
 		
 		<echo message="Building ${tool.layerName}" />
+		
+		<delete file="${tool.dir}/${tool.layerName}"/>
 		
 		<concat destfile="${tool.dir}/${tool.layerName}" fixlastline="yes">
 			
@@ -101,11 +89,14 @@
 	</target>
 	
 
-    <target name="compile" depends="-purgeJsDeploy">
+    <target name="compile">
 
         <echo message="Building ${dist.name}..." />
-
-        <buildnumber file="${build.dir}/build.number"/>
+    	
+    	<delete file="${dist.dir}/${dist.name}"/>
+		<delete file="${dist.dir}/${dist.name}.temp"/>
+    	
+    	<buildnumber file="${build.dir}/build.number"/>
 
         <tstamp>
             <format property="build.date" pattern="yyyy/MM/dd hh:mm aa" unit="hour"/>
@@ -193,7 +184,9 @@
 
     <target name="minify">
         <echo message="Building ${dist.min.name}..." />
-
+    	
+    	<delete file="${dist.dir}/${dist.min.name}"/>
+    	
         <jscomp compilationLevel="simple" debug="false" output="${dist.dir}/${dist.min.name}">
             <externs dir="${build.dir}">
                 <file name="externs.js"/>

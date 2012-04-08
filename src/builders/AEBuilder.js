@@ -3,7 +3,6 @@ var AeBuilder = {
 	
 	build: function(data){
 		
-		
 		return this.buildItem(data.items[data.root],data.items);
 		
 	},
@@ -70,168 +69,88 @@ var AeBuilder = {
 		return controller;
 	},
 	
-	setProp: function (target, name, animator, prop) {
+	setProp: function (obj, name, animator, value) {
 		
-		var key_data,
-			keys,
-			keys_x,
-			keys_y,
-			keys_z,
-			i,
-			isSpatial = false,
-			isVector = false;
+		var i,k,val,offset,is_hold,keys,key,is_object,is_array,is_spatial,is_vector;
 		
-		if (prop !== undefined){
+		if (isArray(value)){
 			
-			if (isArray(prop)) {
+			is_spatial = null;
+			offset = 0;
+			
+			for (i = 0; i < value.length; i++) {
 				
-				if (isArray(prop[0])) {
+				k = value[i];
+				
+				is_object = typeof k !== 'object';
+				is_array = isArray(k);
+				is_hold = ( is_array || !is_object || (k.e && k.e.o === 0));
+				val = (is_array) ? k[0] : (is_object && k.v) ? k.v : k;
+				is_vector = (typeof val === 'object' && val.x !== undefined && val.y !== undefined);
+				
+				if (is_vector){
+					val = new Vector(val.x,val.y,val,z);
+				}
+				
+				if (is_spatial === null){
 					
-					key_data = prop[0];
+					is_spatial = is_vector;
 					
-					if (isArray(key_data[0])){
-						// is a vector
-						if (this.isSpatialArray_(key_data)){
-							
-							// is spatial
-							
-							keys = new SpatialKeys(target,name);
-							animator.add(keys);
-							isSpatial = true;
-							
-						} else {
-							isVector = true;
-							keys_x = new Keys(target[name],'x');
-							keys_y = new Keys(target[name],'y');
-							
-							animator.add(keys_x);
-							animator.add(keys_y);
-							
-							
-							if (key_data[0].length >=2){
-								keys_y = new Keys(target[name],'z');
-								animator.add(keys_z);
-							}
-							// non spatial, need to be divided
-						}
+					if (is_spatial){
+						keys = new SpatialKeys(obj,name);
 					} else {
-						
-						// just add keys;
-						
-						keys = new Keys(target,name);
-						animator.add(keys);
-						
-					}
-					
-					
-					
-					var old_ease = [0,0,1,1];
-					var ease;
-					var old_type = 1;
-					var type = 1;
-					var old_time = 0;
-					var time;
-					var last_time = 0;
-					var haveInEase = false;
-					var haveOutEase = false;
-					
-					var haveOutHold = true;
-					var key,key_x,key_y,key_z;
-					
-					var old_tangents = [0,0,0,0,0,0];
-					var tangents;
-					
-					var value;
-					
-					for ( i = 0; i < prop.length; i++) {
-						
-						key_data = prop[i];
-						value = key_data[0];
-						time = key_data[1] || old_time;
-						type = key_data[2] || old_type;
-						
-						
-						haveInEase = type > 6;
-						haveOutEase = !(type%3);
-						
-						ease = key_data[3] || old_ease;
-						
-						
-						
-						//haveInHold = type <= 3;
-						haveOutHold = type === 1 || type === 4 || type === 7;
-						
-						if (isVector){
-							key_x = keys_x.add(time,value[0],haveOutHold);
-							key_y = keys_y.add(time,value[1],haveOutHold);
-							if (keys_z){
-								key_z = keys_z.add(time,value[2],haveOutHold);
-							}
-						} else {
-							key = keys.add(time,value,haveOutHold);
-						}
-						
-						if (haveInEase){
-							key.inX = ease[0];
-							key.inY = ease[1];
-							if (haveOutEase){
-								key.outX = ease[2];
-								key.outY = ease[4];
-							}
-						} else if (haveOutEase){
-							if (haveOutEase){
-								key.outX = ease[0];
-								key.outY = ease[1];
-							}
-						}
-						
-						if (isSpatial){
-							
-							tangents = key_data[(haveInEase||haveOutEase)?3:4] || old_tangents;
-							
-							if (tangents.length > 4){
-								key.inTangent = new Vector(tangents[0], tangents[1], tangents[2]);
-								key.outTangent = new Vector(tangents[3], tangents[4], tangents[5]);
-							} else {
-								key.inTangent = new Vector(tangents[0], tangents[1]);
-								key.outTangent = new Vector(tangents[2], tangents[3]);
-							}
-						
-						}
-						
-						old_time = time;
-						old_type = type;
-						old_ease = ease;
-						last_time += time;
-					}
-					
-				} else if (typeof target[name] === 'object') {
-					
-					target[name].x = prop[0];
-					target[name].y = prop[1];
-					
-					if (target[name].z !== undefined && prop[2] !== undefined){
-						target[name].z = prop[2];
+						keys = new Keys(obj,name);
 					}
 				}
 				
-			} else if (typeof prop === 'number' && typeof target[name] === 'number') {
+				if (is_array){
+					offset = k[1];
+				} else if (is_object && k.d !== undefined){
+					offset = k.d || 0;
+				}
 				
-				target[name] = prop;
+				key = keys.add(offset,val,is_hold);
 				
-			} else if ( typeof prop === 'object' 
-						&& typeof target[name] === 'object' 
-						&& (prop.x !== undefined || prop.y !== undefined || prop.z !== undefined) ) {
+				if (k.e && isArray(k.e.i)){
+					key.inX = k.e.i[0];
+					key.inY = k.e.i[1];
+				}
+				if (k.e && isArray(k.e.o)){
+					key.outX = k.e.o[0];
+					key.outY = k.e.o[1];
+				}
 				
-				this.setProp(target[name], 'x', animator, prop.x);
-				this.setProp(target[name], 'y', animator, prop.y);
-				
-				if (prop.z !== undefined){
-					this.setProp(target[name], 'z', animator, prop.z);
+				if (is_spatial && k.t){
+					if (isArray(k.t.i)){
+						key.inTangent = new Vector(k.t.i[0],k.t.i[1],k.t.i[2]);
+					}
+					if (isArray(k.t.o)){
+						key.outTangent = new Vector(k.t.o[0],k.t.o[1],k.t.o[2]);
+					}
 				}
 				
 			}
+			
+			if (keys){
+				animator.add(keys);
+			}
+			
+		} else if (prop && isArray(value.x)) {
+			
+			setProp(obj[name],'x',animator,value.x);
+			
+			if (prop.y){
+				setProp(obj[name],'y',animator,value.y);
+			}
+			
+			if (prop.z){
+				setProp(obj[name],'z',animator,value.z);
+			}
+			
+		} else {
+			obj[name] = value;
 		}
+		
 	},
 	
 	isSpatialArray_: function(arr){

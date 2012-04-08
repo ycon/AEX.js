@@ -55,7 +55,11 @@ var PropertyCleaner = {
 			delete result.transform.yRotation;
 			delete result.transform.orientation;
 			
-			this.reduceProperty(result.transform.scale);
+			
+			if ( result.transform.scale ){
+				delete result.transform.scale.z;
+			}
+			
 			this.reduceProperty(result.transform.anchor);
 			this.reduceProperty(result.transform.position);
 			
@@ -133,60 +137,26 @@ var PropertyCleaner = {
 	},
 	
 	reduceProperty : function (prop){
-		if (isArray(prop) && prop.length){
-			
-			if (isArray(prop[0])){
-				
-				var typeIsArray = isArray(prop[0][0]);
-				var ease_type = 1;
-				
-				for ( var i = 0; i < prop.length; i++) {
-					
-					if (typeIsArray){
-						
-						if (isArray(prop[i][0])){
-							
-							prop[i][0].pop();
-							
-							if (prop[i][2]){
-								ease_type = prop[i][2];
-							}
-
-							if (prop[i][3] && (!(ease_type % 3) || ease_type >= 6)){
-								if (prop[i][3].length > 11){
-									prop[i][3].splice(10,2);
-								} 
-								if (prop[i][3].length > 5){
-									prop[i][3].splice(4,2);
-								} 
-							}
-							
-							if (prop[i][4]){
-								prop[i][4].splice(5,1);
-								prop[i][4].splice(2,1);
-							}
-							
-						} else {
-							prop[i].pop();
-						}
-					}
-					
+		if (isArray(prop)){
+			for (var i = 0; i < prop.length; i++) {
+				delete prop[i].v.z;
+				if (prop.t){
+					prop[i].t.i.pop();
+					prop[i].t.o.pop();
 				}
-				
-				
-			} else {
-				prop.pop();
-				return;
 			}
+		} else {
+			delete prop.z;
 		}
 	},
 	
 	cleanRotation : function( obj ) {
 		
-		obj.rotation = [ obj.xRotation || 0,
-		                 obj.yRotation || 0,
-		                 obj.zRotation || 0
-		               ];
+		obj.rotation = {
+			x:obj.xRotation || 0,
+		    y:obj.yRotation || 0,
+		    z:obj.zRotation || 0
+		};
 		
 		delete obj.xRotation;
 		delete obj.yRotation;

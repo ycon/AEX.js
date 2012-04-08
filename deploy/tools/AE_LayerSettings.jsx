@@ -12,10 +12,6 @@ var window = {
 var round = function(number,rounding){
 	return Math.floor(number/rounding)*rounding;
 };
-
-var isArray = function (o) {
-	return Object.prototype.toString.call(o) === '[object Array]';
-};
 /*
 
  JS Signals <http://millermedeiros.github.com/js-signals/>
@@ -523,7 +519,7 @@ if (!JSON) {
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17206 (2012/04/07 12:42 AM)
+ * Version: 0.1.1 - Build: 17229 (2012/04/08 09:10 AM)
  */
 
 
@@ -762,7 +758,7 @@ var _Stack = {
 		this.on.add.dispatch(item,pos,this);
 	},
 	check : function(item){
-		if (!(item instanceof this._type)){
+		if (!(item instanceof this.type_)){
 			throw("not the right type");
 		}
 	}
@@ -772,11 +768,11 @@ var _Stack = {
 /** @constructor */
 var Stack = function(type){
 	
-	this._items = [];
+	this.items_ = [];
 
-	this._type = Object;
-	if (type && type.prototype instanceof this._type){
-		this._type = type;
+	this.type_ = Object;
+	if (type && type.prototype instanceof this.type_){
+		this.type_ = type;
 	}
 	
 	this.on = {
@@ -792,17 +788,17 @@ Stack.prototype = {
 	constructor : Stack,
 	
 	/** @private */
-	_items : null,
+	items_ : null,
 	
 	/** @private */
-	_type : null,
+	type_ : null,
 	
 	/**
 	 * @param item
 	 * @returns {Number}
 	 */
 	index : function(item){
-		return this._items.indexOf(item);
+		return this.items_.indexOf(item);
 	},
 
 	/**
@@ -819,7 +815,7 @@ Stack.prototype = {
 	 * @returns {Object}
 	 */
 	get : function(i){
-		return this._items[i];
+		return this.items_[i];
 	},
 	
 	/**
@@ -827,7 +823,7 @@ Stack.prototype = {
 	 * @returns {Number}
 	 */
 	getLength : function(){
-		return this._items.length;
+		return this.items_.length;
 	},
 	
 	/**
@@ -840,7 +836,7 @@ Stack.prototype = {
 		_Stack.check.call(this,item);
 		
 		if (!this.have(item)){
-			this._items.push(item);
+			this.items_.push(item);
 			_Stack.add.call(this,item,this.length-1);
 		} else {
 			throw("item already present");
@@ -856,7 +852,7 @@ Stack.prototype = {
 		
 		_Stack.check.call(this,item);
 		
-		var items = this._items;
+		var items = this.items_;
 		
 		
 		
@@ -881,7 +877,7 @@ Stack.prototype = {
 	 */
 	remove : function(item){
 		
-		var items = this._items;
+		var items = this.items_;
 		var pos = items.indexOf(item);
 		
 		if (pos !== -1){
@@ -903,7 +899,7 @@ Stack.prototype = {
 	 */
 	swap : function(item1,item2){
 		
-		var items = this._items;
+		var items = this.items_;
 		var pos1 = items.indexOf(item1);
 		var pos2 = items.indexOf(item2);
 		
@@ -922,7 +918,7 @@ Stack.prototype = {
 	 * @param {function} func
 	 */
 	each : function(func){
-		var items = this._items;
+		var items = this.items_;
 		var l = items.length;
 		
 		for ( var i = 0; i < l; i++) {
@@ -2170,6 +2166,10 @@ Keys.prototype = {
 		return this.length_;
 	},
 	
+	num : function(){
+		return this.keys_.length;
+	},
+	
 	get : function(pos){
 		
 		
@@ -2359,6 +2359,7 @@ var LayerBase = function(){
 	this.is3D = true;
 	this.parent = null;
 	this.visible = true;
+	this.name = null;
 	
 };
 
@@ -3130,6 +3131,15 @@ if (!Array.prototype.indexOf)
   };
 }
 
+if (!isArray){
+	
+	var isArray = function (o) {
+		return Object.prototype.toString.call(o) === '[object Array]';
+	};
+	
+}
+
+
 
 var BlendingModes = {
 		
@@ -3268,7 +3278,11 @@ var PropertyCleaner = {
 			delete result.transform.yRotation;
 			delete result.transform.orientation;
 			
-			this.reduceProperty(result.transform.scale);
+			
+			if ( result.transform.scale ){
+				delete result.transform.scale.z;
+			}
+			
 			this.reduceProperty(result.transform.anchor);
 			this.reduceProperty(result.transform.position);
 			
@@ -3346,60 +3360,26 @@ var PropertyCleaner = {
 	},
 	
 	reduceProperty : function (prop){
-		if (isArray(prop) && prop.length){
-			
-			if (isArray(prop[0])){
-				
-				var typeIsArray = isArray(prop[0][0]);
-				var ease_type = 1;
-				
-				for ( var i = 0; i < prop.length; i++) {
-					
-					if (typeIsArray){
-						
-						if (isArray(prop[i][0])){
-							
-							prop[i][0].pop();
-							
-							if (prop[i][2]){
-								ease_type = prop[i][2];
-							}
-
-							if (prop[i][3] && (!(ease_type % 3) || ease_type >= 6)){
-								if (prop[i][3].length > 11){
-									prop[i][3].splice(10,2);
-								} 
-								if (prop[i][3].length > 5){
-									prop[i][3].splice(4,2);
-								} 
-							}
-							
-							if (prop[i][4]){
-								prop[i][4].splice(5,1);
-								prop[i][4].splice(2,1);
-							}
-							
-						} else {
-							prop[i].pop();
-						}
-					}
-					
+		if (isArray(prop)){
+			for (var i = 0; i < prop.length; i++) {
+				delete prop[i].v.z;
+				if (prop.t){
+					prop[i].t.i.pop();
+					prop[i].t.o.pop();
 				}
-				
-				
-			} else {
-				prop.pop();
-				return;
 			}
+		} else {
+			delete prop.z;
 		}
 	},
 	
 	cleanRotation : function( obj ) {
 		
-		obj.rotation = [ obj.xRotation || 0,
-		                 obj.yRotation || 0,
-		                 obj.zRotation || 0
-		               ];
+		obj.rotation = {
+			x:obj.xRotation || 0,
+		    y:obj.yRotation || 0,
+		    z:obj.zRotation || 0
+		};
 		
 		delete obj.xRotation;
 		delete obj.yRotation;
@@ -3412,267 +3392,291 @@ var PropertyExporter = {
 	getProperty : function( prop, project, options ){
 		
 		var keys = [],
-			y,
+			result,
 			i,
-			key,
-			ease,
-			ease_length,
-			time,
-			in_type,
-			out_type,
-			type,
-			in_anchor,
-			out_anchor,
-			anchors,
-			bezier_type = KeyframeInterpolationType.BEZIER,
-			linear_type = KeyframeInterpolationType.LINEAR,
-			old_type = 1,
+			val,old_val,
 			old_time = 0,
 			old_time_dif = 0,
-			old_ease = [],
-			old_anchors = [];
+			type = prop.propertyValueType,
+			is_marker = type === PropertyValueType.MARKER,
+			is_text = type === PropertyValueType.TEXT_DOCUMENT,
+			is_two = type === PropertyValueType.TwoD,
+			is_three = type === PropertyValueType.ThreeD,
+			layer = prop.propertyGroup(prop.propertyDepth),
+			dur = layer.containingComp.frameDuration;
+		
 
+		
+		if (prop.isTimeVarying){
+			
+			if ( (options.bake || prop.expressionEnabled) && !(is_marker || is_text) ) {
 
-		if (	prop.isTimeVarying 
-				&& (options.bake || prop.expressionEnabled) 
-				&& prop.propertyValueType !== PropertyValueType.MARKER
-				&& prop.propertyValueType !== PropertyValueType.TEXT_DOCUMENT ) {
-			
-			var layer = prop.propertyGroup(prop.propertyDepth);
-			var dur = layer.containingComp.frameDuration;
-			var val = [];
-			var old_val = val;
-			
-			
-			
-			for (i = layer.inPoint; i <= layer.outPoint; i+=dur) {
+				old_val = val = [];
+				keys = [];
 				
-				val = this.getSimpleProperty(prop, prop.valueAtTime(i, true), options);
-				
-				if (JSON.stringify(val) !== JSON.stringify(old_val)){
+				for (i = layer.inPoint; i <= layer.outPoint; i+=dur) {
 					
-					time = i-old_time;
+					val = this.getSimpleProperty(prop, prop.valueAtTime(i, true), options);
 					
-					if (!keys.length){
-						keys.push([val,time]);
-					} else if (time === old_time_dif) {
-						keys.push(val);
-					} else {
-						keys.push([val,time]);
+					if (JSON.stringify(val) !== JSON.stringify(old_val)){
+						
+						time = i-old_time;
+						
+						if (!keys.length){
+							keys.push([val,time]);
+						} else if (time === old_time_dif) {
+							keys.push(val);
+						} else {
+							keys.push([val,time]);
+						}
+
+						old_time = i;
+						old_time_dif = time;
+						old_val = val;
 					}
+				}
 
-					old_time = i;
-					old_time_dif = time;
-					old_val = val;
+				return keys;
+				
+			} else if (is_two || is_three) {
+				
+				result = {
+					x: [],
+					y: []
+				};
+				
+				if (is_three) {
+					result.z = [];
 				}
 				
+				for (i = 1; i <= prop.numKeys; i++ ) {
+					
+					result.x.push(this.getKey(prop,i,options,0,'x'));
+					result.y.push(this.getKey(prop,i,options,1,'y'));
+					
+					if (result.z) {
+						result.z.push(this.getKey(prop,i,options,2,'z'));
+					}
+				}
 				
+				return result;
+				
+			} else {
+				keys = [];
+				for (i = 1; i <= prop.numKeys; i++ ) {
+					keys.push(this.getKey(prop,i,options));
+				}
+				return keys;
 			}
-
-			
-			return keys;
-			
-		} else if (prop.isTimeVarying) {
-
-			
-			for (i = 1; i <= prop.numKeys; i++ ) {
 				
-				key = [this.getSimpleProperty(prop, prop.keyValue(i), options)];
-				
-				time = prop.keyTime(i)-old_time;
-				key.push(time);
-				
-				in_type = prop.keyInInterpolationType(i);
-				out_type = prop.keyOutInterpolationType(i);
-				
-				/*
-				
-				key :	[ value, time, ease, anchors ]
-						[ value, time, ease ]
-						[ value, time ]
-						value
-				
-				types:
-				
-				1 = holdIn + holdOut
-				2 = holdIn + linearOut
-				3 = holdIn + bezierOut
-				4 = linearIn + holdOut
-				5 = linearIn + linearOut
-				6 = linearIn + bezierOut
-				7 = bezierIn + holdOut
-				8 = bezierIn + linearOut
-				9 = bezierIn + bezierOut
-				
-				*/
-				
-				type = 1;
-				
-				if (out_type === linear_type){
-					type = 2;
-				} else if (out_type === bezier_type){
-					type = 3;
-				}
-				
-				if (in_type === linear_type){
-					type += 3;
-				} else if (in_type === bezier_type){
-					type += 6;
-				}
-				
-				ease = [];
-				
-				if ( type > 6 ){
-					
-					if (i > 1){
-						ease_length = this.getEaseLength(prop, i-1, i);
-					} else {
-						ease_length = null;
-					}
-					
-					ease = ease.concat(this.getEaseData(prop.keyInTemporalEase(i),true,ease_length));
-				}
-				
-				if ( type%3 === 0 ) {
-					
-					if (i < prop.numKeys){
-						ease_length = this.getEaseLength(prop, i, i+1);
-					} else {
-						ease_length = null;
-					}
-					
-					ease = ease.concat(this.getEaseData(prop.keyOutTemporalEase(i),false,ease_length));
-				}
-				
-				key.push(type);
-				
-				if ( ease.length ){
-					key.push(ease);
-				}
-				
-				if (	prop.propertyValueType === PropertyValueType.TwoD_SPATIAL
-						|| prop.propertyValueType === PropertyValueType.ThreeD_SPATIAL){
-
-					in_anchor = prop.keyInSpatialTangent(i);
-					out_anchor = prop.keyOutSpatialTangent(i);
-					anchors = [];
-					
-					for ( y = 0; y < in_anchor.length; y++) {
-						anchors.push(round(in_anchor[y],0.01));
-					}
-					
-					for ( y = 0; y < out_anchor.length; y++) {
-						anchors.push(round(out_anchor[y],0.01));
-					}
-					
-					if (anchors != old_anchors){
-						key.push(anchors);
-					}
-
-				} else {
-					anchors = undefined;
-				}
-				
-				if (key.length === 4 && ease.join(',') === old_ease.join(',')) {
-					key.pop();
-				}
-				
-				if (key.length === 3 && type === old_type) {
-					key.pop();
-				}
-				
-				if (key.length === 2 && time === old_time_dif) {
-					key.pop();
-				}
-				
-				old_anchors = anchors;
-				old_type = type;
-				old_time_dif = time;
-				old_time += old_time_dif;
-				old_ease = ease;
-				
-				if (keys.length && !key.length) {
-					keys.push(key[0]);
-				} else {
-					keys.push(key);
-				}
-				
-			}
-			
-			return keys;
-			
 		} else {
 			return this.getSimpleProperty(prop, prop.valueAtTime(0, true), options);
 		}
-
+		
 	},
 	
-	getEaseData : function(data, to_invert, lengths){
+	
+	getKey : function(prop, index, options, ease_index, name){
 		
-		var result = [],
-			x = 0,
-			y = 0;
+		var time = prop.keyTime(index),
+			offset = (index > 1) ? time - prop.keyTime(index-1) : time,
+			value = this.getSimpleProperty(prop, prop.keyValue(index), options),
+			in_type = prop.keyInInterpolationType(index),
+			out_type = prop.keyOutInterpolationType(index),
+			bezier_type = KeyframeInterpolationType.BEZIER,
+			hold_type = KeyframeInterpolationType.HOLD,
+			key,in_anchor,out_anchor;
+			
+		if (!ease_index) {
+			ease_index = 0;
+		}
 		
-		for ( var i = 0; i < data.length; i++) {
+		if (name && value.hasOwnProperty(name)){
+			value = value[name];
+		}
+		
+		if (in_type === hold_type && out_type === hold_type){
+				
+			if (index > 2 && (offset === prop.keyTime(index-1) - prop.keyTime(index-2)) ){
+				return value;
+			} else {
+				return [value, offset];
+			}
+				
+		} else {
 			
-			x = data[i].influence /100;
-			y = data[i].speed * x;
+			key = {
+				v:value,
+				d:time,
+				e:{
+					i: 0,
+					o: 0,
+				}
+			};
 			
-			if (lengths){
-				y = (data[i].speed * x)/lengths[i];
+			if (in_type === bezier_type){
+				
+				key.e.i = this.getEaseData(
+					prop.keyInTemporalEase(index), 
+					(index > 1) ? this.getEaseLength(prop, index-1, index, ease_index) : null,
+					true, ease_index
+				);
+				
+			} else if (in_type !== hold_type) {
+				delete key.e.i;
 			}
 			
-			if (to_invert){
-				x = 1-x;
-				y = 1-y;
+			if (out_type === bezier_type){
+
+				key.e.o = this.getEaseData(
+					prop.keyOutTemporalEase(index), 
+					(index < prop.numKeys) ? this.getEaseLength(prop, index, index+1, ease_index) : null,
+					false, ease_index
+				);
+				
+			} else if (out_type !== hold_type) {
+				delete key.e.o;
 			}
 			
-			result.push( round(x,0.001), round(y,0.001) );
+			if (key.e.i === undefined && key.e.o === undefined){
+				delete key.e;
+			}
+			
+			if (prop.isSpatial) {
+				
+				in_anchor = prop.keyInSpatialTangent(index);
+				out_anchor = prop.keyOutSpatialTangent(index);
+				
+				
+				
+				
+				key.t = {};
+				
+				
+				if (index > 1 && this.isCurve(prop,index,index-1)){
+					
+					key.t.i = [round(in_anchor[0],0.01), round(in_anchor[1],0.01)];
+					if (in_anchor.length >= 3){
+						key.t.i.push(round(in_anchor[2],0.01));
+					}
+				}
+				
+				if (index < prop.numKeys && this.isCurve(prop,index+1,index)){
+					
+					key.t.o = [round(out_anchor[0],0.01), round(out_anchor[1],0.01)];
+					if (out_anchor.length >= 3){
+						key.t.o.push(round(out_anchor[2],0.01));
+					}
+				}
+				
+				if (!key.t.i && !key.t.o){
+					delete key.t;
+				}
+
+			}
+			
+			return key;
 			
 		}
 		
-		return result;
+		
 	},
 	
-	getEaseLength : function (prop,key,next_key){
+	getEaseData : function(data, length, to_invert, index){
 		
-		var result = [],
-			ae = global.AE,
-			i,
-			p_1,c_1,c_2,p_2;
+		var x = data[index].influence /100,
+			y = data[index].speed * x;
 		
-		start_val = prop.keyValue(key);
-		end_val = prop.keyValue(next_key);
+		if (!index) {
+			index = 0;
+		}
+		
+		if (length){
+			y = (data[index].speed * x)/length;
+		}
+		
+		if (to_invert){
+			x = 1-x;
+			y = 1-y;
+		}
+		
+		return [round(x,0.001), round(y,0.001)];
+
+	},
+	
+	isCurve : function(prop,key,next_key){
+		var ae = global.AE,
+			p_1,t_1,t_2,p_2,c_1,c_2,
+			start_val = prop.keyValue(key),
+			end_val = prop.keyValue(next_key),
+			l_1,l_2;
+			
+		if (key < next_key){
+			t_1 = prop.keyOutSpatialTangent(key);
+			t_2 = prop.keyInSpatialTangent(next_key);
+		} else {
+			t_1 = prop.keyInSpatialTangent(key);
+			t_2 = prop.keyOutSpatialTangent(next_key);
+		}
+		
+		
+		p_1 = new ae.Vector( start_val[0], start_val[1], start_val[2]);
+		c_1 = new ae.Vector( t_1[0], t_1[1], t_1[2]).add(p_1);
+		p_2 = new ae.Vector( end_val[0], end_val[1], end_val[2]);
+		c_2 = new ae.Vector( t_2[0], t_2[1], t_2[2]).add(p_2);
+		
+		
+		l_1 = p_1.distance(p_2);
+		l_2 = p_1.distance(c_1)+c_1.distance(c_2)+c_2.distance(p_2);
+		return (l_2/l_1) > 1.03;
+	},
+	
+	getEaseLength : function (prop,key,next_key,index){
+		
+		var ae = global.AE,
+			p_1,c_1,c_2,p_2,
+			start_val = prop.keyValue(key),
+			end_val = prop.keyValue(next_key),
+			type = prop.propertyValueType;
+
+		if (!index) {
+			index = 0;
+		}
 		
 		if (prop.propertyValueType === PropertyValueType.OneD){
-			start_val = [start_val];
-			end_val = [end_val];
-		}
-
-		if (	prop.propertyValueType === PropertyValueType.TwoD_SPATIAL
-				|| prop.propertyValueType === PropertyValueType.ThreeD_SPATIAL){
 			
-			p_1 = new ae.Vector( start_val[0], start_val[1], start_val[2] );
-			c_1 = prop.keyOutSpatialTangent(key);
-			c_2 = prop.keyInSpatialTangent(next_key);
-			p_2 = new ae.Vector( end_val[0], end_val[1], end_val[2] );
+			return end_val - start_val;
 			
-			result.push(new ae.CubicCurve(
-					p_1,
-					new ae.Vector(c_1[0],c_1[1],c_1[2]).add(p_1),
-					new ae.Vector(c_2[0],c_2[1],c_2[2]).add(p_2),
-					p_2
-			).length());
+		} else if (	type === PropertyValueType.TwoD_SPATIAL || type === PropertyValueType.ThreeD_SPATIAL) {
 			
-		} else if (prop.propertyValueType === PropertyValueType.SHAPE){
-			result.push(1);
-		} else {
-			for ( i = 0; i < start_val.length; i++) {
-				result.push( end_val[i] - start_val[i] );
+			p_1 = new ae.Vector( start_val[0], start_val[1], start_val[2]);
+			
+			if (key < next_key){
+				c_1 = prop.keyOutSpatialTangent(key);
+				c_2 = prop.keyInSpatialTangent(next_key);
+			} else {
+				c_1 = prop.keyInSpatialTangent(key);
+				c_2 = prop.keyOutSpatialTangent(next_key);
 			}
+			
+			p_2 = new ae.Vector( end_val[0], end_val[1], end_val[2]);
+			
+			return new ae.CubicCurve(
+				p_1,
+				new ae.Vector(c_1[0],c_1[1],c_1[2]).add(p_1),
+				new ae.Vector(c_2[0],c_2[1],c_2[2]).add(p_2),
+				p_2
+			).length();
+			
+		} else if (prop.propertyValueType === PropertyValueType.SHAPE) {
+			
+			return 1;
+			
+		} else {
+			
+			return end_val[index] - start_val[index];
+			
 		}
-		
-		return result;
 	},
 	
 	getSimpleProperty : function( prop, value, options){
@@ -3695,18 +3699,18 @@ var PropertyExporter = {
             	break;
 	        case PropertyValueType.TwoD_SPATIAL:
             case PropertyValueType.TwoD:
-            	return [
-            	        round(value[0]/divider,presision),
-            	        round(value[1]/divider,presision)
-            	       ];
+            	return {
+            		x:round(value[0]/divider,presision),
+            	    y:round(value[1]/divider,presision)
+            	};
             	break;
             case PropertyValueType.ThreeD_SPATIAL:
             case PropertyValueType.ThreeD:
-            	return [
-            	        round(value[0]/divider,presision),
-            	        round(value[1]/divider,presision),
-            	        round(value[2]/divider,presision)
-            	       ];
+            	return {
+            		x: round(value[0]/divider,presision),
+            	    y: round(value[1]/divider,presision),
+            	    z: round(value[2]/divider,presision)
+            	};
             	break;
 	        default :
 	        	return null;

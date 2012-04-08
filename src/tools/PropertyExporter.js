@@ -4,284 +4,291 @@ var PropertyExporter = {
 	getProperty : function( prop, project, options ){
 		
 		var keys = [],
-			y,
+			result,
 			i,
-			key,
-			ease,
-			ease_length,
-			time,
-			in_type,
-			out_type,
-			type,
-			in_anchor,
-			out_anchor,
-			anchors,
-			bezier_type = KeyframeInterpolationType.BEZIER,
-			linear_type = KeyframeInterpolationType.LINEAR,
-			old_type = 1,
+			val,old_val,
 			old_time = 0,
 			old_time_dif = 0,
-			old_ease = [],
-			old_anchors = [];
+			type = prop.propertyValueType,
+			is_marker = type === PropertyValueType.MARKER,
+			is_text = type === PropertyValueType.TEXT_DOCUMENT,
+			is_two = type === PropertyValueType.TwoD,
+			is_three = type === PropertyValueType.ThreeD,
+			layer = prop.propertyGroup(prop.propertyDepth),
+			dur = layer.containingComp.frameDuration;
+		
 
+		
+		if (prop.isTimeVarying){
+			
+			if ( (options.bake || prop.expressionEnabled) && !(is_marker || is_text) ) {
 
-		if (	prop.isTimeVarying 
-				&& (options.bake || prop.expressionEnabled) 
-				&& prop.propertyValueType !== PropertyValueType.MARKER
-				&& prop.propertyValueType !== PropertyValueType.TEXT_DOCUMENT ) {
-			
-			var layer = prop.propertyGroup(prop.propertyDepth);
-			var dur = layer.containingComp.frameDuration;
-			var val = [];
-			var old_val = val;
-			
-			
-			
-			for (i = layer.inPoint; i <= layer.outPoint; i+=dur) {
+				old_val = val = [];
+				keys = [];
 				
-				val = this.getSimpleProperty(prop, prop.valueAtTime(i, true), options);
-				
-				if (JSON.stringify(val) !== JSON.stringify(old_val)){
+				for (i = layer.inPoint; i <= layer.outPoint; i+=dur) {
 					
-					time = i-old_time;
+					val = this.getSimpleProperty(prop, prop.valueAtTime(i, true), options);
 					
-					if (!keys.length){
-						keys.push([val,time]);
-					} else if (time === old_time_dif) {
-						keys.push(val);
-					} else {
-						keys.push([val,time]);
+					if (JSON.stringify(val) !== JSON.stringify(old_val)){
+						
+						time = i-old_time;
+						
+						if (!keys.length){
+							keys.push([val,time]);
+						} else if (time === old_time_dif) {
+							keys.push(val);
+						} else {
+							keys.push([val,time]);
+						}
+
+						old_time = i;
+						old_time_dif = time;
+						old_val = val;
 					}
+				}
 
-					old_time = i;
-					old_time_dif = time;
-					old_val = val;
+				return keys;
+				
+			} else if (is_two || is_three) {
+				
+				result = {
+					x: [],
+					y: []
+				};
+				
+				if (is_three) {
+					result.z = [];
 				}
 				
+				for (i = 1; i <= prop.numKeys; i++ ) {
+					
+					result.x.push(this.getKey(prop,i,options,0,'x'));
+					result.y.push(this.getKey(prop,i,options,1,'y'));
+					
+					if (result.z) {
+						result.z.push(this.getKey(prop,i,options,2,'z'));
+					}
+				}
 				
+				return result;
+				
+			} else {
+				keys = [];
+				for (i = 1; i <= prop.numKeys; i++ ) {
+					keys.push(this.getKey(prop,i,options));
+				}
+				return keys;
 			}
-
-			
-			return keys;
-			
-		} else if (prop.isTimeVarying) {
-
-			
-			for (i = 1; i <= prop.numKeys; i++ ) {
 				
-				key = [this.getSimpleProperty(prop, prop.keyValue(i), options)];
-				
-				time = prop.keyTime(i)-old_time;
-				key.push(time);
-				
-				in_type = prop.keyInInterpolationType(i);
-				out_type = prop.keyOutInterpolationType(i);
-				
-				/*
-				 * 
-				 * 
-				 * 
-				
-				
-				key: {
-					v:value,
-					d:duration,
-					e:{
-						i:[0,0],
-						o:[0,0]
-					}
-					t:{
-						i:[0,0],
-						o:[0,0]
-					}
-				}
-				
-				key :	[ value, time, ease, anchors ]
-						[ value, time, ease ]
-						[ value, time ]
-						value
-				
-				types:
-				
-				1 = holdIn + holdOut
-				2 = holdIn + linearOut
-				3 = holdIn + bezierOut
-				4 = linearIn + holdOut
-				5 = linearIn + linearOut
-				6 = linearIn + bezierOut
-				7 = bezierIn + holdOut
-				8 = bezierIn + linearOut
-				9 = bezierIn + bezierOut
-				
-				*/
-				
-				type = 1;
-				
-				if (out_type === linear_type){
-					type = 2;
-				} else if (out_type === bezier_type){
-					type = 3;
-				}
-				
-				if (in_type === linear_type){
-					type += 3;
-				} else if (in_type === bezier_type){
-					type += 6;
-				}
-				
-				ease = [];
-				
-				if ( type > 6 ){
-					
-					if (i > 1){
-						ease_length = this.getEaseLength(prop, i-1, i);
-					} else {
-						ease_length = null;
-					}
-					
-					ease = ease.concat(this.getEaseData(prop.keyInTemporalEase(i),true,ease_length));
-				}
-				
-				if ( type%3 === 0 ) {
-					
-					if (i < prop.numKeys){
-						ease_length = this.getEaseLength(prop, i, i+1);
-					} else {
-						ease_length = null;
-					}
-					
-					ease = ease.concat(this.getEaseData(prop.keyOutTemporalEase(i),false,ease_length));
-				}
-				
-				key.push(type);
-				
-				if ( ease.length ){
-					key.push(ease);
-				}
-				
-				if (	prop.propertyValueType === PropertyValueType.TwoD_SPATIAL
-						|| prop.propertyValueType === PropertyValueType.ThreeD_SPATIAL){
-
-					in_anchor = prop.keyInSpatialTangent(i);
-					out_anchor = prop.keyOutSpatialTangent(i);
-					anchors = [];
-					
-					for ( y = 0; y < in_anchor.length; y++) {
-						anchors.push(round(in_anchor[y],0.01));
-					}
-					
-					for ( y = 0; y < out_anchor.length; y++) {
-						anchors.push(round(out_anchor[y],0.01));
-					}
-					
-					if (anchors != old_anchors){
-						key.push(anchors);
-					}
-
-				} else {
-					anchors = undefined;
-				}
-				
-				if (key.length === 4 && ease.join(',') === old_ease.join(',')) {
-					key.pop();
-				}
-				
-				if (key.length === 3 && type === old_type) {
-					key.pop();
-				}
-				
-				if (key.length === 2 && time === old_time_dif) {
-					key.pop();
-				}
-				
-				old_anchors = anchors;
-				old_type = type;
-				old_time_dif = time;
-				old_time += old_time_dif;
-				old_ease = ease;
-				
-				if (keys.length && !key.length) {
-					keys.push(key[0]);
-				} else {
-					keys.push(key);
-				}
-				
-			}
-			
-			return keys;
-			
 		} else {
 			return this.getSimpleProperty(prop, prop.valueAtTime(0, true), options);
 		}
-
+		
 	},
 	
-	getEaseData : function(data, to_invert, lengths){
+	
+	getKey : function(prop, index, options, ease_index, name){
 		
-		var result = [],
-			x = 0,
-			y = 0;
+		var time = prop.keyTime(index),
+			offset = (index > 1) ? time - prop.keyTime(index-1) : time,
+			value = this.getSimpleProperty(prop, prop.keyValue(index), options),
+			in_type = prop.keyInInterpolationType(index),
+			out_type = prop.keyOutInterpolationType(index),
+			bezier_type = KeyframeInterpolationType.BEZIER,
+			hold_type = KeyframeInterpolationType.HOLD,
+			key,in_anchor,out_anchor;
+			
+		if (!ease_index) {
+			ease_index = 0;
+		}
 		
-		for ( var i = 0; i < data.length; i++) {
+		if (name && value.hasOwnProperty(name)){
+			value = value[name];
+		}
+		
+		if (in_type === hold_type && out_type === hold_type){
+				
+			if (index > 2 && (offset === prop.keyTime(index-1) - prop.keyTime(index-2)) ){
+				return value;
+			} else {
+				return [value, offset];
+			}
+				
+		} else {
 			
-			x = data[i].influence /100;
-			y = data[i].speed * x;
+			key = {
+				v:value,
+				d:time,
+				e:{
+					i: 0,
+					o: 0,
+				}
+			};
 			
-			if (lengths){
-				y = (data[i].speed * x)/lengths[i];
+			if (in_type === bezier_type){
+				
+				key.e.i = this.getEaseData(
+					prop.keyInTemporalEase(index), 
+					(index > 1) ? this.getEaseLength(prop, index-1, index, ease_index) : null,
+					true, ease_index
+				);
+				
+			} else if (in_type !== hold_type) {
+				delete key.e.i;
 			}
 			
-			if (to_invert){
-				x = 1-x;
-				y = 1-y;
+			if (out_type === bezier_type){
+
+				key.e.o = this.getEaseData(
+					prop.keyOutTemporalEase(index), 
+					(index < prop.numKeys) ? this.getEaseLength(prop, index, index+1, ease_index) : null,
+					false, ease_index
+				);
+				
+			} else if (out_type !== hold_type) {
+				delete key.e.o;
 			}
 			
-			result.push( round(x,0.001), round(y,0.001) );
+			if (key.e.i === undefined && key.e.o === undefined){
+				delete key.e;
+			}
+			
+			if (prop.isSpatial) {
+				
+				in_anchor = prop.keyInSpatialTangent(index);
+				out_anchor = prop.keyOutSpatialTangent(index);
+				
+				
+				
+				
+				key.t = {};
+				
+				
+				if (index > 1 && this.isCurve(prop,index,index-1)){
+					
+					key.t.i = [round(in_anchor[0],0.01), round(in_anchor[1],0.01)];
+					if (in_anchor.length >= 3){
+						key.t.i.push(round(in_anchor[2],0.01));
+					}
+				}
+				
+				if (index < prop.numKeys && this.isCurve(prop,index+1,index)){
+					
+					key.t.o = [round(out_anchor[0],0.01), round(out_anchor[1],0.01)];
+					if (out_anchor.length >= 3){
+						key.t.o.push(round(out_anchor[2],0.01));
+					}
+				}
+				
+				if (!key.t.i && !key.t.o){
+					delete key.t;
+				}
+
+			}
+			
+			return key;
 			
 		}
 		
-		return result;
+		
 	},
 	
-	getEaseLength : function (prop,key,next_key){
+	getEaseData : function(data, length, to_invert, index){
 		
-		var result = [],
-			ae = global.AE,
-			i,
-			p_1,c_1,c_2,p_2;
+		var x = data[index].influence /100,
+			y = data[index].speed * x;
 		
-		start_val = prop.keyValue(key);
-		end_val = prop.keyValue(next_key);
+		if (!index) {
+			index = 0;
+		}
+		
+		if (length){
+			y = (data[index].speed * x)/length;
+		}
+		
+		if (to_invert){
+			x = 1-x;
+			y = 1-y;
+		}
+		
+		return [round(x,0.001), round(y,0.001)];
+
+	},
+	
+	isCurve : function(prop,key,next_key){
+		var ae = global.AE,
+			p_1,t_1,t_2,p_2,c_1,c_2,
+			start_val = prop.keyValue(key),
+			end_val = prop.keyValue(next_key),
+			l_1,l_2;
+			
+		if (key < next_key){
+			t_1 = prop.keyOutSpatialTangent(key);
+			t_2 = prop.keyInSpatialTangent(next_key);
+		} else {
+			t_1 = prop.keyInSpatialTangent(key);
+			t_2 = prop.keyOutSpatialTangent(next_key);
+		}
+		
+		
+		p_1 = new ae.Vector( start_val[0], start_val[1], start_val[2]);
+		c_1 = new ae.Vector( t_1[0], t_1[1], t_1[2]).add(p_1);
+		p_2 = new ae.Vector( end_val[0], end_val[1], end_val[2]);
+		c_2 = new ae.Vector( t_2[0], t_2[1], t_2[2]).add(p_2);
+		
+		
+		l_1 = p_1.distance(p_2);
+		l_2 = p_1.distance(c_1)+c_1.distance(c_2)+c_2.distance(p_2);
+		return (l_2/l_1) > 1.03;
+	},
+	
+	getEaseLength : function (prop,key,next_key,index){
+		
+		var ae = global.AE,
+			p_1,c_1,c_2,p_2,
+			start_val = prop.keyValue(key),
+			end_val = prop.keyValue(next_key),
+			type = prop.propertyValueType;
+
+		if (!index) {
+			index = 0;
+		}
 		
 		if (prop.propertyValueType === PropertyValueType.OneD){
-			start_val = [start_val];
-			end_val = [end_val];
-		}
-
-		if (	prop.propertyValueType === PropertyValueType.TwoD_SPATIAL
-				|| prop.propertyValueType === PropertyValueType.ThreeD_SPATIAL){
 			
-			p_1 = new ae.Vector( start_val[0], start_val[1], start_val[2] );
-			c_1 = prop.keyOutSpatialTangent(key);
-			c_2 = prop.keyInSpatialTangent(next_key);
-			p_2 = new ae.Vector( end_val[0], end_val[1], end_val[2] );
+			return end_val - start_val;
 			
-			result.push(new ae.CubicCurve(
-					p_1,
-					new ae.Vector(c_1[0],c_1[1],c_1[2]).add(p_1),
-					new ae.Vector(c_2[0],c_2[1],c_2[2]).add(p_2),
-					p_2
-			).length());
+		} else if (	type === PropertyValueType.TwoD_SPATIAL || type === PropertyValueType.ThreeD_SPATIAL) {
 			
-		} else if (prop.propertyValueType === PropertyValueType.SHAPE){
-			result.push(1);
-		} else {
-			for ( i = 0; i < start_val.length; i++) {
-				result.push( end_val[i] - start_val[i] );
+			p_1 = new ae.Vector( start_val[0], start_val[1], start_val[2]);
+			
+			if (key < next_key){
+				c_1 = prop.keyOutSpatialTangent(key);
+				c_2 = prop.keyInSpatialTangent(next_key);
+			} else {
+				c_1 = prop.keyInSpatialTangent(key);
+				c_2 = prop.keyOutSpatialTangent(next_key);
 			}
+			
+			p_2 = new ae.Vector( end_val[0], end_val[1], end_val[2]);
+			
+			return new ae.CubicCurve(
+				p_1,
+				new ae.Vector(c_1[0],c_1[1],c_1[2]).add(p_1),
+				new ae.Vector(c_2[0],c_2[1],c_2[2]).add(p_2),
+				p_2
+			).length();
+			
+		} else if (prop.propertyValueType === PropertyValueType.SHAPE) {
+			
+			return 1;
+			
+		} else {
+			
+			return end_val[index] - start_val[index];
+			
 		}
-		
-		return result;
 	},
 	
 	getSimpleProperty : function( prop, value, options){
@@ -304,18 +311,18 @@ var PropertyExporter = {
             	break;
 	        case PropertyValueType.TwoD_SPATIAL:
             case PropertyValueType.TwoD:
-            	return [
-            	        round(value[0]/divider,presision),
-            	        round(value[1]/divider,presision)
-            	       ];
+            	return {
+            		x:round(value[0]/divider,presision),
+            	    y:round(value[1]/divider,presision)
+            	};
             	break;
             case PropertyValueType.ThreeD_SPATIAL:
             case PropertyValueType.ThreeD:
-            	return [
-            	        round(value[0]/divider,presision),
-            	        round(value[1]/divider,presision),
-            	        round(value[2]/divider,presision)
-            	       ];
+            	return {
+            		x: round(value[0]/divider,presision),
+            	    y: round(value[1]/divider,presision),
+            	    z: round(value[2]/divider,presision)
+            	};
             	break;
 	        default :
 	        	return null;
