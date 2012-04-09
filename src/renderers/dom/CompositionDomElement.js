@@ -113,7 +113,7 @@ CompositionDomElement.prototype.render = function(camera_mat,camera_zoom,opt_cam
 			style[TRANSFORM_STYLE] = 'preserve-3d';
 			style[PERSPECTIVE] = undefined;
 			style[PERSPECTIVE_ORIGIN] = undefined;
-			
+			style.clip = undefined;
 		} else {
 			
 			t.width = null;
@@ -137,6 +137,7 @@ CompositionDomElement.prototype.render = function(camera_mat,camera_zoom,opt_cam
 			t.height = model.height;
 			style.width = t.width.toString()+'px';
 			style.height = t.height.toString()+'px';
+			style.clip = "rect(0px,"+t.width+"px,"+t.height+",0px)"
 			style[PERSPECTIVE_ORIGIN] = (t.width/2).toString()+'px '+(t.height/2).toString()+'px';
 		}
 		

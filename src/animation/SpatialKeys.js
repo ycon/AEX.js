@@ -1,96 +1,46 @@
 
 
 
-var SpatialKeys = function(offset,obj,parent,first){
+var SpatialKeys = function(target, property){
 
-	Keys.call(this,offset,obj,parent,first);
-	
-	if (first){
-		this.lastItem_ = {
-			path:{
-				end : first
-			}
-		};
-	}
-	
+	Keys.call(this, target, property);
 };
 
 SpatialKeys.prototype = new Keys();
 SpatialKeys.prototype.constructor = SpatialKeys;
 
+SpatialKeys.prototype.interpolate = function(key, next_key, pos){
+	
+	if (key.update){
+		if (key.outTangent && next_key.inTangent){
+			key.path = new CubicCurve(	
+				key.value,
+				key.outTangent.clone().add(key.value),
+				next_key.inTangent.clone().add(next_key.value),
+				next_key.value
+			);
+		} else {
+			key.path = null;
+		}
+		
+		key.update = false;
+	}
+	if (key.path){
+		return key.path.getVect(pos);
+	} else {
+		return key.value.clone().lerp(next_key.value,pos);
+	}
+};
+
 SpatialKeys.prototype.set = function(pos){
 	
-	var res = this.get(pos);
+	var res = this.get(pos),
+		v = this.target[this.property];
 	
-	if ( ! this.obj_.equals(res) ){
-		
-		this.obj_.transfer(res);
-		
-		if ( this.prop_.update !== false ){
-			
-			this.prop_.update = true;
-			
-		}
-	}
-
-};
-
-SpatialKeys.prototype.addLinear = function(to,inP,outP,duration){
-	
-	
-	var from = this.lastItem_.path.end,
-		path;
-
-	if ( ( !inP && !outP ) || ( to.equals(outP) && from.equals(inP) ) ){
-		
-		path = new Line(from,to);
-		
-	} else{
-		
-		path = new CubicCurve(from, inP, outP, to);
-		
-	}
-	
-	var key = new SpatialKeyFrame(path, duration);
-	
-	this.keys_.push(key);
-	this.lastItem_ = key;
-	this.update = true;
+	if (v.equals && !v.equals(res)){
+		v.transfer(res);
+	};
 	
 };
-
-SpatialKeys.prototype.addBezier = function(to,inP,outP,duration,inX,inY,outX,outY){
-	
-	var from = this.lastItem_.path.end,
-		path;
-	
-	if ( ( !inP && !outP ) || ( to.equals(outP) && from.equals(inP) ) ){
-		
-		path = new Line(from,to);
-		
-	} else{
-		
-		path = new CubicCurve(from, inP, outP, to);
-		
-	}
-	
-	var key = new SpatialKeyFrame( path, duration, inX, inY, outX, outY );
-	
-	this.keys_.push(key);
-	this.lastItem_ = key;
-	this.update = true;
-		
-};
-
-SpatialKeys.prototype.addHold = function(to,duration){
-	
-	var key = new HoldSpatialKeyFrame( to, duration );
-	
-	this.keys_.push(key);
-	this.lastItem_ = key;
-	this.update = true;
-		
-};
-
 
 externs['SpatialKeys'] = SpatialKeys;

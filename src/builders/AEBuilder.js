@@ -1,5 +1,5 @@
 
-var AeBuilder = {
+var AEBuilder = {
 	
 	build: function(data){
 		
@@ -28,36 +28,39 @@ var AeBuilder = {
 	buildComp: function (item, items) {
 		
 		var comp = new Composition(),
-			controller = new ItemController(comp),
-			layers = comp.layers,
-			i,layer,animator;
+			item_animator = new AnimatorStack(comp),
+			layers = item.layers,
+			i,layer_data,animator;
 		
 		comp.width = item.width;
 		comp.height = item.height;
+		comp.color = item.color || "#000000";
+		item_animator.duration = item.duration || 1;
+		item_animator.frameRate = item.frameRate || 25;
+		
 		
 		for ( i = 0; i < layers.length; i++) {
 			
-			layer = layers[i];
+			layer_data = layers[i];
 			animator = null;
 			
-			switch (layer.type) {
+			switch (layer_data.type) {
 			case 'Camera':
-				animator = this.buildCamera(layer);
-				break;
-			case 'Solid':
-				animator = this.buildSolid(layer, items);
+				animator = this.buildCamera(layer_data);
 				break;
 			case 'Text':
-				animator = this.buildText(layer);
+				animator = this.buildText(layer_data);
 				break;
-			case 'Composition':
-				animator = this.buildCompLayer(layer, items);
+			default:
+				if (layer_data.source){
+					animator = this.buildItemLayer(layer_data,items);
+				}
 				break;
 			}
-			
+
 			if (animator){
 				
-				controller.add(animator);
+				item_animator.add(animator);
 				((animator.layer instanceof Camera)
 					? comp.cameras 
 					: comp.layers
@@ -66,121 +69,59 @@ var AeBuilder = {
 			}
 		}
 		
-		return controller;
+		return item_animator;
 	},
 	
-	setProp: function (obj, name, animator, value) {
+	setLayer: function(animator,data){
+		var layer = animator.layer,
+			tr = data.transform;
 		
-		var i,k,val,offset,is_hold,keys,key,is_object,is_array,is_spatial,is_vector;
-		
-		if (isArray(value)){
-			
-			is_spatial = null;
-			offset = 0;
-			
-			for (i = 0; i < value.length; i++) {
-				
-				k = value[i];
-				
-				is_object = typeof k !== 'object';
-				is_array = isArray(k);
-				is_hold = ( is_array || !is_object || (k.e && k.e.o === 0));
-				val = (is_array) ? k[0] : (is_object && k.v) ? k.v : k;
-				is_vector = (typeof val === 'object' && val.x !== undefined && val.y !== undefined);
-				
-				if (is_vector){
-					val = new Vector(val.x,val.y,val,z);
-				}
-				
-				if (is_spatial === null){
-					
-					is_spatial = is_vector;
-					
-					if (is_spatial){
-						keys = new SpatialKeys(obj,name);
-					} else {
-						keys = new Keys(obj,name);
-					}
-				}
-				
-				if (is_array){
-					offset = k[1];
-				} else if (is_object && k.d !== undefined){
-					offset = k.d || 0;
-				}
-				
-				key = keys.add(offset,val,is_hold);
-				
-				if (k.e && isArray(k.e.i)){
-					key.inX = k.e.i[0];
-					key.inY = k.e.i[1];
-				}
-				if (k.e && isArray(k.e.o)){
-					key.outX = k.e.o[0];
-					key.outY = k.e.o[1];
-				}
-				
-				if (is_spatial && k.t){
-					if (isArray(k.t.i)){
-						key.inTangent = new Vector(k.t.i[0],k.t.i[1],k.t.i[2]);
-					}
-					if (isArray(k.t.o)){
-						key.outTangent = new Vector(k.t.o[0],k.t.o[1],k.t.o[2]);
-					}
-				}
-				
-			}
-			
-			if (keys){
-				animator.add(keys);
-			}
-			
-		} else if (prop && isArray(value.x)) {
-			
-			setProp(obj[name],'x',animator,value.x);
-			
-			if (prop.y){
-				setProp(obj[name],'y',animator,value.y);
-			}
-			
-			if (prop.z){
-				setProp(obj[name],'z',animator,value.z);
-			}
-			
-		} else {
-			obj[name] = value;
-		}
-		
-	},
-	
-	isSpatialArray_: function(arr){
-		if (arr.length <= 4){
-			return true;
-		}
-		if (arr.length === 3 && ( arr[2] <= 5 && arr[2] !== 3)) {
-			return true;
-		}
-		return false;
-	},
-
-	buildSolid: function (item, items) {
-		
-		var solid = new Solid(),
-			animator = new Animator(solid, item.inPoint, item.outPoint),
-			data = items[item.source],
-			tr = item.transform;
-		
-		solid.color = data.color;
-		solid.width = data.width;
-		solid.height = data.height;
-		
-		
-		solid.name = item.name;
+		layer.name = data.name;
+		layer.is3D = data.is3D || false;
 		
 		if (tr){
-			this.setProp(solid, "position", animator, tr.position);
+			this.setProp(layer, "position", animator, tr.position);
+			this.setProp(layer, "anchor", animator, tr.anchor);
+			this.setProp(layer, "scale", animator, tr.scale);
+			this.setProp(layer, "opacity", animator, tr.opacity);
 		}
 		
+		if (layer.is3D){
+			this.setProp(layer, "rotation", animator, tr.rotation);
+			this.setProp(layer, "orientation", animator, tr.orientation);
+		} else {
+			this.setProp(layer.rotation, "z", animator, tr.rotation);
+		}
+		
+	},
+	
+	
+
+	buildSolid: function (data, items) {
+		
+		var solid = new Solid(),
+			item_animator = new AnimatorStack(solid);
+		
+		solid.width = data.width;
+		solid.height = data.height;
+		solid.color = data.color;
+		
+		return item_animator;
+		
+	},
+	
+	
+	buildItemLayer: function (data, items) {
+		
+		var item_animator = this.buildItem(items[data.source], items),
+			layer = item_animator.item,
+			animator = new Animator(layer, data.inPoint, data.outPoint);
+		
+		this.setLayer(animator, data);
+		
+		animator.source = item_animator;
+		animator.startTime = data.startTime || 0;
+		animator.speed = data.speed || 1;
 		
 		return animator;
 	},
@@ -197,23 +138,113 @@ var AeBuilder = {
 	buildCamera: function (layer) {
 		
 	},
-	
-	buildSolid: function (layer, items) {
-		
-	},
-	
+
 	buildText: function (layer) {
-		
-	},
-	
-	buildCompLayer: function (layer, items) {
 		
 	},
 
 
 	dump: function(){
 		
+	},
+	
+	
+	setProp: function (obj, name, animator, value) {
+		
+		if (!value && value !== 0){
+			return;
+		}
+		
+		var i,k,val,offset,is_hold,keys,key,is_object,is_array,is_spatial,is_vector;
+		
+		if (Array.isArray(value)){
+			
+			is_spatial = null;
+			offset = 0;
+			
+			for (i = 0; i < value.length; i++) {
+				
+				k = value[i];
+				
+				is_object = typeof k === 'object';
+				is_array = Array.isArray(k);
+				is_hold = ( is_array || !is_object || (k.e && k.e.o === 0));
+				val = (is_array) ? k[0] : (is_object && k.v) ? k.v : k;
+				is_vector = Vector.isVector(val);
+				
+				if (is_vector){
+					val = new Vector(val.x,val.y,val.z);
+				}
+				
+				if (is_spatial === null){
+					
+					is_spatial = is_vector;
+					
+					if (is_spatial){
+						keys = new SpatialKeys(obj,name);
+					} else {
+						keys = new Keys(obj,name);
+					}
+				}
+				
+				if (is_array){
+					offset = k[1];
+				} else if (is_object && k.d !== undefined){
+					
+					offset = k.d || 0;
+				}
+				
+				key = keys.add(offset,val,is_hold);
+				
+				if (k.e && Array.isArray(k.e.i)){
+					key.inX = k.e.i[0];
+					key.inY = k.e.i[1];
+				}
+				if (k.e && Array.isArray(k.e.o)){
+					key.outX = k.e.o[0];
+					key.outY = k.e.o[1];
+				}
+				
+				if (is_spatial && k.t){
+					if (Array.isArray(k.t.i)){
+						key.inTangent = new Vector(k.t.i[0],k.t.i[1],k.t.i[2]);
+					}
+					if (Array.isArray(k.t.o)){
+						key.outTangent = new Vector(k.t.o[0],k.t.o[1],k.t.o[2]);
+					}
+					key.update = true;
+				}
+				
+			}
+			
+			if (keys){
+				animator.add(keys);
+			}
+			
+		} else if (Array.isArray(value.x)) {
+			
+			setProp(obj[name],'x',animator,value.x);
+			
+			if (prop.y){
+				setProp(obj[name],'y',animator,value.y);
+			}
+			
+			if (prop.z){
+				setProp(obj[name],'z',animator,value.z);
+			}
+			
+		} else {
+			
+			if (Vector.isVector(value)){
+				obj[name].set(value.x,value.y,value.z);
+			} else {
+				obj[name] = value;
+			}
+			
+		}
+		
 	}
+	
 };
 
-externs["AeBuilder"] = AeBuilder;
+externs["AEBuilder"] = AEBuilder;

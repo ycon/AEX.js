@@ -7,6 +7,7 @@ var Composition = function(){
 	this.cameras = new Stack(Camera);
 	this.width = 640;
 	this.height = 360;
+	this.color = "#000000";
 };
 
 

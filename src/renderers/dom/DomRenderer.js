@@ -24,6 +24,9 @@ var DomRenderer = function(scene,opt_camera){
 		
 	}
 	
+	if (scene.color){
+		this.scene.element.style.backgroundColor = scene.color;
+	}
 	
 	
 };

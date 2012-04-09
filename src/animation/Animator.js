@@ -16,9 +16,9 @@ var Animator = function(layer,in_point,out_point,source){
 };
 
 Animator.prototype = new Stack();
-Animator.prototype.constructor = CompAnimation;
+Animator.prototype.constructor = Animator;
 
-Animator.prototype.render = function(time){
+Animator.prototype.animate = function(time){
 	
 	var layer = this.layer,
 		items = this.items_,
@@ -30,15 +30,15 @@ Animator.prototype.render = function(time){
 		l = items.length;
 		
 		for ( var i = 0; i < l; i++) {
-			items[i].render(time);
+			items[i].set(time);
 		}
 		
 		if (this.source){
 			
-			if (!this.keys.num()){
-				this.source.render((time - this.startTime) * this.speed);
+			if (!this.remap.num()){
+				this.source.animate((time - this.startTime) * this.speed);
 			} else {
-				this.source.render(this.keys.get(time - this.startTime));
+				this.source.animate(this.remap.get(time - this.startTime));
 			}
 
 		}

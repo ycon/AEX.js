@@ -13,6 +13,12 @@ var Vector = function(x,y,z){
 	this.z = z || 0;
 };
 
+Vector.isVector = function(v){
+	
+	return (v && typeof v.x === 'number' && typeof v.y === 'number');
+
+};
+
 Vector.prototype = {
 		
 		constructor : Vector,

@@ -79,6 +79,22 @@ var ProjectExporter = {
 		result.layers = [];
 		result.type = "Composition";
 		result.color = this.getColor(comp.bgColor);
+		result.frameRate = comp.frameRate;
+		result.duration = comp.duration;
+		
+		if (comp.motionBlur){
+			result.motionBlur = comp.motionBlur;
+			result.shutterAngle = comp.shutterAngle;
+			result.shutterPhase = comp.shutterAngle;
+			
+		}
+		
+		if (comp.workAreaStart){
+			result.workAreaStart = comp.workAreaStart;
+		}
+		
+		
+		
 		
 		var parents = [],
 			layer,

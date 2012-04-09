@@ -519,7 +519,7 @@ if (!JSON) {
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17229 (2012/04/08 09:10 AM)
+ * Version: 0.1.1 - Build: 17333 (2012/04/09 06:54 PM)
  */
 
 
@@ -556,6 +556,109 @@ this._bindings.length;a--;)this._bindings[a]._destroy();this._bindings.length=0}
 delete this._bindings;delete this._prevParams},toString:function(){return"[Signal active:"+this.active+" numListeners:"+this.getNumListeners()+"]"}};typeof define==="function"&&define.amd?define("signals",[],c):typeof module!=="undefined"&&module.exports?module.exports=c:g.signals=c})(this);
 
 var signals = this.signals;
+
+// vim: ts=4 sts=4 sw=4 expandtab
+// -- kriskowal Kris Kowal Copyright (C) 2009-2011 MIT License
+// -- tlrobinson Tom Robinson Copyright (C) 2009-2010 MIT License (Narwhal Project)
+// -- dantman Daniel Friesen Copyright (C) 2010 XXX TODO License or CLA
+// -- fschaefer Florian Sch�fer Copyright (C) 2010 MIT License
+// -- Gozala Irakli Gozalishvili Copyright (C) 2010 MIT License
+// -- kitcambridge Kit Cambridge Copyright (C) 2011 MIT License
+// -- kossnocorp Sasha Koss XXX TODO License or CLA
+// -- bryanforbes Bryan Forbes XXX TODO License or CLA
+// -- killdream Quildreen Motta Copyright (C) 2011 MIT Licence
+// -- michaelficarra Michael Ficarra Copyright (C) 2011 3-clause BSD License
+// -- sharkbrainguy Gerard Paapu Copyright (C) 2011 MIT License
+// -- bbqsrc Brendan Molloy (C) 2011 Creative Commons Zero (public domain)
+// -- iwyg XXX TODO License or CLA
+// -- DomenicDenicola Domenic Denicola Copyright (C) 2011 MIT License
+// -- xavierm02 Montillet Xavier Copyright (C) 2011 MIT License
+// -- Raynos Jake Verbaten Copyright (C) 2011 MIT Licence
+// -- samsonjs Sami Samhuri Copyright (C) 2010 MIT License
+// -- rwldrn Rick Waldron Copyright (C) 2011 MIT License
+// -- lexer Alexey Zakharov XXX TODO License or CLA
+
+/*!
+    Copyright (c) 2009, 280 North Inc. http://280north.com/
+    MIT License. http://github.com/280north/narwhal/blob/master/README.md
+*/
+
+
+if (!Function.prototype.bind) {
+    Function.prototype.bind = function bind(that) {
+
+        var target = this;
+
+        if (typeof target != "function") {
+            throw new TypeError("Function.prototype.bind called on incompatible " + target);
+        }
+
+        var args = slice.call(arguments, 1);
+
+        var bound = function () {
+
+            if (this instanceof bound) {
+
+                var F = function(){};
+                F.prototype = target.prototype;
+                var self = new F;
+
+                var result = target.apply(
+                    self,
+                    args.concat(slice.call(arguments))
+                );
+                if (Object(result) === result) {
+                    return result;
+                }
+                return self;
+
+            } else {
+
+                return target.apply(
+                    that,
+                    args.concat(slice.call(arguments))
+                );
+
+            }
+
+        };
+
+        return bound;
+    };
+}
+
+
+
+if (!Array.isArray) {
+    Array.isArray = function isArray(obj) {
+        return Object.prototype.toString.call(obj) == "[object Array]";
+    };
+}
+
+
+if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function indexOf(sought /*, fromIndex */ ) {
+        var self = toObject(this),
+            length = self.length >>> 0;
+
+        if (!length) {
+            return -1;
+        }
+
+        var i = 0;
+        if (arguments.length > 1) {
+            i = toInteger(arguments[1]);
+        }
+        
+        i = i >= 0 ? i : Math.max(0, length + i);
+        for (; i < length; i++) {
+            if (i in self && self[i] === sought) {
+                return i;
+            }
+        }
+        return -1;
+    };
+}
 
 
 var TRANSFORM = 'WebkitTransform';
@@ -951,97 +1054,107 @@ externs['Stack'] = Stack;
 	 * </p>
 	 */
 
-var BezierEasing = function(_p1x, _p1y, _p2x, _p2y, precision){
-	
-	this.p1x = _p1x;
-	this.p1y = _p1y;
-	this.p2x = _p2x;
-	this.p2y = _p2y;
-	this.cx = 3.0 * _p1x;
-	this.bx = 3.0 * (_p2x - _p1x) - this.cx;
-	this.ax = 1.0 - this.cx - this.bx;
-	this.cy = 3.0 * _p1y;
-	this.by = 3.0 * (_p2y - _p1y) - this.cy;
-	this.ay = 1.0 - this.cy - this.by;
-	this.ax3 = this.ax * 3.0;
-	this.bx2 = this.bx * 2.0;
-	
-	this.epsilon = 1.0 / (100.0 * (precision||100));
-	
-};
 
-BezierEasing.prototype = {
+var BezierEasing = {
+	
+	ease : function (p1x, p1y, p2x, p2y,t,epsilon) {
 		
-		constructor : BezierEasing,
+		p1y = p1y || 0;
+		p2y = p2y || 0;
 		
-		sampleCurveX : function (t) {
-			return ((this.ax * t + this.bx) * t + this.cx) * t;
-		},
+		var t2 = this.solveCurveX(p1x||0,p2x||0,t||0,epsilon),
+			cy = p1y * 3,
+			by = 3 * (p2y - p1y) - cy,
+			ay = 1 - cy - by;
 		
-		sampleCurveY : function (t) {
-			return ((this.ay * t + this.by) * t + this.cy) * t;
-		},
-		
-		ease : function (t) {
-			return this.sampleCurveY(this.solveCurveX(t));
-		},
-		
-		// Given an x value, find a parametric value it came from.
-		solveCurveX : function (x) {
-			var fabs = this.fabs,
-				epsilon = this.epsilon,
-				ax3 = this.ax3,
-				bx2 = this.bx2,
-				cx = this.cx,
-				t0,t1,t2,x2,d2,i;
+		console.log(t,t2);
+		return ((ay * t2 + by) * t2 + cy) * t2;
 
-			// First try a few iterations of Newton's method -- normally very fast.
-			for (t2 = x, i = 0; i < 8; i++) {
-				x2 = this.sampleCurveX(t2) - x;
-				if (fabs(x2) < epsilon) {
-					return t2;
-				}
-				d2 = (ax3 * t2 + bx2) * t2 + cx;
-				if (fabs(d2) < 1e-6) {
-					break;
-				}
-				t2 = t2 - x2 / d2;
-			}
-			// Fall back to the bisection method for reliability.
-
-			t0 = 0.0;
-			t1 = 1.0;
-			t2 = x;
-			if (t2 < t0) {
-				return t0;
-			}
-			if (t2 > t1) {
-				return t1;
-			}
-			while (t0 < t1) {
-				x2 = this.sampleCurveX(t2);
-				if (fabs(x2 - x) < epsilon) {
-					return t2;
-				}
-				if (x > x2) {
-					t0 = t2;
-				} else {
-					t1 = t2;
-				}
-				t2 = (t1 - t0) * .5 + t0;
-			}
-			return t2;
-			// Failure.
-		},
+	},
+	
+	// Given an x value, find a parametric value it came from.
+	solveCurveX : function (p1x, p2x, x, epsilon) {
 		
-		fabs : function (n) {
-			if (n >= 0) {
-				return n;
-			} else {
-				return 0 - n;
-			}
+		
+		var fabs = this.fabs,
+			
+			cx = 3 * p1x,
+			bx = 3 * (p2x - p1x) - cx,
+			ax = 1 - cx - bx,
+			bx2 = bx * 2,
+			ax3 = ax * 3,
+			t0,t1,t2,x2,d2,i;
+		
+		if (!epsilon){
+			//epsilon = 1.0 / (100.0 * (precision||100));
+			epsilon = 0.0001;
 		}
 		
+		// First try a few iterations of Newton's method -- normally very fast.
+		t2 = x;
+		
+		
+		newton_loop: for (i = 0; i < 8; i++) {
+			
+			x2 = (((ax * t2 + bx) * t2 + cx) * t2)-x;
+			//x2 = this.sampleCurveX(t2) - x;
+			if (fabs(x2) < epsilon) {
+				return t2;
+			}
+			d2 = (ax3 * t2 + bx2) * t2 + cx;
+			if (fabs(d2) < 1e-6) {
+				
+				break newton_loop;
+			}
+			t2 = t2 - x2 / d2;
+			
+			//return x;
+		}
+		
+		
+		
+		// Fall back to the bisection method for reliability.
+
+		t0 = 0;
+		t1 = 1;
+		t2 = x;
+		if (t2 < t0) {
+			return t0;
+		}
+		if (t2 > t1) {
+			return t1;
+		}
+		i = 0;
+		
+		
+		
+		while (t0 < t1 && i < 10) {
+			
+			x2 = ((ax * t2 + bx) * t2 + cx) * t2;
+			//x2 = this.sampleCurveX(t2);
+			if (fabs(x2 - x) < epsilon) {
+				return t2;
+			}
+			if (x > x2) {
+				t0 = t2;
+			} else {
+				t1 = t2;
+			}
+			t2 = (t1 - t0) * .5 + t0;
+			i++;
+		}
+		
+		return t2;
+		// Failure.
+	},
+	
+	fabs : function (n) {
+		if (n >= 0) {
+			return n;
+		} else {
+			return 0 - n;
+		}
+	}
 };
 
 
@@ -1463,7 +1576,7 @@ Matrix.prototype = {
 								m.m31.toFixed(4)+","+m.m32.toFixed(4)+","+m.m33.toFixed(4)+","+m.m34.toFixed(4)+","+
 								m.m41.toFixed(4)+","+m.m42.toFixed(4)+","+m.m43.toFixed(4)+","+m.m44.toFixed(4)+")";
 			} else {
-				return "matrix("+m.m11.toFixed(4)+","+m.m12.toFixed(4)+","+m.m21.toFixed(4)+","+m.m22.toFixed(4)+","+m.m31.toFixed(4)+","+m.m32.toFixed(4)+")";
+				return "matrix("+m.m11.toFixed(4)+","+m.m12.toFixed(4)+","+m.m21.toFixed(4)+","+m.m22.toFixed(4)+","+m.m41.toFixed(4)+","+m.m42.toFixed(4)+")";
 			}
 			
 		},
@@ -1497,6 +1610,12 @@ var Vector = function(x,y,z){
 	this.x = x || 0;
 	this.y = y || 0;
 	this.z = z || 0;
+};
+
+Vector.isVector = function(v){
+	
+	return (v && typeof v.x === 'number' && typeof v.y === 'number');
+
 };
 
 Vector.prototype = {
@@ -2032,106 +2151,117 @@ CubicCurve.prototype = {
 externs['CubicCurve'] = CubicCurve;
 
 
-
-var KeyFrame = function(previous,to,length,inX,inY,outX,outY){
-
-	this.to = to;
-	this.length = length;
-	this.previous = previous;
+var Animator = function(layer,in_point,out_point,source){
 	
-	if (inX || inY || outX || outY){
-		this.easing = new BezierEasing(inX, inY, outX, outY, duration);
-	}
+	Stack.call(this);
 	
 	
+	this.layer = layer;
+	this.inPoint = in_point || 0;
+	this.outPoint = out_point || 1/0;
+	this.source = source;
+	
+	this.startTime = 0;
+	this.speed = 1;
+	
+	this.remap = new Keys();
 };
 
-KeyFrame.prototype.get = function(pos){
+Animator.prototype = new Stack();
+Animator.prototype.constructor = Animator;
 
-	if ( ! this.previous ){
-		return this.to;
-	}
+Animator.prototype.animate = function(time){
 	
-	var from = this.previous.to,
-		dif = this.to-this.from;
+	var layer = this.layer,
+		items = this.items_,
+		l;
 	
-	if (dif === 0 || pos >= this.length) {
-		return this.to;
-	} else if (pos <= 0){
-		return from;
-	} else {
-		var	factor = Math.min(pos/this.length,1);
+	if (time >= this.inPoint && time <= this.outPoint){
 		
-		if (this.easing){
-			factor = this.easing.ease(factor);
+		layer.visible = true;
+		l = items.length;
+		
+		for ( var i = 0; i < l; i++) {
+			items[i].set(time);
 		}
-		return from+(dif*factor);
+		
+		if (this.source){
+			
+			if (!this.remap.num()){
+				this.source.animate((time - this.startTime) * this.speed);
+			} else {
+				this.source.animate(this.remap.get(time - this.startTime));
+			}
+
+		}
+		
+	} else {
+		layer.visible = false;
+	}
+	
+
+};
+
+var AnimatorStack = function(item){
+	
+	Stack.call(this);
+	
+	this.item = item;
+	this.duration = 1;
+	this.frameRate = 25;
+	this.clamp = false;
+};
+
+AnimatorStack.prototype = new Stack();
+AnimatorStack.prototype.constructor = AnimatorStack;
+
+AnimatorStack.prototype.animate = function(time){
+	
+	var items = this.items_,
+		l = items.length;
+	
+	time = time%this.duration;
+	
+	if (this.clamp){
+		time = Math.floor(time*this.frameRate)/this.frameRate;
+	}
+	
+	if (time !== this.prevTime_){
+		for ( var i = 0; i < l; i++) {
+			items[i].animate(time);
+		}
+		
+		this.prevTime_ = time;
 	}
 	
 };
 
-
-var SpatialKeyFrame = function(path,length,inX,inY,outX,outY){
-
-	this.path = path;
-	this.length = length;
+var KeyFrame = function(offset,value,is_hold){
 	
-	if (inX || inY || outX || outY){
-		this.easing = new BezierEasing(inX, inY, outX, outY, length);
-	}
-	
-	
-};
-
-SpatialKeyFrame.prototype.get = function(pos){
-	
-	var factor = pos/this.length;
-
-	if (this.easing){
-		factor = this.easing.ease(factor);
-	}
-	
-	return this.path.getVect(factor);
-	
-};
-
-
-
-var HoldSpatialKeyFrame = function(vect,length){
-	
-	this.path = {
-		end:vect
-	};
-	
-	this.length = length;
-	
-};
-
-HoldSpatialKeyFrame.prototype.get = function(pos){
-	
-	return this.path.end.clone();
-	
-};
-
-
-
-
-
-var Keys = function(offset,obj,prop,first){
-
 	this.offset = offset;
+	this.position_ = 0;
+	
+	this.value = value;
+	this.isHold = is_hold;
+	this.inX = 0;
+	this.inY = 0;
+	this.outX = 0;
+	this.outY = 0;
+	this.inTangent = null;
+	this.outTangent = null;
+	this.path = null;
+	this.update = false;
+};
+
+
+
+var Keys = function(target,property){
+
+	this.target = target;
+	this.property = property;
 	
 	this.keys_ = [];
-	
-	this.obj_ = obj;
-	this.prop_ = prop;
-
-	this.update = true;
-	
-	this.lastItem_ = {to:first};
-	this.lastItemPos_ = 0;
-	this.lastPos_ = 0;
-	
+	this.length_ = 0;
 };
 
 Keys.prototype = {
@@ -2140,27 +2270,26 @@ Keys.prototype = {
 	
 	length : function(){
 		
+		var keys = this.keys_,
+			key,i,l,pos;
+		
 		if (this.update){
 			
-			var current_length = this.offset,
-				l = this.keys_.length,
-				i;
+			l = keys.length;
+			pos = 0;
 			
-			this.update = false;
-			this.lengths_ = [current_length];
-			
-			for (i = 1; i < l; i++) {
-				
-				current_length += this.keys_[i].length;
-				this.lengths_.push(current_length);
-				
+			for ( i = 0; i < l; i++) {
+				key = keys[i];
+				pos += key.offset;
+				key.position_ = pos;
+				if (key.update && key.path && (key.inTangent || key.outTangent)){
+					this.path = null;
+					key.update = false;
+				}
 			}
 			
-			this.lastPos_ = this.offset;
-			this.lastItemPos_ = 0;
-
-			this.length_ = current_length;
-			
+			this.length_ = pos;
+			this.update = false;
 		}
 
 		return this.length_;
@@ -2170,88 +2299,88 @@ Keys.prototype = {
 		return this.keys_.length;
 	},
 	
-	get : function(pos){
+	indexAt : function(pos){
 		
+		var keys = this.keys_,
+			i = this.prevIndex_ || 0,
+			iterator = (pos >= (this.prevPosition_||0)) ? 1 : -1;
 		
+		this.length();
+		this.prevPosition_ = pos;
 		
-		var pos_length = this.length(),
-			l = this.keys_.length,
-			limit,key;
-		
-		
-		if (pos < this.offset){
-			
-			return this.keys_[l-1].get(1);
-			
-		} else if ( pos >= pos_length ){
-			
-			return this.keys_[l-1].get(1);
-			
+		if (pos <= keys[0].position_) {
+			this.prevIndex_ = 0;
+			return this.prevIndex_;
+		} else if (pos >= keys[keys.length-1].position_) {
+			this.prevIndex_ = keys.length-1;
+			return this.prevIndex_;
 		} else {
 			
-			var increment = ( pos >= this.lastPos_ ) ? 1 : -1;
-			
-			for ( var i = this.lastItemPos_; i < l; i += increment ) {
+			key_loop: while (keys[i]){
 				
-				limit = this.lengths_[i];
-				
-				key = this.keys_[i];
-				
-				if ( pos >= limit && pos < limit+key.length ){
+				if ( pos >= keys[i].position_ && (!keys[i+1] || pos < keys[i+1].position_) ){
 					
-					this.lastItemPos_ = i;
-					this.lastPos_ = limit;
-					return key.get( pos - limit );
+					this.prevIndex_ = i;
+					this.prevPosition_ = pos;
+					return this.prevIndex_;
+					
+					break key_loop;
 				}
 				
+				i += iterator;
 			}
-			
 		}
 
+		this.prevIndex_ = 0;
+		return this.prevIndex_;
 	},
-
-	set : function(pos){
-
+	
+	get : function(pos){
+		
+		var index = this.indexAt(pos),
+			key = this.keys_[index],
+			next_key, i;
+		
+		if ( (index === 0 && pos <= key.offset) || index >= this.num()-1 || key.isHold){
+			return key.value;
+		} else {
+			next_key = this.keys_[index+1];
+			
+			i = (pos-key.position_)/next_key.offset;
+			
+			if (key.outX || key.outY || next_key.inX || next_key.inY){
+				
+				i = BezierEasing.ease(key.outX, key.outY, next_key.inX, next_key.inY, i);
+				
+			}
+			
+			return this.interpolate(key,next_key,i);
+		}
+	},
+	
+	interpolate: function(key, next_key, pos){
+		return key.value + (next_key.value - key.value) * pos;
+	},
+	
+	set: function(pos){
 		var res = this.get(pos);
-		
-		if ( res !== this.obj_[this.prop_] ){
-			
-			this.obj_[this.prop_] = res;
-			
-			if ( this.obj_.update !== false ){
-				this.obj_.update = true;
-			}
-			
-		}
-		
+		if (this.target[this.property] !== res){
+			this.target[this.property] = res;
+		};
 	},
 	
-	addLinear : function(to,duration){
+	add : function(offset,val,is_hold){
 		
-		var key = new KeyFrame( this.lastItem_, to, duration );
+		var key = new KeyFrame(offset, val, is_hold);
+		
+		this.length_ += offset;
+		key.position_ = this.length_;
 		this.keys_.push(key);
-		this.lastItem_ = key;
-		this.update = true;
 		
-	},
-	
-	addBezier : function(to,duration,inX,inY,outX,outY){
-		
-		var key = new KeyFrame( this.lastItem_, to, duration, inX, inY, outX, outY );
-		this.keys_.push(key);
-		this.lastItem_ = key;
-		this.update = true;
-		
-	},
-	
-	addHold : function(to,duration){
-		
-		var key = new KeyFrame( null, to, duration );
-		this.keys_.push(key);
-		this.lastItem_ = key;
-		this.update = true;
+		return key;
 		
 	}
+
 	
 };
 
@@ -2259,97 +2388,47 @@ externs['Keys'] = Keys;
 
 
 
-var SpatialKeys = function(offset,obj,parent,first){
+var SpatialKeys = function(target, property){
 
-	Keys.call(this,offset,obj,parent,first);
-	
-	if (first){
-		this.lastItem_ = {
-			path:{
-				end : first
-			}
-		};
-	}
-	
+	Keys.call(this, target, property);
 };
 
 SpatialKeys.prototype = new Keys();
 SpatialKeys.prototype.constructor = SpatialKeys;
 
+SpatialKeys.prototype.interpolate = function(key, next_key, pos){
+	
+	if (key.update){
+		if (key.outTangent && next_key.inTangent){
+			key.path = new CubicCurve(	
+				key.value,
+				key.outTangent.clone().add(key.value),
+				next_key.inTangent.clone().add(next_key.value),
+				next_key.value
+			);
+		} else {
+			key.path = null;
+		}
+		
+		key.update = false;
+	}
+	if (key.path){
+		return key.path.getVect(pos);
+	} else {
+		return key.value.clone().lerp(next_key.value,pos);
+	}
+};
+
 SpatialKeys.prototype.set = function(pos){
 	
-	var res = this.get(pos);
+	var res = this.get(pos),
+		v = this.target[this.property];
 	
-	if ( ! this.obj_.equals(res) ){
-		
-		this.obj_.transfer(res);
-		
-		if ( this.prop_.update !== false ){
-			
-			this.prop_.update = true;
-			
-		}
-	}
-
-};
-
-SpatialKeys.prototype.addLinear = function(to,inP,outP,duration){
-	
-	
-	var from = this.lastItem_.path.end,
-		path;
-
-	if ( ( !inP && !outP ) || ( to.equals(outP) && from.equals(inP) ) ){
-		
-		path = new Line(from,to);
-		
-	} else{
-		
-		path = new CubicCurve(from, inP, outP, to);
-		
-	}
-	
-	var key = new SpatialKeyFrame(path, duration);
-	
-	this.keys_.push(key);
-	this.lastItem_ = key;
-	this.update = true;
+	if (v.equals && !v.equals(res)){
+		v.transfer(res);
+	};
 	
 };
-
-SpatialKeys.prototype.addBezier = function(to,inP,outP,duration,inX,inY,outX,outY){
-	
-	var from = this.lastItem_.path.end,
-		path;
-	
-	if ( ( !inP && !outP ) || ( to.equals(outP) && from.equals(inP) ) ){
-		
-		path = new Line(from,to);
-		
-	} else{
-		
-		path = new CubicCurve(from, inP, outP, to);
-		
-	}
-	
-	var key = new SpatialKeyFrame( path, duration, inX, inY, outX, outY );
-	
-	this.keys_.push(key);
-	this.lastItem_ = key;
-	this.update = true;
-		
-};
-
-SpatialKeys.prototype.addHold = function(to,duration){
-	
-	var key = new HoldSpatialKeyFrame( to, duration );
-	
-	this.keys_.push(key);
-	this.lastItem_ = key;
-	this.update = true;
-		
-};
-
 
 externs['SpatialKeys'] = SpatialKeys;
 
@@ -2544,6 +2623,7 @@ var Composition = function(){
 	this.cameras = new Stack(Camera);
 	this.width = 640;
 	this.height = 360;
+	this.color = "#000000";
 };
 
 
@@ -2601,6 +2681,256 @@ Text.prototype.constructor = Text;
 
 externs['Text'] = Text;
 
+var AEBuilder = {
+	
+	build: function(data){
+		
+		return this.buildItem(data.items[data.root],data.items);
+		
+	},
+	
+	buildItem: function(item,items){
+		switch (item.type) {
+		case 'Composition':
+			return this.buildComp(item,items);
+			break;
+		case 'Solid':
+			return this.buildSolid(item,items);
+			break;
+		case 'Image':
+			return this.buildImage(item,items);
+			break;
+		case 'Video':
+			return this.buildVideo(item,items);
+			break;
+		}
+		
+	},
+	
+	buildComp: function (item, items) {
+		
+		var comp = new Composition(),
+			item_animator = new AnimatorStack(comp),
+			layers = item.layers,
+			i,layer_data,animator;
+		
+		comp.width = item.width;
+		comp.height = item.height;
+		comp.color = item.color || "#000000";
+		item_animator.duration = item.duration || 1;
+		item_animator.frameRate = item.frameRate || 25;
+		
+		
+		for ( i = 0; i < layers.length; i++) {
+			
+			layer_data = layers[i];
+			animator = null;
+			
+			switch (layer_data.type) {
+			case 'Camera':
+				animator = this.buildCamera(layer_data);
+				break;
+			case 'Text':
+				animator = this.buildText(layer_data);
+				break;
+			default:
+				if (layer_data.source){
+					animator = this.buildItemLayer(layer_data,items);
+				}
+				break;
+			}
+
+			if (animator){
+				
+				item_animator.add(animator);
+				((animator.layer instanceof Camera)
+					? comp.cameras 
+					: comp.layers
+				).add(animator.layer);
+				
+			}
+		}
+		
+		return item_animator;
+	},
+	
+	setLayer: function(animator,data){
+		var layer = animator.layer,
+			tr = data.transform;
+		
+		layer.name = data.name;
+		layer.is3D = data.is3D || false;
+		
+		if (tr){
+			this.setProp(layer, "position", animator, tr.position);
+			this.setProp(layer, "anchor", animator, tr.anchor);
+			this.setProp(layer, "scale", animator, tr.scale);
+			this.setProp(layer, "opacity", animator, tr.opacity);
+		}
+		
+		if (layer.is3D){
+			this.setProp(layer, "rotation", animator, tr.rotation);
+			this.setProp(layer, "orientation", animator, tr.orientation);
+		} else {
+			this.setProp(layer.rotation, "z", animator, tr.rotation);
+		}
+		
+	},
+	
+	
+
+	buildSolid: function (data, items) {
+		
+		var solid = new Solid(),
+			item_animator = new AnimatorStack(solid);
+		
+		solid.width = data.width;
+		solid.height = data.height;
+		solid.color = data.color;
+		
+		return item_animator;
+		
+	},
+	
+	
+	buildItemLayer: function (data, items) {
+		
+		var item_animator = this.buildItem(items[data.source], items),
+			layer = item_animator.item,
+			animator = new Animator(layer, data.inPoint, data.outPoint);
+		
+		this.setLayer(animator, data);
+		
+		animator.source = item_animator;
+		animator.startTime = data.startTime || 0;
+		animator.speed = data.speed || 1;
+		
+		return animator;
+	},
+	
+	buildImage: function (item, items) {
+		
+	},
+	
+	buildVideo: function (item, items) {
+		
+	},
+
+	
+	buildCamera: function (layer) {
+		
+	},
+
+	buildText: function (layer) {
+		
+	},
+
+
+	dump: function(){
+		
+	},
+	
+	
+	setProp: function (obj, name, animator, value) {
+		
+		if (!value && value !== 0){
+			return;
+		}
+		
+		var i,k,val,offset,is_hold,keys,key,is_object,is_array,is_spatial,is_vector;
+		
+		if (Array.isArray(value)){
+			
+			is_spatial = null;
+			offset = 0;
+			
+			for (i = 0; i < value.length; i++) {
+				
+				k = value[i];
+				
+				is_object = typeof k === 'object';
+				is_array = Array.isArray(k);
+				is_hold = ( is_array || !is_object || (k.e && k.e.o === 0));
+				val = (is_array) ? k[0] : (is_object && k.v) ? k.v : k;
+				is_vector = Vector.isVector(val);
+				
+				if (is_vector){
+					val = new Vector(val.x,val.y,val.z);
+				}
+				
+				if (is_spatial === null){
+					
+					is_spatial = is_vector;
+					
+					if (is_spatial){
+						keys = new SpatialKeys(obj,name);
+					} else {
+						keys = new Keys(obj,name);
+					}
+				}
+				
+				if (is_array){
+					offset = k[1];
+				} else if (is_object && k.d !== undefined){
+					
+					offset = k.d || 0;
+				}
+				
+				key = keys.add(offset,val,is_hold);
+				
+				if (k.e && Array.isArray(k.e.i)){
+					key.inX = k.e.i[0];
+					key.inY = k.e.i[1];
+				}
+				if (k.e && Array.isArray(k.e.o)){
+					key.outX = k.e.o[0];
+					key.outY = k.e.o[1];
+				}
+				
+				if (is_spatial && k.t){
+					if (Array.isArray(k.t.i)){
+						key.inTangent = new Vector(k.t.i[0],k.t.i[1],k.t.i[2]);
+					}
+					if (Array.isArray(k.t.o)){
+						key.outTangent = new Vector(k.t.o[0],k.t.o[1],k.t.o[2]);
+					}
+					key.update = true;
+				}
+				
+			}
+			
+			if (keys){
+				animator.add(keys);
+			}
+			
+		} else if (Array.isArray(value.x)) {
+			
+			setProp(obj[name],'x',animator,value.x);
+			
+			if (prop.y){
+				setProp(obj[name],'y',animator,value.y);
+			}
+			
+			if (prop.z){
+				setProp(obj[name],'z',animator,value.z);
+			}
+			
+		} else {
+			
+			if (Vector.isVector(value)){
+				obj[name].set(value.x,value.y,value.z);
+			} else {
+				obj[name] = value;
+			}
+			
+		}
+		
+	}
+	
+};
+
+externs["AEBuilder"] = AEBuilder;
+
 
 
 /**
@@ -2650,9 +2980,7 @@ LayerDomElement.prototype = {
 			}
 			
 			mat = this.modifyCollapse(mat,camera_zoom);
-			
-			
-			
+
 			this.element.style[TRANSFORM] = mat.toString();
 			this.holder.style.opacity = (m.opacity !== 1) ? m.opacity : undefined;
 			
@@ -2996,7 +3324,7 @@ CompositionDomElement.prototype.render = function(camera_mat,camera_zoom,opt_cam
 			style[TRANSFORM_STYLE] = 'preserve-3d';
 			style[PERSPECTIVE] = undefined;
 			style[PERSPECTIVE_ORIGIN] = undefined;
-			
+			style.clip = undefined;
 		} else {
 			
 			t.width = null;
@@ -3020,6 +3348,7 @@ CompositionDomElement.prototype.render = function(camera_mat,camera_zoom,opt_cam
 			t.height = model.height;
 			style.width = t.width.toString()+'px';
 			style.height = t.height.toString()+'px';
+			style.clip = "rect(0px,"+t.width+"px,"+t.height+",0px)"
 			style[PERSPECTIVE_ORIGIN] = (t.width/2).toString()+'px '+(t.height/2).toString()+'px';
 		}
 		
@@ -3080,6 +3409,9 @@ var DomRenderer = function(scene,opt_camera){
 		
 	}
 	
+	if (scene.color){
+		this.scene.element.style.backgroundColor = scene.color;
+	}
 	
 	
 };
@@ -3395,6 +3727,7 @@ var PropertyExporter = {
 			result,
 			i,
 			val,old_val,
+			time,
 			old_time = 0,
 			old_time_dif = 0,
 			type = prop.propertyValueType,
@@ -3420,7 +3753,7 @@ var PropertyExporter = {
 					
 					if (JSON.stringify(val) !== JSON.stringify(old_val)){
 						
-						time = i-old_time;
+						time = prop.keyTime(i)-old_time;
 						
 						if (!keys.length){
 							keys.push([val,time]);
@@ -3486,7 +3819,7 @@ var PropertyExporter = {
 			bezier_type = KeyframeInterpolationType.BEZIER,
 			hold_type = KeyframeInterpolationType.HOLD,
 			key,in_anchor,out_anchor;
-			
+		
 		if (!ease_index) {
 			ease_index = 0;
 		}
@@ -3507,7 +3840,7 @@ var PropertyExporter = {
 			
 			key = {
 				v:value,
-				d:time,
+				d:offset,
 				e:{
 					i: 0,
 					o: 0,
@@ -3911,6 +4244,22 @@ var ProjectExporter = {
 		result.layers = [];
 		result.type = "Composition";
 		result.color = this.getColor(comp.bgColor);
+		result.frameRate = comp.frameRate;
+		result.duration = comp.duration;
+		
+		if (comp.motionBlur){
+			result.motionBlur = comp.motionBlur;
+			result.shutterAngle = comp.shutterAngle;
+			result.shutterPhase = comp.shutterAngle;
+			
+		}
+		
+		if (comp.workAreaStart){
+			result.workAreaStart = comp.workAreaStart;
+		}
+		
+		
+		
 		
 		var parents = [],
 			layer,

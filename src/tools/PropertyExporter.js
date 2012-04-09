@@ -7,6 +7,7 @@ var PropertyExporter = {
 			result,
 			i,
 			val,old_val,
+			time,
 			old_time = 0,
 			old_time_dif = 0,
 			type = prop.propertyValueType,
@@ -32,7 +33,7 @@ var PropertyExporter = {
 					
 					if (JSON.stringify(val) !== JSON.stringify(old_val)){
 						
-						time = i-old_time;
+						time = prop.keyTime(i)-old_time;
 						
 						if (!keys.length){
 							keys.push([val,time]);
@@ -98,7 +99,7 @@ var PropertyExporter = {
 			bezier_type = KeyframeInterpolationType.BEZIER,
 			hold_type = KeyframeInterpolationType.HOLD,
 			key,in_anchor,out_anchor;
-			
+		
 		if (!ease_index) {
 			ease_index = 0;
 		}
@@ -119,7 +120,7 @@ var PropertyExporter = {
 			
 			key = {
 				v:value,
-				d:time,
+				d:offset,
 				e:{
 					i: 0,
 					o: 0,

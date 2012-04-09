@@ -105,6 +105,7 @@
     	<concat destfile="${dist.dir}/${dist.name}.temp" fixlastline="yes">
     		<filelist dir="${src.dir}/libs" files="signals.min.js"/>
     		<filelist dir="${src.dir}/utils" files="
+    			ES5.js,
     			Capabilities.js,
     			Curve.js
     		"/>
@@ -122,9 +123,9 @@
     			CubicCurve.js
     		"/>
     		<filelist dir="${src.dir}/animation" files="
-    		    KeyFrame.js,
-    			SpatialKeyFrame.js,
-    			HoldSpatialKeyFrame.js,
+    			Animator.js,
+    			AnimatorStack.js,
+    			KeyFrame.js,
     			Keys.js,
     			SpatialKeys.js
     		"/>
@@ -135,6 +136,9 @@
     			Solid.js,
     			Composition.js,
     			Text.js
+    		"/>
+    		<filelist dir="${src.dir}/builders" files="
+    			AEBuilder.js
     		"/>
     		<filelist dir="${src.dir}/renderers/dom" files="
     			LayerDomElement.js,

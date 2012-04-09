@@ -20,95 +20,105 @@
 	 * </p>
 	 */
 
-var BezierEasing = function(_p1x, _p1y, _p2x, _p2y, precision){
-	
-	this.p1x = _p1x;
-	this.p1y = _p1y;
-	this.p2x = _p2x;
-	this.p2y = _p2y;
-	this.cx = 3.0 * _p1x;
-	this.bx = 3.0 * (_p2x - _p1x) - this.cx;
-	this.ax = 1.0 - this.cx - this.bx;
-	this.cy = 3.0 * _p1y;
-	this.by = 3.0 * (_p2y - _p1y) - this.cy;
-	this.ay = 1.0 - this.cy - this.by;
-	this.ax3 = this.ax * 3.0;
-	this.bx2 = this.bx * 2.0;
-	
-	this.epsilon = 1.0 / (100.0 * (precision||100));
-	
-};
 
-BezierEasing.prototype = {
+var BezierEasing = {
+	
+	ease : function (p1x, p1y, p2x, p2y,t,epsilon) {
 		
-		constructor : BezierEasing,
+		p1y = p1y || 0;
+		p2y = p2y || 0;
 		
-		sampleCurveX : function (t) {
-			return ((this.ax * t + this.bx) * t + this.cx) * t;
-		},
+		var t2 = this.solveCurveX(p1x||0,p2x||0,t||0,epsilon),
+			cy = p1y * 3,
+			by = 3 * (p2y - p1y) - cy,
+			ay = 1 - cy - by;
 		
-		sampleCurveY : function (t) {
-			return ((this.ay * t + this.by) * t + this.cy) * t;
-		},
-		
-		ease : function (t) {
-			return this.sampleCurveY(this.solveCurveX(t));
-		},
-		
-		// Given an x value, find a parametric value it came from.
-		solveCurveX : function (x) {
-			var fabs = this.fabs,
-				epsilon = this.epsilon,
-				ax3 = this.ax3,
-				bx2 = this.bx2,
-				cx = this.cx,
-				t0,t1,t2,x2,d2,i;
+		console.log(t,t2);
+		return ((ay * t2 + by) * t2 + cy) * t2;
 
-			// First try a few iterations of Newton's method -- normally very fast.
-			for (t2 = x, i = 0; i < 8; i++) {
-				x2 = this.sampleCurveX(t2) - x;
-				if (fabs(x2) < epsilon) {
-					return t2;
-				}
-				d2 = (ax3 * t2 + bx2) * t2 + cx;
-				if (fabs(d2) < 1e-6) {
-					break;
-				}
-				t2 = t2 - x2 / d2;
-			}
-			// Fall back to the bisection method for reliability.
-
-			t0 = 0.0;
-			t1 = 1.0;
-			t2 = x;
-			if (t2 < t0) {
-				return t0;
-			}
-			if (t2 > t1) {
-				return t1;
-			}
-			while (t0 < t1) {
-				x2 = this.sampleCurveX(t2);
-				if (fabs(x2 - x) < epsilon) {
-					return t2;
-				}
-				if (x > x2) {
-					t0 = t2;
-				} else {
-					t1 = t2;
-				}
-				t2 = (t1 - t0) * .5 + t0;
-			}
-			return t2;
-			// Failure.
-		},
+	},
+	
+	// Given an x value, find a parametric value it came from.
+	solveCurveX : function (p1x, p2x, x, epsilon) {
 		
-		fabs : function (n) {
-			if (n >= 0) {
-				return n;
-			} else {
-				return 0 - n;
-			}
+		
+		var fabs = this.fabs,
+			
+			cx = 3 * p1x,
+			bx = 3 * (p2x - p1x) - cx,
+			ax = 1 - cx - bx,
+			bx2 = bx * 2,
+			ax3 = ax * 3,
+			t0,t1,t2,x2,d2,i;
+		
+		if (!epsilon){
+			//epsilon = 1.0 / (100.0 * (precision||100));
+			epsilon = 0.0001;
 		}
 		
+		// First try a few iterations of Newton's method -- normally very fast.
+		t2 = x;
+		
+		
+		newton_loop: for (i = 0; i < 8; i++) {
+			
+			x2 = (((ax * t2 + bx) * t2 + cx) * t2)-x;
+			//x2 = this.sampleCurveX(t2) - x;
+			if (fabs(x2) < epsilon) {
+				return t2;
+			}
+			d2 = (ax3 * t2 + bx2) * t2 + cx;
+			if (fabs(d2) < 1e-6) {
+				
+				break newton_loop;
+			}
+			t2 = t2 - x2 / d2;
+			
+			//return x;
+		}
+		
+		
+		
+		// Fall back to the bisection method for reliability.
+
+		t0 = 0;
+		t1 = 1;
+		t2 = x;
+		if (t2 < t0) {
+			return t0;
+		}
+		if (t2 > t1) {
+			return t1;
+		}
+		i = 0;
+		
+		
+		
+		while (t0 < t1 && i < 10) {
+			
+			x2 = ((ax * t2 + bx) * t2 + cx) * t2;
+			//x2 = this.sampleCurveX(t2);
+			if (fabs(x2 - x) < epsilon) {
+				return t2;
+			}
+			if (x > x2) {
+				t0 = t2;
+			} else {
+				t1 = t2;
+			}
+			t2 = (t1 - t0) * .5 + t0;
+			i++;
+		}
+		
+		return t2;
+		// Failure.
+	},
+	
+	fabs : function (n) {
+		if (n >= 0) {
+			return n;
+		} else {
+			return 0 - n;
+		}
+	}
 };

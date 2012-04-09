@@ -48,9 +48,7 @@ LayerDomElement.prototype = {
 			}
 			
 			mat = this.modifyCollapse(mat,camera_zoom);
-			
-			
-			
+
 			this.element.style[TRANSFORM] = mat.toString();
 			this.holder.style.opacity = (m.opacity !== 1) ? m.opacity : undefined;
 			

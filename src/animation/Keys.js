@@ -1,21 +1,13 @@
 
 
 
-var Keys = function(offset,obj,prop,first){
+var Keys = function(target,property){
 
-	this.offset = offset;
+	this.target = target;
+	this.property = property;
 	
 	this.keys_ = [];
-	
-	this.obj_ = obj;
-	this.prop_ = prop;
-
-	this.update = true;
-	
-	this.lastItem_ = {to:first};
-	this.lastItemPos_ = 0;
-	this.lastPos_ = 0;
-	
+	this.length_ = 0;
 };
 
 Keys.prototype = {
@@ -24,27 +16,26 @@ Keys.prototype = {
 	
 	length : function(){
 		
+		var keys = this.keys_,
+			key,i,l,pos;
+		
 		if (this.update){
 			
-			var current_length = this.offset,
-				l = this.keys_.length,
-				i;
+			l = keys.length;
+			pos = 0;
 			
-			this.update = false;
-			this.lengths_ = [current_length];
-			
-			for (i = 1; i < l; i++) {
-				
-				current_length += this.keys_[i].length;
-				this.lengths_.push(current_length);
-				
+			for ( i = 0; i < l; i++) {
+				key = keys[i];
+				pos += key.offset;
+				key.position_ = pos;
+				if (key.update && key.path && (key.inTangent || key.outTangent)){
+					this.path = null;
+					key.update = false;
+				}
 			}
 			
-			this.lastPos_ = this.offset;
-			this.lastItemPos_ = 0;
-
-			this.length_ = current_length;
-			
+			this.length_ = pos;
+			this.update = false;
 		}
 
 		return this.length_;
@@ -54,88 +45,88 @@ Keys.prototype = {
 		return this.keys_.length;
 	},
 	
-	get : function(pos){
+	indexAt : function(pos){
 		
+		var keys = this.keys_,
+			i = this.prevIndex_ || 0,
+			iterator = (pos >= (this.prevPosition_||0)) ? 1 : -1;
 		
+		this.length();
+		this.prevPosition_ = pos;
 		
-		var pos_length = this.length(),
-			l = this.keys_.length,
-			limit,key;
-		
-		
-		if (pos < this.offset){
-			
-			return this.keys_[l-1].get(1);
-			
-		} else if ( pos >= pos_length ){
-			
-			return this.keys_[l-1].get(1);
-			
+		if (pos <= keys[0].position_) {
+			this.prevIndex_ = 0;
+			return this.prevIndex_;
+		} else if (pos >= keys[keys.length-1].position_) {
+			this.prevIndex_ = keys.length-1;
+			return this.prevIndex_;
 		} else {
 			
-			var increment = ( pos >= this.lastPos_ ) ? 1 : -1;
-			
-			for ( var i = this.lastItemPos_; i < l; i += increment ) {
+			key_loop: while (keys[i]){
 				
-				limit = this.lengths_[i];
-				
-				key = this.keys_[i];
-				
-				if ( pos >= limit && pos < limit+key.length ){
+				if ( pos >= keys[i].position_ && (!keys[i+1] || pos < keys[i+1].position_) ){
 					
-					this.lastItemPos_ = i;
-					this.lastPos_ = limit;
-					return key.get( pos - limit );
+					this.prevIndex_ = i;
+					this.prevPosition_ = pos;
+					return this.prevIndex_;
+					
+					break key_loop;
 				}
 				
+				i += iterator;
 			}
-			
 		}
 
+		this.prevIndex_ = 0;
+		return this.prevIndex_;
 	},
-
-	set : function(pos){
-
+	
+	get : function(pos){
+		
+		var index = this.indexAt(pos),
+			key = this.keys_[index],
+			next_key, i;
+		
+		if ( (index === 0 && pos <= key.offset) || index >= this.num()-1 || key.isHold){
+			return key.value;
+		} else {
+			next_key = this.keys_[index+1];
+			
+			i = (pos-key.position_)/next_key.offset;
+			
+			if (key.outX || key.outY || next_key.inX || next_key.inY){
+				
+				i = BezierEasing.ease(key.outX, key.outY, next_key.inX, next_key.inY, i);
+				
+			}
+			
+			return this.interpolate(key,next_key,i);
+		}
+	},
+	
+	interpolate: function(key, next_key, pos){
+		return key.value + (next_key.value - key.value) * pos;
+	},
+	
+	set: function(pos){
 		var res = this.get(pos);
-		
-		if ( res !== this.obj_[this.prop_] ){
-			
-			this.obj_[this.prop_] = res;
-			
-			if ( this.obj_.update !== false ){
-				this.obj_.update = true;
-			}
-			
-		}
-		
+		if (this.target[this.property] !== res){
+			this.target[this.property] = res;
+		};
 	},
 	
-	addLinear : function(to,duration){
+	add : function(offset,val,is_hold){
 		
-		var key = new KeyFrame( this.lastItem_, to, duration );
+		var key = new KeyFrame(offset, val, is_hold);
+		
+		this.length_ += offset;
+		key.position_ = this.length_;
 		this.keys_.push(key);
-		this.lastItem_ = key;
-		this.update = true;
 		
-	},
-	
-	addBezier : function(to,duration,inX,inY,outX,outY){
-		
-		var key = new KeyFrame( this.lastItem_, to, duration, inX, inY, outX, outY );
-		this.keys_.push(key);
-		this.lastItem_ = key;
-		this.update = true;
-		
-	},
-	
-	addHold : function(to,duration){
-		
-		var key = new KeyFrame( null, to, duration );
-		this.keys_.push(key);
-		this.lastItem_ = key;
-		this.update = true;
+		return key;
 		
 	}
+
 	
 };
 
