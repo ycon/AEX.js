@@ -243,6 +243,37 @@ Vector.prototype = {
 
 			return Math.min(this.x,Math.min(this.y,this.z));
 
+		},
+		
+		setFromQuaternion: function ( q ) {
+
+			this.x = Math.atan2( 2 * ( q.x * q.w - q.y * q.z ), ( q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z ) );
+			this.y = Math.asin( 2 *  ( q.x * q.z + q.y * q.w ) );
+			this.z = Math.atan2( 2 * ( q.z * q.w - q.x * q.y ), ( q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z ) );
+
+		},
+		
+		getQuaternion: function(){
+			
+			var sin = Math.sin,
+				cos = Math.cos,
+				t = this,
+				sx = sin(t.x * .5),
+				cx = cos(t.x * .5),
+				sy = sin(t.y * .5),
+				cy = cos(t.y * .5),
+				sz = sin(t.z * .5),
+				cz = cos(t.z * .5),
+				cxy = cx * cy,
+				sxy = sx * sy;
+				
+			return {
+				x: sz * cxy     - cz * sxy,
+				y: cz * sx * cy + sz * cx * sy,
+				z: cz * cx * sy - sz * sx * cy,
+				w: cz * cxy     + sz * sxy
+			};
+			
 		}
 		
 };

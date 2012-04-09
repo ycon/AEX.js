@@ -239,6 +239,39 @@ Matrix.prototype = {
 		},
 		
 		/**
+		 * 
+		 * @param {Object{x:number,y:number,x:number,w:number} q
+		 * @returns {Matrix}
+		 */
+		quaternion: function( q ) {
+
+			var t,
+				x = q.x,
+				y = q.y,
+				z = q.z,
+				w = q.w,
+				x2 = x + x,  y2 = y + y,  z2 = z + z,
+				xx = x * x2, xy = x * y2, xz = x * z2,
+				yy = y * y2, yz = y * z2, zz = z * z2,
+				wx = w * x2, wy = w * y2, wz = w * z2;
+
+			t.m11 = 1 - ( yy + zz );
+			t.m12 = xy - wz;
+			t.m13 = xz + wy;
+
+			t.m21 = xy + wz;
+			t.m22 = 1 - ( xx + zz );
+			t.m23 = yz - wx;
+
+			t.m31 = xz - wy;
+			t.m32 = yz + wx;
+			t.m33 = 1 - ( xx + yy );
+
+			return this;
+
+		},
+		
+		/**
 		 * @param {number} x
 		 * @param {number} y
 		 * @param {number} z
