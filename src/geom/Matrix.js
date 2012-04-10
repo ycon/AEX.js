@@ -221,8 +221,11 @@ Matrix.prototype = {
 			t.m33 = a * c;
 			
 			t.m41 = t.m42 = t.m43 = 0;
+<<<<<<< HEAD
 			
 			
+=======
+>>>>>>> Random changes
 			
 			return this;
 			
@@ -236,7 +239,11 @@ Matrix.prototype = {
 		 */
 		rotate:function(rotationX, rotationY, rotationZ){
 
-			return (rotationX || rotationY || rotationZ) ? this.multiply(new Matrix().rotation(rotationX, rotationY, rotationZ)) : this;
+			if (!this.temp_){
+				this.temp_ = new Matrix();
+			}
+			
+			return (rotationX || rotationY || rotationZ) ? this.multiply(this.temp_.rotation(rotationX, rotationY, rotationZ)) : this;
 			
 		},
 		
@@ -315,7 +322,11 @@ Matrix.prototype = {
 		 */
 		lookAt:function(x, y, z){
 			
-			return (x || y) ? this.multiply(new Matrix().lookingAt(x, y, z)) : this;
+			if (!this.temp_){
+				this.temp_ = new Matrix();
+			}
+			
+			return (x || y) ? this.multiply(this.temp_.lookingAt(x, y, z)) : this;
 			
 		},
 		

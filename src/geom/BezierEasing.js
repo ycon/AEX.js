@@ -32,8 +32,7 @@ var BezierEasing = {
 			cy = p1y * 3,
 			by = 3 * (p2y - p1y) - cy,
 			ay = 1 - cy - by;
-		
-		console.log(t,t2);
+
 		return ((ay * t2 + by) * t2 + cy) * t2;
 
 	},

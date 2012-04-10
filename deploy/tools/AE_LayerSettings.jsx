@@ -519,7 +519,11 @@ if (!JSON) {
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
+<<<<<<< HEAD
  * Version: 0.1.1 - Build: 17338 (2012/04/10 09:03 PM)
+=======
+ * Version: 0.1.1 - Build: 17334 (2012/04/10 09:22 PM)
+>>>>>>> Random changes
  */
 
 
@@ -1066,8 +1070,7 @@ var BezierEasing = {
 			cy = p1y * 3,
 			by = 3 * (p2y - p1y) - cy,
 			ay = 1 - cy - by;
-		
-		console.log(t,t2);
+
 		return ((ay * t2 + by) * t2 + cy) * t2;
 
 	},
@@ -1379,8 +1382,11 @@ Matrix.prototype = {
 			t.m33 = a * c;
 			
 			t.m41 = t.m42 = t.m43 = 0;
+<<<<<<< HEAD
 			
 			
+=======
+>>>>>>> Random changes
 			
 			return this;
 			
@@ -1394,7 +1400,11 @@ Matrix.prototype = {
 		 */
 		rotate:function(rotationX, rotationY, rotationZ){
 
-			return (rotationX || rotationY || rotationZ) ? this.multiply(new Matrix().rotation(rotationX, rotationY, rotationZ)) : this;
+			if (!this.temp_){
+				this.temp_ = new Matrix();
+			}
+			
+			return (rotationX || rotationY || rotationZ) ? this.multiply(this.temp_.rotation(rotationX, rotationY, rotationZ)) : this;
 			
 		},
 		
@@ -1473,7 +1483,11 @@ Matrix.prototype = {
 		 */
 		lookAt:function(x, y, z){
 			
-			return (x || y) ? this.multiply(new Matrix().lookingAt(x, y, z)) : this;
+			if (!this.temp_){
+				this.temp_ = new Matrix();
+			}
+			
+			return (x || y) ? this.multiply(this.temp_.lookingAt(x, y, z)) : this;
 			
 		},
 		
