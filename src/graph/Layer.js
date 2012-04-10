@@ -16,6 +16,9 @@ var Layer = function(){
 	this.orientation = new Vector();
 	this.opacity = 1;
 	
+	this.localMatrix_ = new Matrix();
+	this.localMatrix2D_ = new Matrix();
+	
 };
 
 Layer.prototype = new LayerBase();
@@ -30,7 +33,7 @@ Layer.prototype.getLocalMatrix = function(){
 		r = t.rotation,
 		o = t.orientation;
 	
-	return 	new Matrix()
+	return 	this.localMatrix_
 			.translation(-a.x,-a.y, -a.z)
 			.scale(s.x, s.y, s.z)
 			.rotate(r.x, r.y, r.z)
@@ -45,7 +48,7 @@ Layer.prototype.getLocalMatrix2D = function(){
 		a = t.anchor,
 		s = t.scale;
 
-	return 	new Matrix()
+	return 	this.localMatrix2D_
 			.translation(-a.x, -a.y, 0)
 			.scale(s.x, s.y, 1)
 			.rotate(0, 0, t.rotation.z)

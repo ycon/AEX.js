@@ -11,6 +11,11 @@ var Camera = function(){
 	this.zoom = 1333.33;
 	this.center = new Vector();
 	this.is3D = true;
+	
+	this.localMatrix_ = new Matrix();
+	this.localMatrix2D_ = new Matrix();
+	this.matrixCamera_ = new Matrix();
+	this.tempMatrixCamera_ = new Matrix();
 };
 
 Camera.prototype = new LayerBase();
@@ -22,9 +27,11 @@ Camera.prototype.getLocalMatrix = function(){
 		r	=	t.rotation,
 		ta	=	t.target,
 		p	=	t.position,
-		mat = 	new Matrix()
+		mat = 	this.localMatrix_
 				.rotate(r.x,r.y,r.z);
-
+	
+	mat.m41 = mat.m42 = mat.m43 = 0;
+	
 	if (t.haveTarget){
 		mat.lookAt(
 				ta.x - p.x,
@@ -40,7 +47,7 @@ Camera.prototype.getLocalMatrix = function(){
 
 Camera.prototype.getLocalMatrix2D = function(){
 	
-	return 	new Matrix()
+	return 	this.localMatrix2D_
 			.rotate(0,0,this.rotation.z)
 			.translate(this.position.x,this.position.y, 0);
 	
@@ -49,10 +56,19 @@ Camera.prototype.getLocalMatrix2D = function(){
 
 Camera.prototype.getCameraMatrix = function(){
 	
+	
 	var c = this.center;
-	return 	new Matrix()
+
+	return	this.matrixCamera_
 			.translate(c.x,c.y,this.zoom)
-			.preMultiply(this.getMatrix().createInvert());
+			.preMultiply(
+				this.tempMatrixCamera_
+				.injectMatrix(this.getMatrix())
+				.invert()
+			);
+	//return 	new Matrix()
+	//		.translate(c.x,c.y,this.zoom)
+	//		.preMultiply(this.getMatrix().createInvert());
 	
 };
 

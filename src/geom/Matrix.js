@@ -220,6 +220,8 @@ Matrix.prototype = {
 			t.m32 = b * c;
 			t.m33 = a * c;
 			
+			t.m41 = t.m42 = t.m43 = 0;
+			
 			
 			
 			return this;

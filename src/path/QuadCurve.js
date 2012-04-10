@@ -6,6 +6,8 @@ var QuadCurve = function(start,anchor,end){
 	this.anchor = anchor;
 	this.end = end;
 	
+	this.temp_ = this.start.clone();
+	
 	this.update = true;
 	
 };
@@ -50,20 +52,20 @@ QuadCurve.prototype = {
 		},
 
 		
-		getVect : function(pos){
+		getVect : function(pos, vec){
 
 			this.length();
 			
 			var p = getPositionAt(pos,this.inverse_);
 			
-			return 	this.start.clone()
-					.lerp(this.anchor,p)
-					.lerp(
-							this.anchor.clone().lerp(this.end,p)
-					,p);
+			var start = (vec) ? vec.transfer(this.start) : this.start.clone();
+			
+			return 	start.lerp(this.anchor, p)
+					.lerp(this.temp_.transfer(this.anchor).lerp(this.end, p), p);
 		}
 
 };
+
 
 externs['QuadCurve'] = QuadCurve;
 

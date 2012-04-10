@@ -519,7 +519,7 @@ if (!JSON) {
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17333 (2012/04/09 06:54 PM)
+ * Version: 0.1.1 - Build: 17338 (2012/04/10 09:03 PM)
  */
 
 
@@ -1378,6 +1378,8 @@ Matrix.prototype = {
 			t.m32 = b * c;
 			t.m33 = a * c;
 			
+			t.m41 = t.m42 = t.m43 = 0;
+			
 			
 			
 			return this;
@@ -1394,6 +1396,39 @@ Matrix.prototype = {
 
 			return (rotationX || rotationY || rotationZ) ? this.multiply(new Matrix().rotation(rotationX, rotationY, rotationZ)) : this;
 			
+		},
+		
+		/**
+		 * 
+		 * @param {Object{x:number,y:number,x:number,w:number} q
+		 * @returns {Matrix}
+		 */
+		quaternion: function( q ) {
+
+			var t,
+				x = q.x,
+				y = q.y,
+				z = q.z,
+				w = q.w,
+				x2 = x + x,  y2 = y + y,  z2 = z + z,
+				xx = x * x2, xy = x * y2, xz = x * z2,
+				yy = y * y2, yz = y * z2, zz = z * z2,
+				wx = w * x2, wy = w * y2, wz = w * z2;
+
+			t.m11 = 1 - ( yy + zz );
+			t.m12 = xy - wz;
+			t.m13 = xz + wy;
+
+			t.m21 = xy + wz;
+			t.m22 = 1 - ( xx + zz );
+			t.m23 = yz - wx;
+
+			t.m31 = xz - wy;
+			t.m32 = yz + wx;
+			t.m33 = 1 - ( xx + yy );
+
+			return this;
+
 		},
 		
 		/**
@@ -1842,6 +1877,37 @@ Vector.prototype = {
 
 			return Math.min(this.x,Math.min(this.y,this.z));
 
+		},
+		
+		setFromQuaternion: function ( q ) {
+
+			this.x = Math.atan2( 2 * ( q.x * q.w - q.y * q.z ), ( q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z ) );
+			this.y = Math.asin( 2 *  ( q.x * q.z + q.y * q.w ) );
+			this.z = Math.atan2( 2 * ( q.z * q.w - q.x * q.y ), ( q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z ) );
+
+		},
+		
+		getQuaternion: function(){
+			
+			var sin = Math.sin,
+				cos = Math.cos,
+				t = this,
+				sx = sin(t.x * .5),
+				cx = cos(t.x * .5),
+				sy = sin(t.y * .5),
+				cy = cos(t.y * .5),
+				sz = sin(t.z * .5),
+				cz = cos(t.z * .5),
+				cxy = cx * cy,
+				sxy = sx * sy;
+				
+			return {
+				x: sz * cxy     - cz * sxy,
+				y: cz * sx * cy + sz * cx * sy,
+				z: cz * cx * sy - sz * sx * cy,
+				w: cz * cxy     + sz * sxy
+			};
+			
 		}
 		
 };
@@ -1911,9 +1977,9 @@ Line.prototype = {
 			return this.length_;
 		},
 		
-		getVect : function(pos){
+		getVect : function(pos, vec){
 			
-			return this.start.clone().interpolate(this.end,pos);
+			return ((vec)? vec.transfer(this.start) : this.start.clone()).lerp(this.end,pos);
 			
 		}
 
@@ -1927,6 +1993,8 @@ var QuadCurve = function(start,anchor,end){
 	this.start = start;
 	this.anchor = anchor;
 	this.end = end;
+	
+	this.temp_ = this.start.clone();
 	
 	this.update = true;
 	
@@ -1972,20 +2040,20 @@ QuadCurve.prototype = {
 		},
 
 		
-		getVect : function(pos){
+		getVect : function(pos, vec){
 
 			this.length();
 			
 			var p = getPositionAt(pos,this.inverse_);
 			
-			return 	this.start.clone()
-					.lerp(this.anchor,p)
-					.lerp(
-							this.anchor.clone().lerp(this.end,p)
-					,p);
+			var start = (vec) ? vec.transfer(this.start) : this.start.clone();
+			
+			return 	start.lerp(this.anchor, p)
+					.lerp(this.temp_.transfer(this.anchor).lerp(this.end, p), p);
 		}
 
 };
+
 
 externs['QuadCurve'] = QuadCurve;
 
@@ -2063,16 +2131,16 @@ Path.prototype = {
 		
 	},
 
-	getVect : function(pos){
+	getVect : function(pos, vec){
 
 		var item = this.getItem(pos);
 
 		pos *= this.length();
 		
 		if (item){
-			return item.getVect((pos-this.lastPos_)/item.length());
+			return item.getVect((pos-this.lastPos_) / item.length(), vec);
 		} else {
-			return this.start.clone();
+			return (vec) ? vec.transfer(this.start) : this.start.clone();
 		}
 		
 	},
@@ -2138,11 +2206,11 @@ CubicCurve.prototype = {
 			return this.length_;
 		},
 		
-		getVect : function(pos){
+		getVect : function(pos, vec){
 
 			this.length();
 			
-			return this.path.getVect(pos);
+			return this.path.getVect(pos, vec);
 			
 		}
 
@@ -2335,7 +2403,7 @@ Keys.prototype = {
 		return this.prevIndex_;
 	},
 	
-	get : function(pos){
+	get : function(pos, opt_obj){
 		
 		var index = this.indexAt(pos),
 			key = this.keys_[index],
@@ -2354,7 +2422,7 @@ Keys.prototype = {
 				
 			}
 			
-			return this.interpolate(key,next_key,i);
+			return this.interpolate(key, next_key, i, opt_obj);
 		}
 	},
 	
@@ -2391,12 +2459,14 @@ externs['Keys'] = Keys;
 var SpatialKeys = function(target, property){
 
 	Keys.call(this, target, property);
+	
+	this.temp_ = target[property].clone();
 };
 
 SpatialKeys.prototype = new Keys();
 SpatialKeys.prototype.constructor = SpatialKeys;
 
-SpatialKeys.prototype.interpolate = function(key, next_key, pos){
+SpatialKeys.prototype.interpolate = function(key, next_key, pos, opt_vec){
 	
 	if (key.update){
 		if (key.outTangent && next_key.inTangent){
@@ -2413,15 +2483,16 @@ SpatialKeys.prototype.interpolate = function(key, next_key, pos){
 		key.update = false;
 	}
 	if (key.path){
-		return key.path.getVect(pos);
+		return key.path.getVect(pos, opt_vec);
 	} else {
-		return key.value.clone().lerp(next_key.value,pos);
+		return ((opt_vec) ? opt_vec.transfer(key.value) : key.value.clone())
+			   .lerp(next_key.value,pos);
 	}
 };
 
 SpatialKeys.prototype.set = function(pos){
 	
-	var res = this.get(pos),
+	var res = this.get(pos, this._temp),
 		v = this.target[this.property];
 	
 	if (v.equals && !v.equals(res)){
@@ -2440,6 +2511,9 @@ var LayerBase = function(){
 	this.visible = true;
 	this.name = null;
 	
+	this.matrix_ = new Matrix;;
+	this.matrix2D_ = new Matrix;
+	
 };
 
 
@@ -2449,7 +2523,7 @@ LayerBase.prototype.getMatrix = function(){
 		return this.getMatrix2D();
 	}
 
-	var mat = this.getLocalMatrix(),
+	var mat = this.matrix_.injectMatrix(this.getLocalMatrix()),
 		p = this.parent;
 	
 	if (p){
@@ -2462,7 +2536,7 @@ LayerBase.prototype.getMatrix = function(){
 
 LayerBase.prototype.getMatrix2D = function(){
 	
-	var mat = this.getLocalMatrix2D(),
+	var mat = this.matrix2D_.injectMatrix(this.getLocalMatrix2D()),
 		p = this.parent;
 
 	if (p){
@@ -2498,6 +2572,9 @@ var Layer = function(){
 	this.orientation = new Vector();
 	this.opacity = 1;
 	
+	this.localMatrix_ = new Matrix();
+	this.localMatrix2D_ = new Matrix();
+	
 };
 
 Layer.prototype = new LayerBase();
@@ -2512,7 +2589,7 @@ Layer.prototype.getLocalMatrix = function(){
 		r = t.rotation,
 		o = t.orientation;
 	
-	return 	new Matrix()
+	return 	this.localMatrix_
 			.translation(-a.x,-a.y, -a.z)
 			.scale(s.x, s.y, s.z)
 			.rotate(r.x, r.y, r.z)
@@ -2527,7 +2604,7 @@ Layer.prototype.getLocalMatrix2D = function(){
 		a = t.anchor,
 		s = t.scale;
 
-	return 	new Matrix()
+	return 	this.localMatrix2D_
 			.translation(-a.x, -a.y, 0)
 			.scale(s.x, s.y, 1)
 			.rotate(0, 0, t.rotation.z)
@@ -2549,6 +2626,11 @@ var Camera = function(){
 	this.zoom = 1333.33;
 	this.center = new Vector();
 	this.is3D = true;
+	
+	this.localMatrix_ = new Matrix();
+	this.localMatrix2D_ = new Matrix();
+	this.matrixCamera_ = new Matrix();
+	this.tempMatrixCamera_ = new Matrix();
 };
 
 Camera.prototype = new LayerBase();
@@ -2560,9 +2642,11 @@ Camera.prototype.getLocalMatrix = function(){
 		r	=	t.rotation,
 		ta	=	t.target,
 		p	=	t.position,
-		mat = 	new Matrix()
+		mat = 	this.localMatrix_
 				.rotate(r.x,r.y,r.z);
-
+	
+	mat.m41 = mat.m42 = mat.m43 = 0;
+	
 	if (t.haveTarget){
 		mat.lookAt(
 				ta.x - p.x,
@@ -2578,7 +2662,7 @@ Camera.prototype.getLocalMatrix = function(){
 
 Camera.prototype.getLocalMatrix2D = function(){
 	
-	return 	new Matrix()
+	return 	this.localMatrix2D_
 			.rotate(0,0,this.rotation.z)
 			.translate(this.position.x,this.position.y, 0);
 	
@@ -2587,10 +2671,19 @@ Camera.prototype.getLocalMatrix2D = function(){
 
 Camera.prototype.getCameraMatrix = function(){
 	
+	
 	var c = this.center;
-	return 	new Matrix()
+
+	return	this.matrixCamera_
 			.translate(c.x,c.y,this.zoom)
-			.preMultiply(this.getMatrix().createInvert());
+			.preMultiply(
+				this.tempMatrixCamera_
+				.injectMatrix(this.getMatrix())
+				.invert()
+			);
+	//return 	new Matrix()
+	//		.translate(c.x,c.y,this.zoom)
+	//		.preMultiply(this.getMatrix().createInvert());
 	
 };
 
@@ -2945,6 +3038,9 @@ var LayerDomElement = function(layer){
 
 	this.prevScale = 0;
 	this.visible = false;
+	
+	this.matrix_ = new Matrix();
+	this.tempMatrix_ = new Matrix();
 };
 
 LayerDomElement.prototype = {
@@ -2973,16 +3069,19 @@ LayerDomElement.prototype = {
 			
 			var t = this,
 				m = t.model,
-				mat = t.modifyMatrix(m.getMatrix());
+				mat = t.matrix_.injectMatrix(m.getMatrix());
+			
+			
+			t.modifyMatrix(mat);
 
 			if (camera_mat){
 				mat.multiply(camera_mat);
 			}
 			
-			mat = this.modifyCollapse(mat,camera_zoom);
+			t.modifyCollapse(mat,camera_zoom);
 
-			this.element.style[TRANSFORM] = mat.toString();
-			this.holder.style.opacity = (m.opacity !== 1) ? m.opacity : undefined;
+			t.element.style[TRANSFORM] = mat.toString();
+			t.holder.style.opacity = (m.opacity !== 1) ? m.opacity : undefined;
 			
 			
 		},
@@ -3041,13 +3140,12 @@ LayerDomElement.prototype = {
 				}
 				
 				invScale = 1/scale;
-				mat.preMultiply(new Matrix().scaling(invScale, invScale, 1));
+				mat.preMultiply(t.tempMatrix_.scaling(invScale, invScale, 1));
 				
 			} else {
 				this.prevScale = 0;
 			}
-			
-			return mat;
+
 		},
 
 		modifyMatrix : function(mat){
@@ -3325,6 +3423,7 @@ CompositionDomElement.prototype.render = function(camera_mat,camera_zoom,opt_cam
 			style[PERSPECTIVE] = undefined;
 			style[PERSPECTIVE_ORIGIN] = undefined;
 			style.clip = undefined;
+			style.overflow = undefined;
 		} else {
 			
 			t.width = null;
@@ -3348,6 +3447,7 @@ CompositionDomElement.prototype.render = function(camera_mat,camera_zoom,opt_cam
 			t.height = model.height;
 			style.width = t.width.toString()+'px';
 			style.height = t.height.toString()+'px';
+			style.overflow = 'hidden';
 			style.clip = "rect(0px,"+t.width+"px,"+t.height+",0px)"
 			style[PERSPECTIVE_ORIGIN] = (t.width/2).toString()+'px '+(t.height/2).toString()+'px';
 		}

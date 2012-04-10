@@ -27,9 +27,9 @@ Line.prototype = {
 			return this.length_;
 		},
 		
-		getVect : function(pos){
+		getVect : function(pos, vec){
 			
-			return this.start.clone().interpolate(this.end,pos);
+			return ((vec)? vec.transfer(this.start) : this.start.clone()).lerp(this.end,pos);
 			
 		}
 

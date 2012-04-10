@@ -4,12 +4,14 @@
 var SpatialKeys = function(target, property){
 
 	Keys.call(this, target, property);
+	
+	this.temp_ = target[property].clone();
 };
 
 SpatialKeys.prototype = new Keys();
 SpatialKeys.prototype.constructor = SpatialKeys;
 
-SpatialKeys.prototype.interpolate = function(key, next_key, pos){
+SpatialKeys.prototype.interpolate = function(key, next_key, pos, opt_vec){
 	
 	if (key.update){
 		if (key.outTangent && next_key.inTangent){
@@ -26,15 +28,16 @@ SpatialKeys.prototype.interpolate = function(key, next_key, pos){
 		key.update = false;
 	}
 	if (key.path){
-		return key.path.getVect(pos);
+		return key.path.getVect(pos, opt_vec);
 	} else {
-		return key.value.clone().lerp(next_key.value,pos);
+		return ((opt_vec) ? opt_vec.transfer(key.value) : key.value.clone())
+			   .lerp(next_key.value,pos);
 	}
 };
 
 SpatialKeys.prototype.set = function(pos){
 	
-	var res = this.get(pos),
+	var res = this.get(pos, this._temp),
 		v = this.target[this.property];
 	
 	if (v.equals && !v.equals(res)){

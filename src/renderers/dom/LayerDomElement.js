@@ -13,6 +13,9 @@ var LayerDomElement = function(layer){
 
 	this.prevScale = 0;
 	this.visible = false;
+	
+	this.matrix_ = new Matrix();
+	this.tempMatrix_ = new Matrix();
 };
 
 LayerDomElement.prototype = {
@@ -41,16 +44,19 @@ LayerDomElement.prototype = {
 			
 			var t = this,
 				m = t.model,
-				mat = t.modifyMatrix(m.getMatrix());
+				mat = t.matrix_.injectMatrix(m.getMatrix());
+			
+			
+			t.modifyMatrix(mat);
 
 			if (camera_mat){
 				mat.multiply(camera_mat);
 			}
 			
-			mat = this.modifyCollapse(mat,camera_zoom);
+			t.modifyCollapse(mat,camera_zoom);
 
-			this.element.style[TRANSFORM] = mat.toString();
-			this.holder.style.opacity = (m.opacity !== 1) ? m.opacity : undefined;
+			t.element.style[TRANSFORM] = mat.toString();
+			t.holder.style.opacity = (m.opacity !== 1) ? m.opacity : undefined;
 			
 			
 		},
@@ -109,13 +115,12 @@ LayerDomElement.prototype = {
 				}
 				
 				invScale = 1/scale;
-				mat.preMultiply(new Matrix().scaling(invScale, invScale, 1));
+				mat.preMultiply(t.tempMatrix_.scaling(invScale, invScale, 1));
 				
 			} else {
 				this.prevScale = 0;
 			}
-			
-			return mat;
+
 		},
 
 		modifyMatrix : function(mat){

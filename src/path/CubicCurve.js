@@ -31,11 +31,11 @@ CubicCurve.prototype = {
 			return this.length_;
 		},
 		
-		getVect : function(pos){
+		getVect : function(pos, vec){
 
 			this.length();
 			
-			return this.path.getVect(pos);
+			return this.path.getVect(pos, vec);
 			
 		}
 

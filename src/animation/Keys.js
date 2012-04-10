@@ -81,7 +81,7 @@ Keys.prototype = {
 		return this.prevIndex_;
 	},
 	
-	get : function(pos){
+	get : function(pos, opt_obj){
 		
 		var index = this.indexAt(pos),
 			key = this.keys_[index],
@@ -100,7 +100,7 @@ Keys.prototype = {
 				
 			}
 			
-			return this.interpolate(key,next_key,i);
+			return this.interpolate(key, next_key, i, opt_obj);
 		}
 	},
 	

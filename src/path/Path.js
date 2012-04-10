@@ -72,16 +72,16 @@ Path.prototype = {
 		
 	},
 
-	getVect : function(pos){
+	getVect : function(pos, vec){
 
 		var item = this.getItem(pos);
 
 		pos *= this.length();
 		
 		if (item){
-			return item.getVect((pos-this.lastPos_)/item.length());
+			return item.getVect((pos-this.lastPos_) / item.length(), vec);
 		} else {
-			return this.start.clone();
+			return (vec) ? vec.transfer(this.start) : this.start.clone();
 		}
 		
 	},
