@@ -89,10 +89,53 @@ Vector4.prototype = {
 			t.y = cz * sx * cy + sz * cx * sy;
 			t.z = cz * cx * sy - sz * sx * cy;
 			t.w = cz * cxy     + sz * sxy;
+
 			
 			return this;
 			
-		}
+		},
+		
+		divideScalar: function ( s ) {
+
+			if ( s ) {
+
+				this.x /= s;
+				this.y /= s;
+				this.z /= s;
+				this.w /= s;
+
+			} else {
+
+				this.x = 0;
+				this.y = 0;
+				this.z = 0;
+				this.w = 0;
+
+			}
+
+			return this;
+
+		},
+		
+		lengthSq: function () {
+
+			return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
+
+		},
+
+		length: function () {
+
+			return Math.sqrt( this.lengthSq() );
+
+		},
+		
+		normalize: function () {
+
+			return this.divideScalar( this.length() );
+
+		},
+		
+		
 		
 };
 

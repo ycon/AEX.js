@@ -252,6 +252,7 @@ Matrix.prototype = {
 		 */
 		quaternionRotation: function( x, y, z, w ) {
 
+			/*
 			var t = this,
 				x2 = x + x,  y2 = y + y,  z2 = z + z,
 				xx = x * x2, xy = x * y2, xz = x * z2,
@@ -271,7 +272,67 @@ Matrix.prototype = {
 			t.m33 = 1 - ( xx + yy );
 			
 			t.m41 = t.m42 = t.m43 = 0;
+			*/
+			
+			
+			var t = this,
+				sqw = w * w,
+				sqx = x * x,
+				sqy = y * y,
+				sqz = z * z,
+				invs = 1 / (sqx + sqy + sqz + sqw);
+			
+			
+			t.m11 = ( sqx - sqy - sqz + sqw)*invs ;
+		    t.m22 = (-sqx + sqy - sqz + sqw)*invs ;
+		    t.m33 = (-sqx - sqy + sqz + sqw)*invs ;
+		    
+		    
+		    
+		    var tmp1 = x*y;
+		    var tmp2 = z*w;
+		    t.m21 = 2 * (tmp1 + tmp2)*invs ;
+		    t.m12 = 2 * (tmp1 - tmp2)*invs ;
+		    
+		    tmp1 = x*z;
+		    tmp2 = y*w;
+		    t.m31 = 2 * (tmp1 - tmp2)*invs ;
+		    t.m13 = 2 * (tmp1 + tmp2)*invs ;
+		    tmp1 = y*z;
+		    tmp2 = x*w;
+		    t.m32 = 2 * (tmp1 + tmp2)*invs ;
+		    t.m23 = 2 * (tmp1 - tmp2)*invs ;  
+			
+		    
+			/*
+			
+			var t = this,
+				xx = x * x,
+				xy = x * y,
+		    	xz = x * z,
+		    	xw = x * w,
+		    	yy = y * y,
+		    	yz = y * z,
+		    	yw = y * w,
+		    	zz = z * z,
+		    	zw = z * w;
+			
+			t.m11  = 1 - 2 * ( yy + zz );
+			t.m12  =     2 * ( xy - zw );
+			t.m12 =     2 * ( xz + yw );
 
+			t.m21  =     2 * ( xy + zw );
+			t.m22  = 1 - 2 * ( xx + zz );
+			t.m23  =     2 * ( yz - xw );
+
+			t.m31  =     2 * ( xz - yw );
+			t.m32  =     2 * ( yz + xw );
+			t.m33 = 1 - 2 * ( xx + yy );
+
+			t.m14  = t.m24 = t.m34 = t.m41 = t.m42 = t.m43 = 0;
+			t.m44 = 1;
+			*/
+			
 			return this;
 
 		},
@@ -289,9 +350,11 @@ Matrix.prototype = {
 			if (!this.temp_){
 				this.temp_ = new Matrix();
 			}
-			w = (!w && w !== 0) ? 1 : 0;
+			w = (!w && w !== 0) ? 1 : w;
 			
-			return (x && y && z && w === 1) ? this : this.multiply(this.temp_.quaternionRotation(x, y, z, w));
+			
+			return  this.multiply(this.temp_.quaternionRotation(x, y, z, w));
+			//return (x && y && z && w === 1) ? this : this.multiply(this.temp_.quaternionRotation(x, y, z, w));
 			
 		},
 		
