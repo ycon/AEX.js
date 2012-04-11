@@ -30,7 +30,7 @@ SpatialKeys.prototype.interpolate = function(key, next_key, pos, opt_vec){
 	if (key.path){
 		return key.path.getVect(pos, opt_vec);
 	} else {
-		return ((opt_vec) ? opt_vec.transfer(key.value) : key.value.clone())
+		return ((opt_vec) ? opt_vec.copy(key.value) : key.value.clone())
 			   .lerp(next_key.value,pos);
 	}
 };
@@ -41,7 +41,7 @@ SpatialKeys.prototype.set = function(pos){
 		v = this.target[this.property];
 	
 	if (v.equals && !v.equals(res)){
-		v.transfer(res);
+		v.copy(res);
 	};
 	
 };

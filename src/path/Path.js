@@ -81,7 +81,7 @@ Path.prototype = {
 		if (item){
 			return item.getVect((pos-this.lastPos_) / item.length(), vec);
 		} else {
-			return (vec) ? vec.transfer(this.start) : this.start.clone();
+			return (vec) ? vec.copy(this.start) : this.start.clone();
 		}
 		
 	},

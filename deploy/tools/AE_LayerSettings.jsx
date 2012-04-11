@@ -519,11 +519,7 @@ if (!JSON) {
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
-<<<<<<< HEAD
- * Version: 0.1.1 - Build: 17338 (2012/04/10 09:03 PM)
-=======
- * Version: 0.1.1 - Build: 17334 (2012/04/10 09:22 PM)
->>>>>>> Random changes
+ * Version: 0.1.1 - Build: 17367 (2012/04/11 08:31 AM)
  */
 
 
@@ -685,11 +681,11 @@ var getGaussLength = function(min,max,c1,c2) {
 
 	sum = vec.multiplyScalar(2*(ab2 + mult*-0.8611363116)).add(c1).lengthSq()*0.3478548451;
 	
-	sum += vec.transfer(c2).multiplyScalar(2*(ab2 + mult*0.8611363116)).add(c1).lengthSq()*0.3478548451;
+	sum += vec.copy(c2).multiplyScalar(2*(ab2 + mult*0.8611363116)).add(c1).lengthSq()*0.3478548451;
 	
-	sum += vec.transfer(c2).multiplyScalar(2*(ab2 + mult*-0.3399810436)).add(c1).lengthSq()*0.6521451549;
+	sum += vec.copy(c2).multiplyScalar(2*(ab2 + mult*-0.3399810436)).add(c1).lengthSq()*0.6521451549;
 	
-	sum += vec.transfer(c2).multiplyScalar(2*(ab2 + mult*0.3399810436)).add(c1).lengthSq()*0.6521451549;
+	sum += vec.copy(c2).multiplyScalar(2*(ab2 + mult*0.3399810436)).add(c1).lengthSq()*0.6521451549;
 	
 	return sum;
 			
@@ -820,7 +816,7 @@ var cubicToQuadratic = function(p1,c1,c2,p2,path,precision){
 		//trace(d);
 		
 		res1 = d1_p1.clone().lerp(d1_c1,1.5);
-		res2.transfer(p).lerp(d1_c2,1.5);
+		res2.copy(p).lerp(d1_c2,1.5);
 
 		
 		path.curveTo(res1.lerp(res2,.5),p.clone());
@@ -832,15 +828,15 @@ var cubicToQuadratic = function(p1,c1,c2,p2,path,precision){
 			c1 = d2_c1.clone();
 			c2 = d2_c2.clone();
 			
-			p1 = d1_p1.transfer(p);
+			p1 = d1_p1.copy(p);
 			
 			
-			d1_c1.transfer(d1_p1).lerp(c1,d);
-			d2_c2.transfer(c2).lerp(p2,d);
-			temp_c.transfer(c1).lerp(c2,d);
-			d1_c2.transfer(d1_c1).lerp(temp_c,d);
+			d1_c1.copy(d1_p1).lerp(c1,d);
+			d2_c2.copy(c2).lerp(p2,d);
+			temp_c.copy(c1).lerp(c2,d);
+			d1_c2.copy(d1_c1).lerp(temp_c,d);
 			d2_c1 = temp_c.lerp(d2_c2,d);
-			p.transfer(d1_c2).lerp(d2_c1,d);
+			p.copy(d1_c2).lerp(d2_c1,d);
 			
 			//path.curveTo(p.clone(),p.clone());
 			cubicToQuadratic(d1_p1,d1_c1,d1_c2.clone(),p.clone(),path,precision);
@@ -1382,11 +1378,6 @@ Matrix.prototype = {
 			t.m33 = a * c;
 			
 			t.m41 = t.m42 = t.m43 = 0;
-<<<<<<< HEAD
-			
-			
-=======
->>>>>>> Random changes
 			
 			return this;
 			
@@ -1410,16 +1401,15 @@ Matrix.prototype = {
 		
 		/**
 		 * 
-		 * @param {Object{x:number,y:number,x:number,w:number} q
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @param {number} w
 		 * @returns {Matrix}
 		 */
-		quaternion: function( q ) {
+		quaternionRotation: function( x, y, z, w ) {
 
-			var t,
-				x = q.x,
-				y = q.y,
-				z = q.z,
-				w = q.w,
+			var t = this,
 				x2 = x + x,  y2 = y + y,  z2 = z + z,
 				xx = x * x2, xy = x * y2, xz = x * z2,
 				yy = y * y2, yz = y * z2, zz = z * z2,
@@ -1436,9 +1426,30 @@ Matrix.prototype = {
 			t.m31 = xz - wy;
 			t.m32 = yz + wx;
 			t.m33 = 1 - ( xx + yy );
+			
+			t.m41 = t.m42 = t.m43 = 0;
 
 			return this;
 
+		},
+		
+		/**
+		 * 
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @param {number} w
+		 * @returns {Matrix}
+		 */
+		quaternionRotate:function(x, y, z, w){
+
+			if (!this.temp_){
+				this.temp_ = new Matrix();
+			}
+			w = (!w && w !== 0) ? 1 : 0;
+			
+			return (x && y && z && w === 1) ? this : this.multiply(this.temp_.quaternionRotation(x, y, z, w));
+			
 		},
 		
 		/**
@@ -1680,16 +1691,6 @@ Vector.prototype = {
 			return this;
 
 		},
-		
-		transfer: function ( v ) {
-
-			this.x = v.x;
-			this.y = v.y;
-			this.z = v.z || 0;
-
-			return this;
-
-		},
 
 		setX: function ( x ) {
 
@@ -1719,7 +1720,7 @@ Vector.prototype = {
 
 			this.x = v.x;
 			this.y = v.y;
-			this.z = v.z;
+			this.z = v.z || 0;
 
 			return this;
 
@@ -1901,32 +1902,108 @@ Vector.prototype = {
 
 		},
 		
-		getQuaternion: function(){
+};
+
+externs['Vector'] = Vector;
+/**
+ * @author mr.doob / http://mrdoob.com/
+ * @author kile / http://kile.stravaganza.org/
+ * @author philogb / http://blog.thejit.org/
+ * @author mikael emtinger / http://gomo.se/
+ * @author egraether / http://egraether.com/
+ */
+
+
+var Vector4 = function(x,y,z,w){
+	this.x = x || 0;
+	this.y = y || 0;
+	this.z = z || 0;
+	this.w = w || 1;
+};
+
+Vector4.isVector4 = function(v){
+	
+	var n = 'number';
+	
+	return (v && typeof v.x === n && typeof v.y === n && typeof v.w === n);
+
+};
+
+Vector4.prototype = {
+		
+		constructor : Vector,
+		
+		set: function ( x, y, z, w ) {
+
+			this.x = x;
+			this.y = y;
+			this.z = z || 0;
+			this.w = (!w && w !== 0) ? 1 : w;
+
+			return this;
+
+		},
+
+		copy: function ( v ) {
+
+			this.x = v.x;
+			this.y = v.y;
+			this.z = v.z || 0;
+			this.w = v.w || 1;
+
+			return this;
+
+		},
+
+		clone: function () {
+
+			return new Vector4( this.x, this.y, this.z, this.w );
+
+		},
+		
+		lerp: function ( v, alpha ) {
+
+			this.x += ( v.x - this.x ) * alpha;
+			this.y += ( v.y - this.y ) * alpha;
+			this.z += ( v.z - this.z ) * alpha;
+			this.w += ( v.w - this.w ) * alpha;
+
+			return this;
+
+		},
+
+		equals: function ( v ) {
+
+			return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ));
+
+		},
+
+		setQuaternion: function( v ){
 			
 			var sin = Math.sin,
 				cos = Math.cos,
 				t = this,
-				sx = sin(t.x * .5),
-				cx = cos(t.x * .5),
-				sy = sin(t.y * .5),
-				cy = cos(t.y * .5),
-				sz = sin(t.z * .5),
-				cz = cos(t.z * .5),
+				sx = sin(v.x * .5),
+				cx = cos(v.x * .5),
+				sy = sin(v.y * .5),
+				cy = cos(v.y * .5),
+				sz = sin(v.z * .5),
+				cz = cos(v.z * .5),
 				cxy = cx * cy,
 				sxy = sx * sy;
-				
-			return {
-				x: sz * cxy     - cz * sxy,
-				y: cz * sx * cy + sz * cx * sy,
-				z: cz * cx * sy - sz * sx * cy,
-				w: cz * cxy     + sz * sxy
-			};
+			
+			t.x = sz * cxy     - cz * sxy;
+			t.y = cz * sx * cy + sz * cx * sy;
+			t.z = cz * cx * sy - sz * sx * cy;
+			t.w = cz * cxy     + sz * sxy;
+			
+			return this;
 			
 		}
 		
 };
 
-externs['Vector'] = Vector;
+externs['Vector4'] = Vector4;
 
 /** @constructor */
 var Rectangle = function(_x,_y,_width,_height){
@@ -1993,7 +2070,7 @@ Line.prototype = {
 		
 		getVect : function(pos, vec){
 			
-			return ((vec)? vec.transfer(this.start) : this.start.clone()).lerp(this.end,pos);
+			return ((vec)? vec.copy(this.start) : this.start.clone()).lerp(this.end,pos);
 			
 		}
 
@@ -2060,10 +2137,10 @@ QuadCurve.prototype = {
 			
 			var p = getPositionAt(pos,this.inverse_);
 			
-			var start = (vec) ? vec.transfer(this.start) : this.start.clone();
+			var start = (vec) ? vec.copy(this.start) : this.start.clone();
 			
 			return 	start.lerp(this.anchor, p)
-					.lerp(this.temp_.transfer(this.anchor).lerp(this.end, p), p);
+					.lerp(this.temp_.copy(this.anchor).lerp(this.end, p), p);
 		}
 
 };
@@ -2154,7 +2231,7 @@ Path.prototype = {
 		if (item){
 			return item.getVect((pos-this.lastPos_) / item.length(), vec);
 		} else {
-			return (vec) ? vec.transfer(this.start) : this.start.clone();
+			return (vec) ? vec.copy(this.start) : this.start.clone();
 		}
 		
 	},
@@ -2499,7 +2576,7 @@ SpatialKeys.prototype.interpolate = function(key, next_key, pos, opt_vec){
 	if (key.path){
 		return key.path.getVect(pos, opt_vec);
 	} else {
-		return ((opt_vec) ? opt_vec.transfer(key.value) : key.value.clone())
+		return ((opt_vec) ? opt_vec.copy(key.value) : key.value.clone())
 			   .lerp(next_key.value,pos);
 	}
 };
@@ -2510,7 +2587,7 @@ SpatialKeys.prototype.set = function(pos){
 		v = this.target[this.property];
 	
 	if (v.equals && !v.equals(res)){
-		v.transfer(res);
+		v.copy(res);
 	};
 	
 };
@@ -2583,7 +2660,7 @@ var Layer = function(){
 	this.anchor = new Vector();
 	this.scale = new Vector(1,1,1);
 	this.rotation = new Vector();
-	this.orientation = new Vector();
+	this.orientation = new Vector4();
 	this.opacity = 1;
 	
 	this.localMatrix_ = new Matrix();
@@ -2607,7 +2684,7 @@ Layer.prototype.getLocalMatrix = function(){
 			.translation(-a.x,-a.y, -a.z)
 			.scale(s.x, s.y, s.z)
 			.rotate(r.x, r.y, r.z)
-			.rotate(o.x, o.y, o.z)
+			.quaternionRotate(o.x, o.y, o.z, o.w)
 			.translate(p.x,p.y, -p.z);
 };
 
@@ -2962,7 +3039,11 @@ var AEBuilder = {
 				is_vector = Vector.isVector(val);
 				
 				if (is_vector){
-					val = new Vector(val.x,val.y,val.z);
+					if (val.w !== undefined){
+						val = new Vector4(val.x,val.y,val.z,val.w);
+					} else {
+						val = new Vector(val.x,val.y,val.z);
+					}
 				}
 				
 				if (is_spatial === null){
@@ -3025,14 +3106,20 @@ var AEBuilder = {
 		} else {
 			
 			if (Vector.isVector(value)){
+				
 				obj[name].set(value.x,value.y,value.z);
+				console.log(value,obj[name]);
+				if (obj[name].w !== undefined){
+					obj[name].w = value.w;
+					//console.log(value);
+				}
 			} else {
 				obj[name] = value;
 			}
 			
 		}
 		
-	}
+	},
 	
 };
 
@@ -3710,6 +3797,8 @@ var PropertyCleaner = {
 		if (result.is3D){
 			
 			this.cleanRotation(result.transform);
+			
+			result.transform.orientation = this.transformOrientation(result.transform.orientation);
 	        
 			delete result.materialOptions;
 			
@@ -3806,17 +3895,65 @@ var PropertyCleaner = {
 	},
 	
 	reduceProperty : function (prop){
+		
+		var k,
+			ae = global.AE;
+		
 		if (isArray(prop)){
 			for (var i = 0; i < prop.length; i++) {
-				delete prop[i].v.z;
-				if (prop.t){
-					prop[i].t.i.pop();
-					prop[i].t.o.pop();
+				k = prop[i];
+				if (isArray(k)){
+					delete k[0].z;
+				} else if (ae.Vector.isVector(k)){
+					delete k.z;
+				} else {
+					delete k.v.z;
+					if (k.t){
+						if (k.t.i){
+							k.t.i.pop();
+						}
+						if (k.t.o){
+							k.t.o.pop();
+						}
+					}
 				}
 			}
 		} else {
 			delete prop.z;
 		}
+	},
+	
+	transformOrientation : function( obj ) {
+		
+		var res,
+			ae = global.AE;
+		
+		if (isArray(obj)){
+			
+			res = [];
+			
+			for (var i = 0; i < obj.length; i++) {
+				k = obj[i];
+				if (isArray(k)){
+					
+					res.push([new ae.Vector4().setQuaternion(k[0]),k[1]]);
+				} else if (ae.Vector.isVector(k)){
+					res.push(new ae.Vector4().setQuaternion(k));
+				} else {
+					
+					res.push({
+						v: new ae.Vector4().setQuaternion(k.v),
+						d: k.d,
+						e : k.e
+					});
+				}
+			}
+			return res;
+		} else {
+			return new ae.Vector4().setQuaternion(obj);
+		}
+		
+		
 	},
 	
 	cleanRotation : function( obj ) {
@@ -3835,7 +3972,7 @@ var PropertyCleaner = {
 
 var PropertyExporter = {
 		
-	getProperty : function( prop, project, options ){
+	getProperty : function( prop, project, options , force_separation){
 		
 		var keys = [],
 			result,

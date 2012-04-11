@@ -32,16 +32,6 @@ Vector.prototype = {
 			return this;
 
 		},
-		
-		transfer: function ( v ) {
-
-			this.x = v.x;
-			this.y = v.y;
-			this.z = v.z || 0;
-
-			return this;
-
-		},
 
 		setX: function ( x ) {
 
@@ -71,7 +61,7 @@ Vector.prototype = {
 
 			this.x = v.x;
 			this.y = v.y;
-			this.z = v.z;
+			this.z = v.z || 0;
 
 			return this;
 
@@ -252,29 +242,6 @@ Vector.prototype = {
 			this.z = Math.atan2( 2 * ( q.z * q.w - q.x * q.y ), ( q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z ) );
 
 		},
-		
-		getQuaternion: function(){
-			
-			var sin = Math.sin,
-				cos = Math.cos,
-				t = this,
-				sx = sin(t.x * .5),
-				cx = cos(t.x * .5),
-				sy = sin(t.y * .5),
-				cy = cos(t.y * .5),
-				sz = sin(t.z * .5),
-				cz = cos(t.z * .5),
-				cxy = cx * cy,
-				sxy = sx * sy;
-				
-			return {
-				x: sz * cxy     - cz * sxy,
-				y: cz * sx * cy + sz * cx * sy,
-				z: cz * cx * sy - sz * sx * cy,
-				w: cz * cxy     + sz * sxy
-			};
-			
-		}
 		
 };
 

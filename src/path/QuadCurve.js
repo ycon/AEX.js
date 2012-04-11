@@ -58,10 +58,10 @@ QuadCurve.prototype = {
 			
 			var p = getPositionAt(pos,this.inverse_);
 			
-			var start = (vec) ? vec.transfer(this.start) : this.start.clone();
+			var start = (vec) ? vec.copy(this.start) : this.start.clone();
 			
 			return 	start.lerp(this.anchor, p)
-					.lerp(this.temp_.transfer(this.anchor).lerp(this.end, p), p);
+					.lerp(this.temp_.copy(this.anchor).lerp(this.end, p), p);
 		}
 
 };

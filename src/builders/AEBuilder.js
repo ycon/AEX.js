@@ -173,7 +173,11 @@ var AEBuilder = {
 				is_vector = Vector.isVector(val);
 				
 				if (is_vector){
-					val = new Vector(val.x,val.y,val.z);
+					if (val.w !== undefined){
+						val = new Vector4(val.x,val.y,val.z,val.w);
+					} else {
+						val = new Vector(val.x,val.y,val.z);
+					}
 				}
 				
 				if (is_spatial === null){
@@ -236,14 +240,20 @@ var AEBuilder = {
 		} else {
 			
 			if (Vector.isVector(value)){
+				
 				obj[name].set(value.x,value.y,value.z);
+				console.log(value,obj[name]);
+				if (obj[name].w !== undefined){
+					obj[name].w = value.w;
+					//console.log(value);
+				}
 			} else {
 				obj[name] = value;
 			}
 			
 		}
 		
-	}
+	},
 	
 };
 

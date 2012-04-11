@@ -1,7 +1,7 @@
 
 var PropertyExporter = {
 		
-	getProperty : function( prop, project, options ){
+	getProperty : function( prop, project, options , force_separation){
 		
 		var keys = [],
 			result,

@@ -29,7 +29,7 @@ Line.prototype = {
 		
 		getVect : function(pos, vec){
 			
-			return ((vec)? vec.transfer(this.start) : this.start.clone()).lerp(this.end,pos);
+			return ((vec)? vec.copy(this.start) : this.start.clone()).lerp(this.end,pos);
 			
 		}
 

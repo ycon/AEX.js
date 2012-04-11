@@ -41,6 +41,8 @@ var PropertyCleaner = {
 		if (result.is3D){
 			
 			this.cleanRotation(result.transform);
+			
+			result.transform.orientation = this.transformOrientation(result.transform.orientation);
 	        
 			delete result.materialOptions;
 			
@@ -137,17 +139,65 @@ var PropertyCleaner = {
 	},
 	
 	reduceProperty : function (prop){
+		
+		var k,
+			ae = global.AE;
+		
 		if (isArray(prop)){
 			for (var i = 0; i < prop.length; i++) {
-				delete prop[i].v.z;
-				if (prop.t){
-					prop[i].t.i.pop();
-					prop[i].t.o.pop();
+				k = prop[i];
+				if (isArray(k)){
+					delete k[0].z;
+				} else if (ae.Vector.isVector(k)){
+					delete k.z;
+				} else {
+					delete k.v.z;
+					if (k.t){
+						if (k.t.i){
+							k.t.i.pop();
+						}
+						if (k.t.o){
+							k.t.o.pop();
+						}
+					}
 				}
 			}
 		} else {
 			delete prop.z;
 		}
+	},
+	
+	transformOrientation : function( obj ) {
+		
+		var res,
+			ae = global.AE;
+		
+		if (isArray(obj)){
+			
+			res = [];
+			
+			for (var i = 0; i < obj.length; i++) {
+				k = obj[i];
+				if (isArray(k)){
+					
+					res.push([new ae.Vector4().setQuaternion(k[0]),k[1]]);
+				} else if (ae.Vector.isVector(k)){
+					res.push(new ae.Vector4().setQuaternion(k));
+				} else {
+					
+					res.push({
+						v: new ae.Vector4().setQuaternion(k.v),
+						d: k.d,
+						e : k.e
+					});
+				}
+			}
+			return res;
+		} else {
+			return new ae.Vector4().setQuaternion(obj);
+		}
+		
+		
 	},
 	
 	cleanRotation : function( obj ) {

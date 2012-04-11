@@ -13,11 +13,11 @@ var getGaussLength = function(min,max,c1,c2) {
 
 	sum = vec.multiplyScalar(2*(ab2 + mult*-0.8611363116)).add(c1).lengthSq()*0.3478548451;
 	
-	sum += vec.transfer(c2).multiplyScalar(2*(ab2 + mult*0.8611363116)).add(c1).lengthSq()*0.3478548451;
+	sum += vec.copy(c2).multiplyScalar(2*(ab2 + mult*0.8611363116)).add(c1).lengthSq()*0.3478548451;
 	
-	sum += vec.transfer(c2).multiplyScalar(2*(ab2 + mult*-0.3399810436)).add(c1).lengthSq()*0.6521451549;
+	sum += vec.copy(c2).multiplyScalar(2*(ab2 + mult*-0.3399810436)).add(c1).lengthSq()*0.6521451549;
 	
-	sum += vec.transfer(c2).multiplyScalar(2*(ab2 + mult*0.3399810436)).add(c1).lengthSq()*0.6521451549;
+	sum += vec.copy(c2).multiplyScalar(2*(ab2 + mult*0.3399810436)).add(c1).lengthSq()*0.6521451549;
 	
 	return sum;
 			
@@ -148,7 +148,7 @@ var cubicToQuadratic = function(p1,c1,c2,p2,path,precision){
 		//trace(d);
 		
 		res1 = d1_p1.clone().lerp(d1_c1,1.5);
-		res2.transfer(p).lerp(d1_c2,1.5);
+		res2.copy(p).lerp(d1_c2,1.5);
 
 		
 		path.curveTo(res1.lerp(res2,.5),p.clone());
@@ -160,15 +160,15 @@ var cubicToQuadratic = function(p1,c1,c2,p2,path,precision){
 			c1 = d2_c1.clone();
 			c2 = d2_c2.clone();
 			
-			p1 = d1_p1.transfer(p);
+			p1 = d1_p1.copy(p);
 			
 			
-			d1_c1.transfer(d1_p1).lerp(c1,d);
-			d2_c2.transfer(c2).lerp(p2,d);
-			temp_c.transfer(c1).lerp(c2,d);
-			d1_c2.transfer(d1_c1).lerp(temp_c,d);
+			d1_c1.copy(d1_p1).lerp(c1,d);
+			d2_c2.copy(c2).lerp(p2,d);
+			temp_c.copy(c1).lerp(c2,d);
+			d1_c2.copy(d1_c1).lerp(temp_c,d);
 			d2_c1 = temp_c.lerp(d2_c2,d);
-			p.transfer(d1_c2).lerp(d2_c1,d);
+			p.copy(d1_c2).lerp(d2_c1,d);
 			
 			//path.curveTo(p.clone(),p.clone());
 			cubicToQuadratic(d1_p1,d1_c1,d1_c2.clone(),p.clone(),path,precision);

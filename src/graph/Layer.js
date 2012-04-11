@@ -13,7 +13,7 @@ var Layer = function(){
 	this.anchor = new Vector();
 	this.scale = new Vector(1,1,1);
 	this.rotation = new Vector();
-	this.orientation = new Vector();
+	this.orientation = new Vector4();
 	this.opacity = 1;
 	
 	this.localMatrix_ = new Matrix();
@@ -37,7 +37,7 @@ Layer.prototype.getLocalMatrix = function(){
 			.translation(-a.x,-a.y, -a.z)
 			.scale(s.x, s.y, s.z)
 			.rotate(r.x, r.y, r.z)
-			.rotate(o.x, o.y, o.z)
+			.quaternionRotate(o.x, o.y, o.z, o.w)
 			.translate(p.x,p.y, -p.z);
 };
 

@@ -114,6 +114,7 @@
     			BezierEasing.js,
     			Matrix.js,
     			Vector.js,
+    			Vector4.js,
     			Rectangle.js
     		"/>
     		<filelist dir="${src.dir}/path" files="

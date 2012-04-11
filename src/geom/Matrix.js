@@ -221,11 +221,6 @@ Matrix.prototype = {
 			t.m33 = a * c;
 			
 			t.m41 = t.m42 = t.m43 = 0;
-<<<<<<< HEAD
-			
-			
-=======
->>>>>>> Random changes
 			
 			return this;
 			
@@ -249,16 +244,15 @@ Matrix.prototype = {
 		
 		/**
 		 * 
-		 * @param {Object{x:number,y:number,x:number,w:number} q
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @param {number} w
 		 * @returns {Matrix}
 		 */
-		quaternion: function( q ) {
+		quaternionRotation: function( x, y, z, w ) {
 
-			var t,
-				x = q.x,
-				y = q.y,
-				z = q.z,
-				w = q.w,
+			var t = this,
 				x2 = x + x,  y2 = y + y,  z2 = z + z,
 				xx = x * x2, xy = x * y2, xz = x * z2,
 				yy = y * y2, yz = y * z2, zz = z * z2,
@@ -275,9 +269,30 @@ Matrix.prototype = {
 			t.m31 = xz - wy;
 			t.m32 = yz + wx;
 			t.m33 = 1 - ( xx + yy );
+			
+			t.m41 = t.m42 = t.m43 = 0;
 
 			return this;
 
+		},
+		
+		/**
+		 * 
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @param {number} w
+		 * @returns {Matrix}
+		 */
+		quaternionRotate:function(x, y, z, w){
+
+			if (!this.temp_){
+				this.temp_ = new Matrix();
+			}
+			w = (!w && w !== 0) ? 1 : 0;
+			
+			return (x && y && z && w === 1) ? this : this.multiply(this.temp_.quaternionRotation(x, y, z, w));
+			
 		},
 		
 		/**
