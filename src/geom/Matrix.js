@@ -408,6 +408,18 @@ Matrix.prototype = {
 			
 		},
 		
+		determinant: function(){
+			
+			var t = this;
+			
+			return -t.m13 * t.m22 * t.m31+
+					t.m12 * t.m23 * t.m31+
+					t.m13 * t.m21 * t.m32-
+					t.m11 * t.m23 * t.m32-
+					t.m12 * t.m21 * t.m33+
+					t.m11 * t.m22 * t.m33;
+		},
+		
 		/**
 		 * @returns {Matrix}
 		 */
@@ -417,12 +429,7 @@ Matrix.prototype = {
 				n21 = m.m21, n22 = m.m22, n23 = m.m23,
 				n31 = m.m31, n32 = m.m32, n33 = m.m33,
 				n41 = m.m41, n42 = m.m42, n43 = m.m43,
-				d = 1/(-n13 * n22 * n31+
-					    n12 * n23 * n31+
-					    n13 * n21 * n32-
-					    n11 * n23 * n32-
-					    n12 * n21 * n33+
-					    n11 * n22 * n33 );
+				d = 1 / this.determinant();
 
 			m.m11 = (-n23*n32 + n22*n33)*d;
 			m.m12 = ( n13*n32 - n12*n33)*d;

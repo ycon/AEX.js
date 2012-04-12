@@ -186,7 +186,10 @@ var PropertyCleaner = {
 				} else {
 					
 					res.push({
-						v: new ae.Vector4().setQuaternion(k.v),
+						v: new ae.Vector4().setFromEuler(
+							
+							new Vector().copy(k.v)
+						),
 						d: k.d,
 						e : k.e
 					});

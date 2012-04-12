@@ -519,7 +519,7 @@ if (!JSON) {
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17383 (2012/04/11 03:13 PM)
+ * Version: 0.1.1 - Build: 17395 (2012/04/11 10:11 PM)
  */
 
 
@@ -1565,6 +1565,18 @@ Matrix.prototype = {
 			
 		},
 		
+		determinant: function(){
+			
+			var t = this;
+			
+			return -t.m13 * t.m22 * t.m31+
+					t.m12 * t.m23 * t.m31+
+					t.m13 * t.m21 * t.m32-
+					t.m11 * t.m23 * t.m32-
+					t.m12 * t.m21 * t.m33+
+					t.m11 * t.m22 * t.m33;
+		},
+		
 		/**
 		 * @returns {Matrix}
 		 */
@@ -1574,12 +1586,7 @@ Matrix.prototype = {
 				n21 = m.m21, n22 = m.m22, n23 = m.m23,
 				n31 = m.m31, n32 = m.m32, n33 = m.m33,
 				n41 = m.m41, n42 = m.m42, n43 = m.m43,
-				d = 1/(-n13 * n22 * n31+
-					    n12 * n23 * n31+
-					    n13 * n21 * n32-
-					    n11 * n23 * n32-
-					    n12 * n21 * n33+
-					    n11 * n22 * n33 );
+				d = 1 / this.determinant();
 
 			m.m11 = (-n23*n32 + n22*n33)*d;
 			m.m12 = ( n13*n32 - n12*n33)*d;
@@ -2040,6 +2047,60 @@ Vector4.prototype = {
 			return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ));
 
 		},
+		
+		setFromEuler: function ( v ) {
+
+			var sin = Math.sin,
+				cos = Math.cos,
+				c = Math.PI / 360, // 0.5 * Math.PI / 360, // 0.5 is an optimization
+				x = v.x * c,
+				y = v.y * c,
+				z = v.z * c,
+				c1 = cos( y  ),
+				s1 = sin( y  ),
+				c2 = cos( -z ),
+				s2 = sin( -z ),
+				c3 = cos( x  ),
+				s3 = sin( x  ),
+				c1c2 = c1 * c2,
+				s1s2 = s1 * s2;
+
+			this.w = c1c2 * c3  - s1s2 * s3;
+		  	this.x = c1c2 * s3  + s1s2 * c3;
+			this.y = s1 * c2 * c3 + c1 * s2 * s3;
+			this.z = c1 * s2 * c3 - s1 * c2 * s3;
+
+			return this;
+
+		},
+		
+		setFromRotationMatrix: function ( m ) {
+
+			// Adapted from: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
+
+			var sqrt = Math.sqrt,
+				max = Math.max,
+				abs = Math.abs;
+			
+			function copySign( a, b ) {
+
+				return b < 0 ? -abs( a ) : abs( a );
+
+			}
+
+			var absQ = Math.pow( m.determinant(), 1.0 / 3.0 );
+			this.w = sqrt( max( 0, absQ + m.m11 + m.m22 + m.m33 ) ) / 2;
+			this.x = sqrt( max( 0, absQ + m.m11 - m.m22 - m.m33 ) ) / 2;
+			this.y = sqrt( max( 0, absQ - m.m11 + m.m22 - m.m33 ) ) / 2;
+			this.z = sqrt( max( 0, absQ - m.m11 - m.m22 + m.m33 ) ) / 2;
+			this.x = copySign( this.x, ( m.m32 - m.m23 ) );
+			this.y = copySign( this.y, ( m.m13 - m.m31 ) );
+			this.z = copySign( this.z, ( m.m21 - m.m12 ) );
+			this.normalize();
+
+			return this;
+
+		},
 
 		setQuaternion: function( v ){
 			
@@ -2059,6 +2120,7 @@ Vector4.prototype = {
 			t.y = cz * sx * cy + sz * cx * sy;
 			t.z = cz * cx * sy - sz * sx * cy;
 			t.w = cz * cxy     + sz * sxy;
+
 			
 			return this;
 			
@@ -2103,6 +2165,55 @@ Vector4.prototype = {
 			return this.divideScalar( this.length() );
 
 		},
+		
+		slerp: function(q, t){
+
+			// http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
+
+			var x = this.x;
+			var y = this.y;
+			var z = this.z;
+			var w = this.w;
+			
+			var cosHalfTheta = w * q.w + x * q.x + y * q.y + z * q.z;
+
+			if (cosHalfTheta < 0) {
+				this.w = -q.w;
+				this.x = -q.x;
+				this.y = -q.y;
+				this.z = -qb.z;
+				cosHalfTheta = -cosHalfTheta;
+			} else {
+				this.copy(q);
+			}
+
+			
+			var halfTheta = Math.acos( cosHalfTheta ),
+			sinHalfTheta = Math.sqrt( 1.0 - cosHalfTheta * cosHalfTheta );
+
+			if ( Math.abs( sinHalfTheta ) < 0.001 ) {
+
+				this.w = 0.5 * ( w + q.w );
+				this.x = 0.5 * ( x + q.x );
+				this.y = 0.5 * ( y + q.y );
+				this.z = 0.5 * ( z + q.z );
+
+				return this;
+
+			}
+
+			var ratioA = Math.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta,
+			ratioB = Math.sin( t * halfTheta ) / sinHalfTheta;
+
+			this.w = ( w * ratioA + this.w * ratioB );
+			this.x = ( x * ratioA + this.x * ratioB );
+			this.y = ( y * ratioA + this.y * ratioB );
+			this.z = ( z * ratioA + this.z * ratioB );
+
+			return qm;
+
+		
+		}
 		
 		
 		
@@ -4047,7 +4158,10 @@ var PropertyCleaner = {
 				} else {
 					
 					res.push({
-						v: new ae.Vector4().setQuaternion(k.v),
+						v: new ae.Vector4().setFromEuler(
+							
+							new Vector().copy(k.v)
+						),
 						d: k.d,
 						e : k.e
 					});
