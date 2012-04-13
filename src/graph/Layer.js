@@ -13,7 +13,7 @@ var Layer = function(){
 	this.anchor = new Vector();
 	this.scale = new Vector(1,1,1);
 	this.rotation = new Vector();
-	this.orientation = new Vector4();
+	this.orientation = new Quaternion();
 	this.opacity = 1;
 	
 	this.localMatrix_ = new Matrix();

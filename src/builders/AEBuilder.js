@@ -155,7 +155,7 @@ var AEBuilder = {
 			return;
 		}
 		
-		var i,k,val,offset,is_hold,keys,key,is_object,is_array,is_spatial,is_vector;
+		var i,k,val,offset,is_hold,keys,key,is_object,is_array,is_spatial,is_vector,target;
 		
 		if (Array.isArray(value)){
 			
@@ -174,7 +174,7 @@ var AEBuilder = {
 				
 				if (is_vector){
 					if (val.w !== undefined){
-						val = new Vector4(val.x,val.y,val.z,val.w);
+						val = new Quaternion(val.x,val.y,val.z,val.w);
 					} else {
 						val = new Vector(val.x,val.y,val.z);
 					}
@@ -241,12 +241,12 @@ var AEBuilder = {
 			
 			if (Vector.isVector(value)){
 				
-				obj[name].set(value.x,value.y,value.z);
-				console.log(value,obj[name]);
-				if (obj[name].w !== undefined){
-					obj[name].w = value.w;
-					//console.log(value);
+				target = obj[name];
+				target.set(value.x,value.y,value.z);
+				if (target.w !== undefined){
+					target.w = value.w;
 				}
+				
 			} else {
 				obj[name] = value;
 			}

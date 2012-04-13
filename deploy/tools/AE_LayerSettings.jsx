@@ -519,7 +519,7 @@ if (!JSON) {
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17395 (2012/04/11 10:11 PM)
+ * Version: 0.1.1 - Build: 17409 (2012/04/13 05:15 PM)
  */
 
 
@@ -1984,14 +1984,14 @@ externs['Vector'] = Vector;
  */
 
 
-var Vector4 = function(x,y,z,w){
+var Quaternion = function(x,y,z,w){
 	this.x = x || 0;
 	this.y = y || 0;
 	this.z = z || 0;
 	this.w = w || 1;
 };
 
-Vector4.isVector4 = function(v){
+Quaternion.isQuaternion = function(v){
 	
 	var n = 'number';
 	
@@ -1999,9 +1999,9 @@ Vector4.isVector4 = function(v){
 
 };
 
-Vector4.prototype = {
+Quaternion.prototype = {
 		
-		constructor : Vector,
+		constructor : Quaternion,
 		
 		set: function ( x, y, z, w ) {
 
@@ -2027,18 +2027,7 @@ Vector4.prototype = {
 
 		clone: function () {
 
-			return new Vector4( this.x, this.y, this.z, this.w );
-
-		},
-		
-		lerp: function ( v, alpha ) {
-
-			this.x += ( v.x - this.x ) * alpha;
-			this.y += ( v.y - this.y ) * alpha;
-			this.z += ( v.z - this.z ) * alpha;
-			this.w += ( v.w - this.w ) * alpha;
-
-			return this;
+			return new Quaternion( this.x, this.y, this.z, this.w );
 
 		},
 
@@ -2046,6 +2035,21 @@ Vector4.prototype = {
 
 			return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ));
 
+		},
+		
+		multiply: function ( v ) {
+			
+			var x = this.x,
+				y = this.y,
+				z = this.z,
+				w = this.w;
+			
+			this.w = w*v.w - x*v.x - y*v.y - z*v.z;
+			this.x = w*v.x + x*v.w + y*v.z - z*v.y;
+			this.y = w*v.y + y*v.w + z*v.x - x*v.z;
+			this.z = w*v.z + z*v.w + x*v.y - y*v.x;
+			
+			return this;
 		},
 		
 		setFromEuler: function ( v ) {
@@ -2056,74 +2060,28 @@ Vector4.prototype = {
 				x = v.x * c,
 				y = v.y * c,
 				z = v.z * c,
-				c1 = cos( y  ),
-				s1 = sin( y  ),
-				c2 = cos( -z ),
-				s2 = sin( -z ),
-				c3 = cos( x  ),
-				s3 = sin( x  ),
-				c1c2 = c1 * c2,
-				s1s2 = s1 * s2;
+				cy = cos(y),
+				sy = sin(y),
+				cz = cos(-z),
+				sz = sin(-z),
+				cx = cos(x),
+				sx = sin(x);
 
-			this.w = c1c2 * c3  - s1s2 * s3;
-		  	this.x = c1c2 * s3  + s1s2 * c3;
-			this.y = s1 * c2 * c3 + c1 * s2 * s3;
-			this.z = c1 * s2 * c3 - s1 * c2 * s3;
-
-			return this;
-
-		},
-		
-		setFromRotationMatrix: function ( m ) {
-
-			// Adapted from: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/index.htm
-
-			var sqrt = Math.sqrt,
-				max = Math.max,
-				abs = Math.abs;
-			
-			function copySign( a, b ) {
-
-				return b < 0 ? -abs( a ) : abs( a );
-
+			if (!this.temp_){
+				this.temp_ = new Quaternion();
 			}
-
-			var absQ = Math.pow( m.determinant(), 1.0 / 3.0 );
-			this.w = sqrt( max( 0, absQ + m.m11 + m.m22 + m.m33 ) ) / 2;
-			this.x = sqrt( max( 0, absQ + m.m11 - m.m22 - m.m33 ) ) / 2;
-			this.y = sqrt( max( 0, absQ - m.m11 + m.m22 - m.m33 ) ) / 2;
-			this.z = sqrt( max( 0, absQ - m.m11 - m.m22 + m.m33 ) ) / 2;
-			this.x = copySign( this.x, ( m.m32 - m.m23 ) );
-			this.y = copySign( this.y, ( m.m13 - m.m31 ) );
-			this.z = copySign( this.z, ( m.m21 - m.m12 ) );
-			this.normalize();
+			
+			this.set(
+				0, 0, sz, cz
+			).multiply(this.temp_.set(
+				0, sy, 0, cy
+			)).multiply(this.temp_.set(
+				sx, 0, 0, cx
+			));
+			
 
 			return this;
 
-		},
-
-		setQuaternion: function( v ){
-			
-			var sin = Math.sin,
-				cos = Math.cos,
-				t = this,
-				sx = sin(v.x * .5),
-				cx = cos(v.x * .5),
-				sy = sin(v.y * .5),
-				cy = cos(v.y * .5),
-				sz = sin(v.z * .5),
-				cz = cos(v.z * .5),
-				cxy = cx * cy,
-				sxy = sx * sy;
-			
-			t.x = sz * cxy     - cz * sxy;
-			t.y = cz * sx * cy + sz * cx * sy;
-			t.z = cz * cx * sy - sz * sx * cy;
-			t.w = cz * cxy     + sz * sxy;
-
-			
-			return this;
-			
 		},
 		
 		divideScalar: function ( s ) {
@@ -2166,60 +2124,63 @@ Vector4.prototype = {
 
 		},
 		
-		slerp: function(q, t){
+		lerp: function(q, t){
 
 			// http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
 
-			var x = this.x;
-			var y = this.y;
-			var z = this.z;
-			var w = this.w;
+			var x = this.x,
+				y = this.y,
+				z = this.z,
+				w = this.w,
+				cos_half_theta = w * q.w + x * q.x + y * q.y + z * q.z,
+				half_theta,
+				sin_half_theta,
+				ratio_a,
+				ratio_b;
 			
-			var cosHalfTheta = w * q.w + x * q.x + y * q.y + z * q.z;
-
-			if (cosHalfTheta < 0) {
-				this.w = -q.w;
-				this.x = -q.x;
-				this.y = -q.y;
-				this.z = -qb.z;
-				cosHalfTheta = -cosHalfTheta;
+			
+			if (cos_half_theta < 0) {
+				this.set(-q.x, -q.y, -q.z, -q.w);
+				cos_half_theta = -cos_half_theta;
 			} else {
 				this.copy(q);
 			}
 
 			
-			var halfTheta = Math.acos( cosHalfTheta ),
-			sinHalfTheta = Math.sqrt( 1.0 - cosHalfTheta * cosHalfTheta );
+			
+			half_theta = Math.acos(cos_half_theta);
+			sin_half_theta = Math.sqrt(1.0 - cos_half_theta * cos_half_theta);
 
-			if ( Math.abs( sinHalfTheta ) < 0.001 ) {
-
-				this.w = 0.5 * ( w + q.w );
-				this.x = 0.5 * ( x + q.x );
-				this.y = 0.5 * ( y + q.y );
-				this.z = 0.5 * ( z + q.z );
+			if (Math.abs( sin_half_theta ) < 0.001) {
+				
+				this.set(
+					0.5 * ( x + q.x ),
+					0.5 * ( y + q.y ),
+					0.5 * ( z + q.z ),
+					0.5 * ( w + q.w )
+				);
 
 				return this;
 
 			}
 
-			var ratioA = Math.sin( ( 1 - t ) * halfTheta ) / sinHalfTheta,
-			ratioB = Math.sin( t * halfTheta ) / sinHalfTheta;
+			ratio_a = Math.sin((1 - t) * half_theta) / sin_half_theta,
+			ratio_b = Math.sin(t * half_theta) / sin_half_theta;
 
-			this.w = ( w * ratioA + this.w * ratioB );
-			this.x = ( x * ratioA + this.x * ratioB );
-			this.y = ( y * ratioA + this.y * ratioB );
-			this.z = ( z * ratioA + this.z * ratioB );
+			this.set(
+				x * ratio_a + this.x * ratio_b,
+				y * ratio_a + this.y * ratio_b,
+				z * ratio_a + this.z * ratio_b,
+				w * ratio_a + this.w * ratio_b
+			);
+			
+			return this;
 
-			return qm;
-
-		
 		}
-		
-		
 		
 };
 
-externs['Vector4'] = Vector4;
+externs['Quaternion'] = Quaternion;
 
 /** @constructor */
 var Rectangle = function(_x,_y,_width,_height){
@@ -2876,7 +2837,7 @@ var Layer = function(){
 	this.anchor = new Vector();
 	this.scale = new Vector(1,1,1);
 	this.rotation = new Vector();
-	this.orientation = new Vector4();
+	this.orientation = new Quaternion();
 	this.opacity = 1;
 	
 	this.localMatrix_ = new Matrix();
@@ -3237,7 +3198,7 @@ var AEBuilder = {
 			return;
 		}
 		
-		var i,k,val,offset,is_hold,keys,key,is_object,is_array,is_spatial,is_vector;
+		var i,k,val,offset,is_hold,keys,key,is_object,is_array,is_spatial,is_vector,target;
 		
 		if (Array.isArray(value)){
 			
@@ -3256,7 +3217,7 @@ var AEBuilder = {
 				
 				if (is_vector){
 					if (val.w !== undefined){
-						val = new Vector4(val.x,val.y,val.z,val.w);
+						val = new Quaternion(val.x,val.y,val.z,val.w);
 					} else {
 						val = new Vector(val.x,val.y,val.z);
 					}
@@ -3323,12 +3284,12 @@ var AEBuilder = {
 			
 			if (Vector.isVector(value)){
 				
-				obj[name].set(value.x,value.y,value.z);
-				console.log(value,obj[name]);
-				if (obj[name].w !== undefined){
-					obj[name].w = value.w;
-					//console.log(value);
+				target = obj[name];
+				target.set(value.x,value.y,value.z);
+				if (target.w !== undefined){
+					target.w = value.w;
 				}
+				
 			} else {
 				obj[name] = value;
 			}
@@ -4152,16 +4113,13 @@ var PropertyCleaner = {
 				k = obj[i];
 				if (isArray(k)){
 					
-					res.push([new ae.Vector4().setQuaternion(k[0]),k[1]]);
+					res.push([new ae.Quaternion().setFromEuler(k[0]), k[1]]);
 				} else if (ae.Vector.isVector(k)){
-					res.push(new ae.Vector4().setQuaternion(k));
+					res.push(new ae.Quaternion().setFromEuler(k));
 				} else {
 					
 					res.push({
-						v: new ae.Vector4().setFromEuler(
-							
-							new Vector().copy(k.v)
-						),
+						v: new ae.Quaternion().setFromEuler(k.v),
 						d: k.d,
 						e : k.e
 					});
@@ -4169,7 +4127,7 @@ var PropertyCleaner = {
 			}
 			return res;
 		} else {
-			return new ae.Vector4().setQuaternion(obj);
+			return new ae.Quaternion().setFromEuler(obj);
 		}
 		
 		

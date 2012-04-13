@@ -180,16 +180,13 @@ var PropertyCleaner = {
 				k = obj[i];
 				if (isArray(k)){
 					
-					res.push([new ae.Vector4().setQuaternion(k[0]),k[1]]);
+					res.push([new ae.Quaternion().setFromEuler(k[0]), k[1]]);
 				} else if (ae.Vector.isVector(k)){
-					res.push(new ae.Vector4().setQuaternion(k));
+					res.push(new ae.Quaternion().setFromEuler(k));
 				} else {
 					
 					res.push({
-						v: new ae.Vector4().setFromEuler(
-							
-							new Vector().copy(k.v)
-						),
+						v: new ae.Quaternion().setFromEuler(k.v),
 						d: k.d,
 						e : k.e
 					});
@@ -197,7 +194,7 @@ var PropertyCleaner = {
 			}
 			return res;
 		} else {
-			return new ae.Vector4().setQuaternion(obj);
+			return new ae.Quaternion().setFromEuler(obj);
 		}
 		
 		
