@@ -1,0 +1,96 @@
+<html>
+<head>
+<script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="AE.js"></script>
+<script type="text/javascript">
+
+window.requestAnimationFrame || (window.requestAnimationFrame = 
+	window.webkitRequestAnimationFrame || 
+	window.mozRequestAnimationFrame    || 
+	window.oRequestAnimationFrame      || 
+	window.msRequestAnimationFrame     || 
+	function(callback, element) {
+		return window.setTimeout(function() {
+			callback(+new Date());
+	}, 1000 / 60);
+});
+
+
+</script>
+
+</head>
+<body>
+</body>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+	
+
+	
+	$.get("tests/output_text.js",function(data) {
+		
+		var comp = new AE.Composition();
+		
+		comp.width = 960;
+		comp.height = 540;
+		
+		var solid = new AE.Solid();
+		
+		comp.layers.add(solid);
+		
+		solid.width = 320;
+		solid.height = 240;
+		
+		solid.color = "#00FF00";
+		solid.position.set(240,240,0);
+		solid.anchor.set(160,120,0);
+		
+		solid.orientation = new AE.Vector4().setFromEuler(
+			new AE.Vector(60,0,45)
+		);
+		
+		
+		var solid2 = new AE.Solid();
+		comp.layers.add(solid2);
+		
+		solid2.width = 320;
+		solid2.height = 240;
+		
+		solid2.color = "#FF0000";
+		solid2.position.set(700,240,0);
+		solid2.anchor.set(160,120,0);
+		solid2.rotation.set(60,0,45);
+		
+		
+		var renderer = new AE.DomRenderer(comp);
+		
+		
+		
+		$('body').append(renderer.element);
+		
+		renderer.render();
+		
+		
+		
+		//console.log(data,animator);
+	},"json");
+			
+			
+			
+	
+
+
+	
+	
+	
+	
+	
+});
+
+
+
+
+</script>
+
+</html>
