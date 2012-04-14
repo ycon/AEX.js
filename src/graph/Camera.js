@@ -28,16 +28,18 @@ Camera.prototype.getLocalMatrix = function(){
 		ta	=	t.target,
 		p	=	t.position,
 		mat = 	this.localMatrix_
-				.rotate(r.x,r.y,r.z);
+				.rotation(r.x,r.y,r.z);
 	
 	mat.m41 = mat.m42 = mat.m43 = 0;
 	
 	if (t.haveTarget){
+		
 		mat.lookAt(
 				ta.x - p.x,
 				ta.y - p.y, 
 				ta.z - p.z
 		);
+		
 	}
 	
 	mat.translate(p.x,p.y, -p.z);
@@ -48,7 +50,7 @@ Camera.prototype.getLocalMatrix = function(){
 Camera.prototype.getLocalMatrix2D = function(){
 	
 	return 	this.localMatrix2D_
-			.rotate(0,0,this.rotation.z)
+			.rotation(0,0,this.rotation.z)
 			.translate(this.position.x,this.position.y, 0);
 	
 };
@@ -59,16 +61,19 @@ Camera.prototype.getCameraMatrix = function(){
 	
 	var c = this.center;
 
+	/*
 	return	this.matrixCamera_
-			.translate(c.x,c.y,this.zoom)
+			.translation(c.x,c.y,this.zoom)
 			.preMultiply(
 				this.tempMatrixCamera_
+				.identity()
 				.injectMatrix(this.getMatrix())
 				.invert()
 			);
-	//return 	new Matrix()
-	//		.translate(c.x,c.y,this.zoom)
-	//		.preMultiply(this.getMatrix().createInvert());
+	*/	
+	return 	new Matrix()
+			.translate(c.x,c.y,this.zoom)
+			.preMultiply(this.getMatrix().createInvert());
 	
 };
 

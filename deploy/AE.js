@@ -2,7 +2,7 @@
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17416 (2012/04/13 09:20 PM)
+ * Version: 0.1.1 - Build: 17439 (2012/04/14 12:56 PM)
  */
 
 
@@ -515,128 +515,124 @@ Stack.prototype = {
 };
 
 externs['Stack'] = Stack;
-
-	/**
-	 * Cubic Bezier timing function compatible with CSS3 transition-timing-function
-	 * <p>
-	 * The timing function is specified using a cubic Bezier curve,
-	 * which is defined by four control points.
-	 * The first and last control points are always set to (0,0) and (1,1),
-	 * so you just need to specify the two in-between control points.
-	 * The points are specified as a percentage of the overall duration
-	 * (percentage: interpolated as a real number between 0 and 1).
-	 * The timing function takes as its input the current elapsed percentage
-	 * of the transition duration and outputs a percentage that determines 
-	 * how close the transition is to its goal state.
-	 * </p>
-	 * <p>
-	 * currently used function to determine time
-	 * conversion to js from webkit source files
-	 * UnitBezier.h, WebCore_animation_AnimationBase.cpp
-	 * js port from www.netzgesta.de/dev/cubic-bezier-timing-function.html
-	 * </p>
-	 */
-
+/**
+ * Cubic Bezier timing function compatible with CSS3 transition-timing-function
+ * <p>
+ * The timing function is specified using a cubic Bezier curve,
+ * which is defined by four control points.
+ * The first and last control points are always set to (0,0) and (1,1),
+ * so you just need to specify the two in-between control points.
+ * The points are specified as a percentage of the overall duration
+ * (percentage: interpolated as a real number between 0 and 1).
+ * The timing function takes as its input the current elapsed percentage
+ * of the transition duration and outputs a percentage that determines
+ * how close the transition is to its goal state.
+ * </p>
+ * <p>
+ * currently used function to determine time
+ * conversion to js from webkit source files
+ * js port from www.netzgesta.de/dev/cubic-bezier-timing-function.html
+ * </p>
+ */
 
 var BezierEasing = {
-	
-	ease : function (p1x, p1y, p2x, p2y,t,epsilon) {
-		
-		p1y = p1y || 0;
-		p2y = p2y || 0;
-		
-		var t2 = this.solveCurveX(p1x||0,p2x||0,t||0,epsilon),
-			cy = p1y * 3,
-			by = 3 * (p2y - p1y) - cy,
-			ay = 1 - cy - by;
 
-		return ((ay * t2 + by) * t2 + cy) * t2;
+    ease: function (p1x, p1y, p2x, p2y, t, epsilon) {
 
-	},
-	
-	// Given an x value, find a parametric value it came from.
-	solveCurveX : function (p1x, p2x, x, epsilon) {
-		
-		
-		var fabs = this.fabs,
-			
-			cx = 3 * p1x,
-			bx = 3 * (p2x - p1x) - cx,
-			ax = 1 - cx - bx,
-			bx2 = bx * 2,
-			ax3 = ax * 3,
-			t0,t1,t2,x2,d2,i;
-		
-		if (!epsilon){
-			//epsilon = 1.0 / (100.0 * (precision||100));
-			epsilon = 0.0001;
-		}
-		
-		// First try a few iterations of Newton's method -- normally very fast.
-		t2 = x;
-		
-		
-		newton_loop: for (i = 0; i < 8; i++) {
-			
-			x2 = (((ax * t2 + bx) * t2 + cx) * t2)-x;
-			//x2 = this.sampleCurveX(t2) - x;
-			if (fabs(x2) < epsilon) {
-				return t2;
-			}
-			d2 = (ax3 * t2 + bx2) * t2 + cx;
-			if (fabs(d2) < 1e-6) {
-				
-				break newton_loop;
-			}
-			t2 = t2 - x2 / d2;
-			
-			//return x;
-		}
-		
-		
-		
-		// Fall back to the bisection method for reliability.
+        p1y = p1y || 0;
+        p2y = p2y || 0;
 
-		t0 = 0;
-		t1 = 1;
-		t2 = x;
-		if (t2 < t0) {
-			return t0;
-		}
-		if (t2 > t1) {
-			return t1;
-		}
-		i = 0;
-		
-		
-		
-		while (t0 < t1 && i < 10) {
-			
-			x2 = ((ax * t2 + bx) * t2 + cx) * t2;
-			//x2 = this.sampleCurveX(t2);
-			if (fabs(x2 - x) < epsilon) {
-				return t2;
-			}
-			if (x > x2) {
-				t0 = t2;
-			} else {
-				t1 = t2;
-			}
-			t2 = (t1 - t0) * .5 + t0;
-			i++;
-		}
-		
-		return t2;
-		// Failure.
-	},
-	
-	fabs : function (n) {
-		if (n >= 0) {
-			return n;
-		} else {
-			return 0 - n;
-		}
-	}
+        var t2 = this.solveCurveX(p1x || 0, p2x || 0, t || 0, epsilon),
+            cy = p1y * 3,
+            by = 3 * (p2y - p1y) - cy,
+            ay = 1 - cy - by;
+
+        return ((ay * t2 + by) * t2 + cy) * t2;
+
+    },
+
+    // Given an x value, find a parametric value it came from.
+    solveCurveX: function (p1x, p2x, x, epsilon) {
+
+
+        var fabs = this.fabs,
+
+            cx = 3 * p1x,
+            bx = 3 * (p2x - p1x) - cx,
+            ax = 1 - cx - bx,
+            bx2 = bx * 2,
+            ax3 = ax * 3,
+            t0, t1, t2, x2, d2, i;
+
+        if (!epsilon) {
+            //epsilon = 1.0 / (100.0 * (precision||100));
+            epsilon = 0.0001;
+        }
+
+        // First try a few iterations of Newton's method -- normally very fast.
+        t2 = x;
+
+
+        newton_loop: for (i = 0; i < 8; i++) {
+
+            x2 = (((ax * t2 + bx) * t2 + cx) * t2) - x;
+            //x2 = this.sampleCurveX(t2) - x;
+            if (fabs(x2) < epsilon) {
+                return t2;
+            }
+            d2 = (ax3 * t2 + bx2) * t2 + cx;
+            if (fabs(d2) < 1e-6) {
+
+                break newton_loop;
+            }
+            t2 = t2 - x2 / d2;
+
+            //return x;
+        }
+
+
+
+        // Fall back to the bisection method for reliability.
+        t0 = 0;
+        t1 = 1;
+        t2 = x;
+        if (t2 < t0) {
+            return t0;
+        }
+        if (t2 > t1) {
+            return t1;
+        }
+        i = 0;
+
+        while (t0 < t1 && i < 10) {
+
+            x2 = ((ax * t2 + bx) * t2 + cx) * t2;
+            //x2 = this.sampleCurveX(t2);
+            if (fabs(x2 - x) < epsilon) {
+                return t2;
+            }
+            if (x > x2) {
+                t0 = t2;
+            }
+            else {
+                t1 = t2;
+            }
+            t2 = (t1 - t0) * 0.5 + t0;
+            i++;
+        }
+
+        return t2;
+        // Failure.
+    },
+
+    fabs: function (n) {
+        if (n >= 0) {
+            return n;
+        }
+        else {
+            return 0 - n;
+        }
+    }
 };
 
 
@@ -892,29 +888,6 @@ Matrix.prototype = {
 		 */
 		quaternionRotation: function( x, y, z, w ) {
 
-			/*
-			var t = this,
-				x2 = x + x,  y2 = y + y,  z2 = z + z,
-				xx = x * x2, xy = x * y2, xz = x * z2,
-				yy = y * y2, yz = y * z2, zz = z * z2,
-				wx = w * x2, wy = w * y2, wz = w * z2;
-
-			t.m11 = 1 - ( yy + zz );
-			t.m12 = xy - wz;
-			t.m13 = xz + wy;
-
-			t.m21 = xy + wz;
-			t.m22 = 1 - ( xx + zz );
-			t.m23 = yz - wx;
-
-			t.m31 = xz - wy;
-			t.m32 = yz + wx;
-			t.m33 = 1 - ( xx + yy );
-			
-			t.m41 = t.m42 = t.m43 = 0;
-			*/
-			
-			
 			var t = this,
 				sqw = w * w,
 				sqx = x * x,
@@ -943,37 +916,7 @@ Matrix.prototype = {
 		    t.m32 = 2 * (tmp1 + tmp2)*invs ;
 		    t.m23 = 2 * (tmp1 - tmp2)*invs ;  
 			
-		    
-			/*
-			
-			var t = this,
-				xx = x * x,
-				xy = x * y,
-		    	xz = x * z,
-		    	xw = x * w,
-		    	yy = y * y,
-		    	yz = y * z,
-		    	yw = y * w,
-		    	zz = z * z,
-		    	zw = z * w;
-			
-			t.m11  = 1 - 2 * ( yy + zz );
-			t.m12  =     2 * ( xy - zw );
-			t.m12 =     2 * ( xz + yw );
-
-			t.m21  =     2 * ( xy + zw );
-			t.m22  = 1 - 2 * ( xx + zz );
-			t.m23  =     2 * ( yz - xw );
-
-			t.m31  =     2 * ( xz - yw );
-			t.m32  =     2 * ( yz + xw );
-			t.m33 = 1 - 2 * ( xx + yy );
-
-			t.m14  = t.m24 = t.m34 = t.m41 = t.m42 = t.m43 = 0;
-			t.m44 = 1;
-			*/
-			
-			return this;
+		    return this;
 
 		},
 		
@@ -1012,6 +955,7 @@ Matrix.prototype = {
 			z = -z||0;
 			
 			var l = Math.sqrt((x * x) + (y * y) + (z * z));
+			
 			if (l){
 
 				x /= l;
@@ -1219,242 +1163,245 @@ externs['Matrix'] = Matrix;
  */
 
 
-var Vector = function(x,y,z){
-	this.x = x || 0;
-	this.y = y || 0;
-	this.z = z || 0;
-};
+var Vector = function (x, y, z) {
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
+    };
 
-Vector.isVector = function(v){
-	
-	return (v && typeof v.x === 'number' && typeof v.y === 'number');
+Vector.isVector = function (v) {
+
+    return (v && typeof v.x === 'number' && typeof v.y === 'number');
 
 };
 
 Vector.prototype = {
-		
-		constructor : Vector,
-		
-		set: function ( x, y, z ) {
 
-			this.x = x;
-			this.y = y;
-			this.z = z;
+    constructor: Vector,
 
-			return this;
+    set: function (x, y, z) {
 
-		},
+        this.x = x;
+        this.y = y;
+        this.z = z;
 
-		setX: function ( x ) {
+        return this;
 
-			this.x = x;
+    },
 
-			return this;
+    setX: function (x) {
 
-		},
+        this.x = x;
 
-		setY: function ( y ) {
+        return this;
 
-			this.y = y;
+    },
 
-			return this;
+    setY: function (y) {
 
-		},
+        this.y = y;
 
-		setZ: function ( z ) {
+        return this;
 
-			this.z = z;
+    },
 
-			return this;
+    setZ: function (z) {
 
-		},
+        this.z = z;
 
-		copy: function ( v ) {
+        return this;
 
-			this.x = v.x;
-			this.y = v.y;
-			this.z = v.z || 0;
+    },
 
-			return this;
+    copy: function (v) {
 
-		},
+        this.x = v.x;
+        this.y = v.y;
+        this.z = v.z || 0;
 
-		clone: function () {
+        return this;
 
-			return new Vector( this.x, this.y, this.z );
+    },
 
-		},
+    clone: function () {
 
-		add: function ( v ) {
+        return new Vector(this.x, this.y, this.z);
 
-			this.x += v.x;
-			this.y += v.y;
-			this.z += v.z;
+    },
 
-			return this;
+    add: function (v) {
 
-		},
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
 
-		addScalar: function ( s ) {
+        return this;
 
-			this.x += s;
-			this.y += s;
-			this.z += s;
+    },
 
-			return this;
+    addScalar: function (s) {
 
-		},
+        this.x += s;
+        this.y += s;
+        this.z += s;
 
-		sub: function ( v ) {
+        return this;
 
-			this.x -= v.x;
-			this.y -= v.y;
-			this.z -= v.z;
+    },
 
-			return this;
+    sub: function (v) {
 
-		},
+        this.x -= v.x;
+        this.y -= v.y;
+        this.z -= v.z;
 
-		multiply: function ( v ) {
+        return this;
 
-			this.x *= v.x;
-			this.y *= v.y;
-			this.z *= v.z;
+    },
 
-			return this;
+    multiply: function (v) {
 
-		},
+        this.x *= v.x;
+        this.y *= v.y;
+        this.z *= v.z;
 
-		multiplyScalar: function ( s ) {
+        return this;
 
-			this.x *= s;
-			this.y *= s;
-			this.z *= s;
+    },
 
-			return this;
+    multiplyScalar: function (s) {
 
-		},
+        this.x *= s;
+        this.y *= s;
+        this.z *= s;
 
-		divide: function ( v ) {
+        return this;
 
-			this.x /= v.x;
-			this.y /= v.y;
-			this.z /= v.z;
+    },
 
-			return this;
+    divide: function (v) {
 
-		},
+        this.x /= v.x;
+        this.y /= v.y;
+        this.z /= v.z;
 
-		divideScalar: function ( s ) {
+        return this;
 
-			if ( s ) {
+    },
 
-				this.x /= s;
-				this.y /= s;
-				this.z /= s;
+    divideScalar: function (s) {
 
-			} else {
+        if (s) {
 
-				this.x = 0;
-				this.y = 0;
-				this.z = 0;
+            this.x /= s;
+            this.y /= s;
+            this.z /= s;
 
-			}
+        }
+        else {
 
-			return this;
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
 
-		},
+        }
 
-		dot: function ( v ) {
+        return this;
 
-			return this.x * v.x + this.y * v.y + this.z * v.z;
+    },
 
-		},
+    dot: function (v) {
 
-		lengthSq: function () {
+        return this.x * v.x + this.y * v.y + this.z * v.z;
 
-			return this.x * this.x + this.y * this.y + this.z * this.z;
+    },
 
-		},
+    lengthSq: function () {
 
-		length: function () {
+        return this.x * this.x + this.y * this.y + this.z * this.z;
 
-			return Math.sqrt( this.lengthSq() );
+    },
 
-		},
+    length: function () {
 
-		normalize: function () {
+        return Math.sqrt(this.lengthSq());
 
-			return this.divideScalar( this.length() );
+    },
 
-		},
-		
-		lerp: function ( v, alpha ) {
+    normalize: function () {
 
-			this.x += ( v.x - this.x ) * alpha;
-			this.y += ( v.y - this.y ) * alpha;
-			this.z += ( v.z - this.z ) * alpha;
+        return this.divideScalar(this.length());
 
-			return this;
+    },
 
-		},
+    lerp: function (v, alpha) {
 
-		cross: function ( v ) {
+        this.x += (v.x - this.x) * alpha;
+        this.y += (v.y - this.y) * alpha;
+        this.z += (v.z - this.z) * alpha;
 
-			var x = this.x, y = this.y, z = this.z;
+        return this;
 
-			this.x = y * v.z - z * v.y;
-			this.y = z * v.x - x * v.z;
-			this.z = x * v.y - y * v.x;
+    },
 
-			return this;
+    cross: function (v) {
 
-		},
+        var x = this.x,
+            y = this.y,
+            z = this.z;
 
-		distance: function ( v ) {
+        this.x = y * v.z - z * v.y;
+        this.y = z * v.x - x * v.z;
+        this.z = x * v.y - y * v.x;
 
-			return Math.sqrt( this.distanceSq( v ) );
+        return this;
 
-		},
+    },
 
-		distanceSq: function ( v ) {
+    distance: function (v) {
 
-			return this.clone().sub( v ).lengthSq();
+        return Math.sqrt(this.distanceSq(v));
 
-		},
+    },
 
-		equals: function ( v ) {
+    distanceSq: function (v) {
 
-			return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) );
+        return this.clone().sub(v).lengthSq();
 
-		},
+    },
 
-		isZero: function () {
+    equals: function (v) {
 
-			return ( this.lengthSq() < 0.0001 /* almostZero */ );
+        return ((v.x === this.x) && (v.y === this.y) && (v.z === this.z));
 
-		},
-		
-		max: function () {
+    },
 
-			return Math.max(this.x,Math.max(this.y,this.z));
+    isZero: function () {
 
-		},
-		
-		min: function ( v ) {
+        return (this.lengthSq() < 0.0001 /* almostZero */ );
 
-			return Math.min(this.x,Math.min(this.y,this.z));
+    },
 
-		},
-		
-		setFromQuaternion: function ( q ) {
+    max: function () {
 
-			this.x = Math.atan2( 2 * ( q.x * q.w - q.y * q.z ), ( q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z ) );
-			this.y = Math.asin( 2 *  ( q.x * q.z + q.y * q.w ) );
-			this.z = Math.atan2( 2 * ( q.z * q.w - q.x * q.y ), ( q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z ) );
+        return Math.max(this.x, Math.max(this.y, this.z));
 
-		},
-		
+    },
+
+    min: function (v) {
+
+        return Math.min(this.x, Math.min(this.y, this.z));
+
+    },
+
+    setFromQuaternion: function (q) {
+
+        this.x = Math.atan2(2 * (q.x * q.w - q.y * q.z), (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z));
+        this.y = Math.asin(2 * (q.x * q.z + q.y * q.w));
+        this.z = Math.atan2(2 * (q.z * q.w - q.x * q.y), (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z));
+
+    },
+
 };
 
 externs['Vector'] = Vector;
@@ -2394,16 +2341,18 @@ Camera.prototype.getLocalMatrix = function(){
 		ta	=	t.target,
 		p	=	t.position,
 		mat = 	this.localMatrix_
-				.rotate(r.x,r.y,r.z);
+				.rotation(r.x,r.y,r.z);
 	
 	mat.m41 = mat.m42 = mat.m43 = 0;
 	
 	if (t.haveTarget){
+		
 		mat.lookAt(
 				ta.x - p.x,
 				ta.y - p.y, 
 				ta.z - p.z
 		);
+		
 	}
 	
 	mat.translate(p.x,p.y, -p.z);
@@ -2414,7 +2363,7 @@ Camera.prototype.getLocalMatrix = function(){
 Camera.prototype.getLocalMatrix2D = function(){
 	
 	return 	this.localMatrix2D_
-			.rotate(0,0,this.rotation.z)
+			.rotation(0,0,this.rotation.z)
 			.translate(this.position.x,this.position.y, 0);
 	
 };
@@ -2425,16 +2374,19 @@ Camera.prototype.getCameraMatrix = function(){
 	
 	var c = this.center;
 
+	/*
 	return	this.matrixCamera_
-			.translate(c.x,c.y,this.zoom)
+			.translation(c.x,c.y,this.zoom)
 			.preMultiply(
 				this.tempMatrixCamera_
+				.identity()
 				.injectMatrix(this.getMatrix())
 				.invert()
 			);
-	//return 	new Matrix()
-	//		.translate(c.x,c.y,this.zoom)
-	//		.preMultiply(this.getMatrix().createInvert());
+	*/	
+	return 	new Matrix()
+			.translate(c.x,c.y,this.zoom)
+			.preMultiply(this.getMatrix().createInvert());
 	
 };
 
@@ -2479,22 +2431,17 @@ Composition.prototype.getCamera = function(){
 	
 	
 	var i = 0,
-		l = this.cameras.length,
-		temp_cam = null,
-		cam = null;
-	
-	camLoop : for (i = 0; i < l; i++) {
+		l = this.cameras.getLength(),
+		temp_cam;
+
+	for ( i = 0; i < l; i += 1 ) {
 		
 		temp_cam = this.cameras.get(i);
-		
 		if (temp_cam.visible){
-			cam = temp_cam;
-			break camLoop;
+			return temp_cam;
 		}
 		
 	}
-	
-	return cam;
 };
 
 externs['Composition'] = Composition;
@@ -2524,263 +2471,308 @@ Text.prototype.constructor = Text;
 
 
 externs['Text'] = Text;
-
 var AEBuilder = {
-	
-	build: function(data){
-		
-		return this.buildItem(data.items[data.root],data.items);
-		
-	},
-	
-	buildItem: function(item,items){
-		switch (item.type) {
-		case 'Composition':
-			return this.buildComp(item,items);
-			break;
-		case 'Solid':
-			return this.buildSolid(item,items);
-			break;
-		case 'Image':
-			return this.buildImage(item,items);
-			break;
-		case 'Video':
-			return this.buildVideo(item,items);
-			break;
-		}
-		
-	},
-	
-	buildComp: function (item, items) {
-		
-		var comp = new Composition(),
-			item_animator = new AnimatorStack(comp),
-			layers = item.layers,
-			i,layer_data,animator;
-		
-		comp.width = item.width;
-		comp.height = item.height;
-		comp.color = item.color || "#000000";
-		item_animator.duration = item.duration || 1;
-		item_animator.frameRate = item.frameRate || 25;
-		
-		
-		for ( i = 0; i < layers.length; i++) {
-			
-			layer_data = layers[i];
-			animator = null;
-			
-			switch (layer_data.type) {
-			case 'Camera':
-				animator = this.buildCamera(layer_data);
-				break;
-			case 'Text':
-				animator = this.buildText(layer_data);
-				break;
-			default:
-				if (layer_data.source){
-					animator = this.buildItemLayer(layer_data,items);
-				}
-				break;
-			}
 
-			if (animator){
-				
-				item_animator.add(animator);
-				((animator.layer instanceof Camera)
-					? comp.cameras 
-					: comp.layers
-				).add(animator.layer);
-				
-			}
-		}
-		
-		return item_animator;
-	},
-	
-	setLayer: function(animator,data){
-		var layer = animator.layer,
+    build : function( data ) {
+
+	    return this.buildItem( data.items[data.root], data.items );
+
+    },
+
+    buildCompItem : function( item, items ) {
+
+	    var comp = new Composition(),
+	    	item_animator = new AnimatorStack( comp ),
+	    	layers = item.layers,
+	    	i, layer_data, animator;
+
+	    comp.width = item.width;
+	    comp.height = item.height;
+	    comp.color = item.color || "#000000";
+	    item_animator.duration = item.duration || 1;
+	    item_animator.frameRate = item.frameRate || 25;
+
+
+	    for ( i = 0; i < layers.length; i++ ) {
+
+		    layer_data = layers[i];
+		    animator = null;
+
+		    switch ( layer_data.type ) {
+		    case 'Camera':
+			    animator = this.buildCameraLayer( layer_data );
+			    animator.layer.center.set(comp.width/2, comp.height/2);
+			    
+			    break;
+		    case 'Text':
+			    animator = this.buildTextLayer( layer_data );
+			    break;
+		    default:
+			    if ( layer_data.source ) {
+				    animator = this.buildAVLayer( layer_data, items );
+			    }
+			    break;
+		    }
+
+		    if ( animator ) {
+
+		    	item_animator.add( animator );
+			    
+			    if (animator.layer instanceof Camera){
+			    	comp.cameras.add(animator.layer);
+			    } else {
+			    	comp.layers.add(animator.layer);
+			    }
+		    }
+	    }
+
+	    return item_animator;
+    },
+
+    buildSolidItem : function( data, items ) {
+
+	    var solid = new Solid(),
+	    	item_animator = new AnimatorStack( solid );
+
+	    solid.width = data.width;
+	    solid.height = data.height;
+	    solid.color = data.color;
+
+	    return item_animator;
+
+    },
+
+    buildItem : function( item, items ) {
+
+	    switch ( item.type ) {
+	    case 'Composition':
+		    return this.buildCompItem( item, items );
+		    break;
+	    case 'Solid':
+		    return this.buildSolidItem( item, items );
+		    break;
+	    case 'Image':
+		    return this.buildImageItem( item, items );
+		    break;
+	    case 'Video':
+		    return this.buildVideoItem( item, items );
+		    break;
+	    }
+
+    },
+
+    buildImageItem : function( item, items ) {
+
+    },
+
+    buildVideoItem : function( item, items ) {
+
+    },
+    
+    buildAVLayer : function( data, items ) {
+
+	    var item_animator = this.buildItem( items[data.source], items ),
+	    	layer = item_animator.item,
+	    	animator = new Animator( layer, data.inPoint, data.outPoint );
+
+	    this.setLayerProperties( animator, data );
+
+	    animator.source = item_animator;
+	    animator.startTime = data.startTime || 0;
+	    animator.speed = data.speed || 1;
+
+	    return animator;
+    },
+
+    buildCameraLayer : function( data ) {
+    	var camera = new Camera(),
+			animator = new Animator( camera, data.inPoint, data.outPoint ),
 			tr = data.transform;
-		
-		layer.name = data.name;
-		layer.is3D = data.is3D || false;
-		
-		if (tr){
-			this.setProp(layer, "position", animator, tr.position);
-			this.setProp(layer, "anchor", animator, tr.anchor);
-			this.setProp(layer, "scale", animator, tr.scale);
-			this.setProp(layer, "opacity", animator, tr.opacity);
+
+    	camera.name = camera.name;
+    	camera.haveTarget =  ( data.autoOrient !== 'none' || data.autoOrient === 'target' );
+    	
+    	if ( tr ) {
+    		
+		    this.setProp( camera, "position", animator, tr.position );
+		    this.setProp( camera, "rotation", animator, tr.rotation );
+		    this.setProp( camera, "orientation", animator, tr.orientation );
+		    this.setProp( camera, "zoom", animator, tr.zoom );
+		    
+		    if (camera.haveTarget){
+		    	this.setProp( camera, "target", animator, tr.target );
+		    }
+		    
 		}
-		
-		if (layer.is3D){
-			this.setProp(layer, "rotation", animator, tr.rotation);
-			this.setProp(layer, "orientation", animator, tr.orientation);
-		} else {
-			this.setProp(layer.rotation, "z", animator, tr.rotation);
-		}
-		
-	},
-	
-	
+    	
+    	return animator;
+    },
 
-	buildSolid: function (data, items) {
-		
-		var solid = new Solid(),
-			item_animator = new AnimatorStack(solid);
-		
-		solid.width = data.width;
-		solid.height = data.height;
-		solid.color = data.color;
-		
-		return item_animator;
-		
-	},
-	
-	
-	buildItemLayer: function (data, items) {
-		
-		var item_animator = this.buildItem(items[data.source], items),
-			layer = item_animator.item,
-			animator = new Animator(layer, data.inPoint, data.outPoint);
-		
-		this.setLayer(animator, data);
-		
-		animator.source = item_animator;
-		animator.startTime = data.startTime || 0;
-		animator.speed = data.speed || 1;
-		
-		return animator;
-	},
-	
-	buildImage: function (item, items) {
-		
-	},
-	
-	buildVideo: function (item, items) {
-		
-	},
+    buildTextLayer : function( data ) {
+    	
+    	var text_layer = new Text(),
+    		animator = new Animator( text_layer, data.inPoint, data.outPoint );
+    	
+    	this.setLayerProperties( animator, data );
+    	
+    	
+    	
+    	return animator;
+    	
+    },
 
-	
-	buildCamera: function (layer) {
-		
-	},
+    setLayerProperties : function( animator, data ) {
+    	
+    	/** @type Layer */
+	    var layer = animator.layer,
+	    	tr = data.transform;
 
-	buildText: function (layer) {
-		
-	},
+	    layer.name = data.name;
+	    layer.is3D = data.is3D || false;
+	    
+	    if (data.collapse != null){
+	    	layer.collapse = data.collapse === true;
+	    }
+	    
+	    
+	    if ( tr ) {
+		    this.setProp( layer, "position", animator, tr.position );
+		    this.setProp( layer, "anchor", animator, tr.anchor );
+		    this.setProp( layer, "scale", animator, tr.scale );
+		    this.setProp( layer, "opacity", animator, tr.opacity );
+	    }
 
+	    if ( layer.is3D ) {
+		    this.setProp( layer, "rotation", animator, tr.rotation );
+		    this.setProp( layer, "orientation", animator, tr.orientation );
+	    } else {
+		    this.setProp( layer.rotation, "z", animator, tr.rotation );
+	    }
 
-	dump: function(){
-		
-	},
-	
-	
-	setProp: function (obj, name, animator, value) {
-		
-		if (!value && value !== 0){
-			return;
-		}
-		
-		var i,k,val,offset,is_hold,keys,key,is_object,is_array,is_spatial,is_vector,
-			target = obj[name];;
-		
-		if (Array.isArray(value)){
-			
-			is_spatial = null;
-			offset = 0;
-			
-			for (i = 0; i < value.length; i++) {
-				
-				k = value[i];
-				
-				is_object = typeof k === 'object';
-				is_array = Array.isArray(k);
-				is_hold = ( is_array || !is_object || (k.e && k.e.o === 0));
-				val = (is_array) ? k[0] : (is_object && k.v != null) ? k.v : k;
-				is_vector = Vector.isVector(val);
-				
-				if (is_vector){
-					if (val.w !== undefined){
-						val = new Quaternion(val.x,val.y,val.z,val.w);
-					} else {
-						val = new Vector(val.x,val.y,val.z);
-					}
-				}
-				
-				if (is_spatial === null){
-					
-					is_spatial = is_vector;
-					
-					if (is_spatial){
-						keys = new SpatialKeys(obj,name);
-					} else {
-						keys = new Keys(obj,name);
-					}
-				}
-				
-				if (is_array){
-					offset = k[1];
-				} else if (is_object && k.d !== undefined){
-					
-					offset = k.d || 0;
-				}
-				
-				key = keys.add(offset,val,is_hold);
-				
-				if (k.e && Array.isArray(k.e.i)){
-					key.inX = k.e.i[0];
-					key.inY = k.e.i[1];
-				}
-				if (k.e && Array.isArray(k.e.o)){
-					key.outX = k.e.o[0];
-					key.outY = k.e.o[1];
-				}
-				
-				if (is_spatial && k.t){
-					if (Array.isArray(k.t.i)){
-						key.inTangent = new Vector(k.t.i[0],k.t.i[1],k.t.i[2]);
-					}
-					if (Array.isArray(k.t.o)){
-						key.outTangent = new Vector(k.t.o[0],k.t.o[1],k.t.o[2]);
-					}
-					key.update = true;
-				}
-				
-			}
-			
-			if (keys){
-				animator.add(keys);
-			}
-			
-		} else if (Array.isArray(value.x)) {
-			
-			this.setProp(target,'x',animator,value.x);
-			
-			if (value.y){
-				this.setProp(target,'y',animator,value.y);
-			}
-			
-			if (value.z){
-				this.setProp(target,'z',animator,value.z);
-			}
-			
-		} else {
-			
-			if (Vector.isVector(value)){
-				
-				target.set(value.x,value.y,value.z);
-				if (target.w !== undefined){
-					target.w = value.w;
-				}
-				
-			} else {
-				obj[name] = value;
-			}
-			
-		}
-		
-	},
-	
+    },
+
+    setProp : function( obj, name, animator, value ) {
+
+	    if ( !value && value !== 0 ) {
+		    return;
+	    }
+
+	    var i,
+	    	k,
+	    	val,
+	    	offset,
+	    	is_hold,
+	    	keys,
+	    	key,
+	    	is_object,
+	    	is_array,
+	    	is_spatial,
+	    	is_vector,
+	    	target = obj[name];
+
+	    if ( Array.isArray( value ) ) {
+
+		    is_spatial = null;
+		    offset = 0;
+
+		    for ( i = 0; i < value.length; i++ ) {
+
+			    k = value[i];
+
+			    is_object = typeof k === 'object';
+			    is_array = Array.isArray( k );
+			    is_hold = ( is_array || !is_object || ( k.e && k.e.o === 0 ) );
+			    val = ( is_array )
+			    			? k[0] 
+			    			: ( is_object && k.v != null ) 
+			    				? k.v
+			    				: k;
+			    is_vector = Vector.isVector( val );
+
+			    if ( is_vector ) {
+				    if ( val.w !== undefined ) {
+					    val = new Quaternion( val.x, val.y, val.z, val.w );
+				    } else {
+					    val = new Vector( val.x, val.y, val.z );
+				    }
+			    }
+
+			    if ( is_spatial === null ) {
+
+				    is_spatial = is_vector;
+
+				    if ( is_spatial ) {
+					    keys = new SpatialKeys( obj, name );
+				    } else {
+					    keys = new Keys( obj, name );
+				    }
+			    }
+
+			    if ( is_array ) {
+				    offset = k[1];
+			    } else if ( is_object && k.d !== undefined ) {
+
+				    offset = k.d || 0;
+			    }
+
+			    key = keys.add( offset, val, is_hold );
+
+			    if ( k.e && Array.isArray( k.e.i ) ) {
+				    key.inX = k.e.i[0];
+				    key.inY = k.e.i[1];
+			    }
+			    if ( k.e && Array.isArray( k.e.o ) ) {
+				    key.outX = k.e.o[0];
+				    key.outY = k.e.o[1];
+			    }
+
+			    if ( is_spatial && k.t ) {
+				    if ( Array.isArray( k.t.i ) ) {
+					    key.inTangent = new Vector( k.t.i[0], k.t.i[1],
+					        k.t.i[2] );
+				    }
+				    if ( Array.isArray( k.t.o ) ) {
+					    key.outTangent = new Vector( k.t.o[0], k.t.o[1],
+					        k.t.o[2] );
+				    }
+				    key.update = true;
+			    }
+
+		    }
+
+		    if ( keys ) {
+			    animator.add( keys );
+		    }
+
+	    } else if ( Array.isArray( value.x ) ) {
+
+		    this.setProp( target, 'x', animator, value.x );
+
+		    if ( value.y ) {
+			    this.setProp( target, 'y', animator, value.y );
+		    }
+
+		    if ( value.z ) {
+			    this.setProp( target, 'z', animator, value.z );
+		    }
+
+	    } else {
+
+		    if ( Vector.isVector( value ) ) {
+
+			    target.set( value.x, value.y, value.z );
+			    if ( target.w !== undefined ) {
+				    target.w = value.w;
+			    }
+
+		    } else {
+			    obj[name] = value;
+		    }
+
+	    }
+
+    },
+
 };
 
 externs["AEBuilder"] = AEBuilder;
@@ -3069,181 +3061,189 @@ TextDomElement.prototype.modifyMatrix = function(mat){
 	return mat;
 };
 
-
 /** @this {CompositionDomElement} */
-var _Composition_add = function(layer,pos){
-	
-	var e = _Composition_generate(layer);
-	this.holder.appendChild(e.element);
-	this.layers.splice(pos,0,e);
-	
-	
-	
+var _Composition_add = function( layer, pos ) {
+
+	var e = _Composition_generate( layer );
+	this.holder.appendChild( e.element );
+	this.layers.splice( pos, 0, e );
+
+
+
 };
 
 /** @this {CompositionDomElement} */
-var _Composition_remove = function(layer,pos){
-	
+var _Composition_remove = function( layer, pos ) {
+
 	var e = this.layers[pos];
-	this.holder.removeChild(e.element);
-	this.layers.splice(pos,1);
-	
-	
+	this.holder.removeChild( e.element );
+	this.layers.splice( pos, 1 );
+
+
 };
 
 /** @this {CompositionDomElement} */
-var _Composition_swap = function(pos_1,pos_2){
-	
+var _Composition_swap = function( pos_1, pos_2 ) {
+
 	var e = this.layers[pos_1];
 	this.layers[pos_1] = this.layers[pos_2];
 	this.layers[pos_2] = e;
-	
+
 };
 
-/** 
+/**
  * 
  * @this {CompositionDomElement}
- * @param {Layer} obj
+ * @param {Layer}
+ *            obj
  * @returns {LayerDomElement}
  * 
- * */
-var _Composition_generate = function(obj){
-	
-	if (obj instanceof Composition){
-		return new CompositionDomElement(obj);
-	} else if (obj instanceof Solid){
-		return new SolidDomElement(obj);
-	} else if (obj instanceof Text){
-		return new TextDomElement(obj);
+ */
+var _Composition_generate = function( obj ) {
+
+	if ( obj instanceof Composition ) {
+		return new CompositionDomElement( obj );
+	} else if ( obj instanceof Solid ) {
+		return new SolidDomElement( obj );
+	} else if ( obj instanceof Text ) {
+		return new TextDomElement( obj );
 	} else {
-		return new LayerDomElement(obj);
-	};
-	
+		return new LayerDomElement( obj );
+	}
+	;
+
 };
 
 /**
  * @constructor
- * @param {Composition} layer
+ * @param {Composition}
+ *            layer
  */
-var CompositionDomElement = function(comp){
+var CompositionDomElement = function( comp ) {
 
-	var t = this,
-		e,
-		sig = comp.layers.on;
+	var t = this, e, sig = comp.layers.on;
 
-	LayerDomElement.call(t,comp);
+	LayerDomElement.call( t, comp );
 
 	/** @type Composition */
 	t.composition = comp;
-	
+
 	t.collapse = null;
 	t.zoom = 1333.33;
 	t.width = 0;
 	t.height = 0;
-	
-	
+
+
 	/** @type Array.<Layer> */
 	t.layers = [];
-	
-	comp.layers.each(function(lyr){
-		e = _Composition_generate(lyr);
-		t.holder.appendChild(e.element);
-		t.layers.push(e);
-	});
 
-	sig.add.add(_Composition_add,t);
-	sig.remove.add(_Composition_remove,t);
-	sig.swap.add(_Composition_swap,t);
+	comp.layers.each( function( lyr ) {
+
+		e = _Composition_generate( lyr );
+		t.holder.appendChild( e.element );
+		t.layers.push( e );
+	} );
+
+	sig.add.add( _Composition_add, t );
+	sig.remove.add( _Composition_remove, t );
+	sig.swap.add( _Composition_swap, t );
 };
 
-CompositionDomElement.prototype = new LayerDomElement(null);
+CompositionDomElement.prototype = new LayerDomElement( null );
 CompositionDomElement.prototype.constructor = CompositionDomElement;
 
 CompositionDomElement.prototype.tagName = 'composition';
 
-CompositionDomElement.prototype.render = function(camera_mat,camera_zoom,opt_camera){
-	
-	LayerDomElement.prototype.render.call(this,camera_mat,camera_zoom);
-	
-	var t = this,
-		layers = t.layers,
-		l = t.layers.length,
-		model = t.model,
-		style = t.element.style,
-		i,
-		camera = (opt_camera || (!model.collapse) ? t.composition.getCamera() : null),				
-		cam_mat = (camera) ? camera.getCameraMatrix() : null,
-		cam_zoom = (camera) ? camera.zoom : 1333.33,
-		layer;
-		
-	if (t.collapse !== model.collapse){
-		
-		if (model.collapse){
-			
-			style[TRANSFORM_STYLE] = 'preserve-3d';
-			style[PERSPECTIVE] = undefined;
-			style[PERSPECTIVE_ORIGIN] = undefined;
-			style.clip = undefined;
-			style.overflow = undefined;
-		} else {
-			
-			t.width = null;
-			t.height = null;
-			t.zoom = null;
-			
-			style[TRANSFORM_STYLE] = 'flat';
-			
-		}
-		
-		t.collapse = model.collapse;
-	}
-	
-	
-	
-	if (!t.collapse){
-		
-		if (t.width !== model.width || t.heigh !== model.height){
-			
-			t.width = model.width;
-			t.height = model.height;
-			style.width = t.width.toString()+'px';
-			style.height = t.height.toString()+'px';
-			style.overflow = 'hidden';
-			style.clip = "rect(0px,"+t.width+"px,"+t.height+",0px)"
-			style[PERSPECTIVE_ORIGIN] = (t.width/2).toString()+'px '+(t.height/2).toString()+'px';
-		}
-		
-		
-		if (t.zoom !== cam_zoom){
-			
-			t.zoom = cam_zoom;
-			style[PERSPECTIVE] = t.zoom.toString()+'px';
-		}
-	}
-	
+CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_camera ) {
 
-	for ( i = 0; i < l; i++) {
-		
-		layer = layers[i];
-		
-		if (layer.visible !== layer.model.visible){
-			layer.setVisible(layer.model.visible);
-		}
-		
-		if (layer.visible){
-			layer.render(cam_mat,cam_zoom);
-		}
-		
-	}
-	
-};
+	    LayerDomElement.prototype.render.call( this, camera_mat, camera_zoom );
 
-CompositionDomElement.prototype.modifyCollapse = function(mat,zoom){
+	    var layers = this.layers,
+	    	l = this.layers.length,
+	    	model = this.model,
+	    	style = this.element.style,
+	    	i,
+	    	camera = (
+	    		opt_camera 
+	    		|| ( !model.collapse )
+					? this.composition.getCamera()
+				    : null
+			),
+	        cam_mat = ( camera ) 
+	        	? camera.getCameraMatrix() 
+	        	: null,
+	        cam_zoom = ( camera ) 
+	        	? camera.zoom 
+	        	: 1333.33,
+	        layer;
 	
+	   	if ( this.collapse !== model.collapse ) {
+
+		    if ( model.collapse ) {
+
+			    style[TRANSFORM_STYLE] = 'preserve-3d';
+			    style[PERSPECTIVE] = undefined;
+			    style[PERSPECTIVE_ORIGIN] = undefined;
+			    style.clip = undefined;
+			    style.overflow = undefined;
+			    
+		    } else {
+
+		    	this.width = null;
+		    	this.height = null;
+		    	this.zoom = null;
+
+			    style[TRANSFORM_STYLE] = 'flat';
+
+		    }
+
+		    this.collapse = model.collapse;
+	    }
+	    
+	    if ( !this.collapse ) {
+
+		    if ( this.width !== model.width || this.heigh !== model.height ) {
+
+		    	this.width = model.width;
+		    	this.height = model.height;
+			    style.width = this.width.toString() + 'px';
+			    style.height = this.height.toString() + 'px';
+			    style.overflow = 'hidden';
+			    style.clip = "rect(0px," +this.width + "px," + this.height + ",0px)"
+			    style[PERSPECTIVE_ORIGIN] = ( this.width / 2 ).toString() + 'px '
+			    							+ ( this.height / 2 ).toString() + 'px';
+		    }
+
+		    if ( this.zoom !== cam_zoom ) {
+
+		    	this.zoom = cam_zoom;
+			    style[PERSPECTIVE] = this.zoom.toString() + 'px';
+		    }
+	    }
+	    
+	    
+	    
+	    for ( i = 0; i < l; i++ ) {
+
+		    layer = layers[i];
+
+		    if ( layer.visible !== layer.model.visible ) {
+			    layer.setVisible( layer.model.visible );
+		    }
+
+		    if ( layer.visible ) {
+			    layer.render( cam_mat, cam_zoom );
+		    }
+
+	    }
+
+    };
+
+CompositionDomElement.prototype.modifyCollapse = function( mat, zoom ) {
+
 	return mat;
-	
-};
 
+};
 
 /**
  * @param {Composition} scene

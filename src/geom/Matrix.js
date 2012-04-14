@@ -252,29 +252,6 @@ Matrix.prototype = {
 		 */
 		quaternionRotation: function( x, y, z, w ) {
 
-			/*
-			var t = this,
-				x2 = x + x,  y2 = y + y,  z2 = z + z,
-				xx = x * x2, xy = x * y2, xz = x * z2,
-				yy = y * y2, yz = y * z2, zz = z * z2,
-				wx = w * x2, wy = w * y2, wz = w * z2;
-
-			t.m11 = 1 - ( yy + zz );
-			t.m12 = xy - wz;
-			t.m13 = xz + wy;
-
-			t.m21 = xy + wz;
-			t.m22 = 1 - ( xx + zz );
-			t.m23 = yz - wx;
-
-			t.m31 = xz - wy;
-			t.m32 = yz + wx;
-			t.m33 = 1 - ( xx + yy );
-			
-			t.m41 = t.m42 = t.m43 = 0;
-			*/
-			
-			
 			var t = this,
 				sqw = w * w,
 				sqx = x * x,
@@ -303,37 +280,7 @@ Matrix.prototype = {
 		    t.m32 = 2 * (tmp1 + tmp2)*invs ;
 		    t.m23 = 2 * (tmp1 - tmp2)*invs ;  
 			
-		    
-			/*
-			
-			var t = this,
-				xx = x * x,
-				xy = x * y,
-		    	xz = x * z,
-		    	xw = x * w,
-		    	yy = y * y,
-		    	yz = y * z,
-		    	yw = y * w,
-		    	zz = z * z,
-		    	zw = z * w;
-			
-			t.m11  = 1 - 2 * ( yy + zz );
-			t.m12  =     2 * ( xy - zw );
-			t.m12 =     2 * ( xz + yw );
-
-			t.m21  =     2 * ( xy + zw );
-			t.m22  = 1 - 2 * ( xx + zz );
-			t.m23  =     2 * ( yz - xw );
-
-			t.m31  =     2 * ( xz - yw );
-			t.m32  =     2 * ( yz + xw );
-			t.m33 = 1 - 2 * ( xx + yy );
-
-			t.m14  = t.m24 = t.m34 = t.m41 = t.m42 = t.m43 = 0;
-			t.m44 = 1;
-			*/
-			
-			return this;
+		    return this;
 
 		},
 		
@@ -372,6 +319,7 @@ Matrix.prototype = {
 			z = -z||0;
 			
 			var l = Math.sqrt((x * x) + (y * y) + (z * z));
+			
 			if (l){
 
 				x /= l;

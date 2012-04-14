@@ -19,22 +19,17 @@ Composition.prototype.getCamera = function(){
 	
 	
 	var i = 0,
-		l = this.cameras.length,
-		temp_cam = null,
-		cam = null;
-	
-	camLoop : for (i = 0; i < l; i++) {
+		l = this.cameras.getLength(),
+		temp_cam;
+
+	for ( i = 0; i < l; i += 1 ) {
 		
 		temp_cam = this.cameras.get(i);
-		
 		if (temp_cam.visible){
-			cam = temp_cam;
-			break camLoop;
+			return temp_cam;
 		}
 		
 	}
-	
-	return cam;
 };
 
 externs['Composition'] = Composition;
