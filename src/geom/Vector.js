@@ -7,242 +7,245 @@
  */
 
 
-var Vector = function(x,y,z){
-	this.x = x || 0;
-	this.y = y || 0;
-	this.z = z || 0;
-};
+var Vector = function (x, y, z) {
+        this.x = x || 0;
+        this.y = y || 0;
+        this.z = z || 0;
+    };
 
-Vector.isVector = function(v){
-	
-	return (v && typeof v.x === 'number' && typeof v.y === 'number');
+Vector.isVector = function (v) {
+
+    return (v && typeof v.x === 'number' && typeof v.y === 'number');
 
 };
 
 Vector.prototype = {
-		
-		constructor : Vector,
-		
-		set: function ( x, y, z ) {
 
-			this.x = x;
-			this.y = y;
-			this.z = z;
+    constructor: Vector,
 
-			return this;
+    set: function (x, y, z) {
 
-		},
+        this.x = x;
+        this.y = y;
+        this.z = z;
 
-		setX: function ( x ) {
+        return this;
 
-			this.x = x;
+    },
 
-			return this;
+    setX: function (x) {
 
-		},
+        this.x = x;
 
-		setY: function ( y ) {
+        return this;
 
-			this.y = y;
+    },
 
-			return this;
+    setY: function (y) {
 
-		},
+        this.y = y;
 
-		setZ: function ( z ) {
+        return this;
 
-			this.z = z;
+    },
 
-			return this;
+    setZ: function (z) {
 
-		},
+        this.z = z;
 
-		copy: function ( v ) {
+        return this;
 
-			this.x = v.x;
-			this.y = v.y;
-			this.z = v.z || 0;
+    },
 
-			return this;
+    copy: function (v) {
 
-		},
+        this.x = v.x;
+        this.y = v.y;
+        this.z = v.z || 0;
 
-		clone: function () {
+        return this;
 
-			return new Vector( this.x, this.y, this.z );
+    },
 
-		},
+    clone: function () {
 
-		add: function ( v ) {
+        return new Vector(this.x, this.y, this.z);
 
-			this.x += v.x;
-			this.y += v.y;
-			this.z += v.z;
+    },
 
-			return this;
+    add: function (v) {
 
-		},
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
 
-		addScalar: function ( s ) {
+        return this;
 
-			this.x += s;
-			this.y += s;
-			this.z += s;
+    },
 
-			return this;
+    addScalar: function (s) {
 
-		},
+        this.x += s;
+        this.y += s;
+        this.z += s;
 
-		sub: function ( v ) {
+        return this;
 
-			this.x -= v.x;
-			this.y -= v.y;
-			this.z -= v.z;
+    },
 
-			return this;
+    sub: function (v) {
 
-		},
+        this.x -= v.x;
+        this.y -= v.y;
+        this.z -= v.z;
 
-		multiply: function ( v ) {
+        return this;
 
-			this.x *= v.x;
-			this.y *= v.y;
-			this.z *= v.z;
+    },
 
-			return this;
+    multiply: function (v) {
 
-		},
+        this.x *= v.x;
+        this.y *= v.y;
+        this.z *= v.z;
 
-		multiplyScalar: function ( s ) {
+        return this;
 
-			this.x *= s;
-			this.y *= s;
-			this.z *= s;
+    },
 
-			return this;
+    multiplyScalar: function (s) {
 
-		},
+        this.x *= s;
+        this.y *= s;
+        this.z *= s;
 
-		divide: function ( v ) {
+        return this;
 
-			this.x /= v.x;
-			this.y /= v.y;
-			this.z /= v.z;
+    },
 
-			return this;
+    divide: function (v) {
 
-		},
+        this.x /= v.x;
+        this.y /= v.y;
+        this.z /= v.z;
 
-		divideScalar: function ( s ) {
+        return this;
 
-			if ( s ) {
+    },
 
-				this.x /= s;
-				this.y /= s;
-				this.z /= s;
+    divideScalar: function (s) {
 
-			} else {
+        if (s) {
 
-				this.x = 0;
-				this.y = 0;
-				this.z = 0;
+            this.x /= s;
+            this.y /= s;
+            this.z /= s;
 
-			}
+        }
+        else {
 
-			return this;
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
 
-		},
+        }
 
-		dot: function ( v ) {
+        return this;
 
-			return this.x * v.x + this.y * v.y + this.z * v.z;
+    },
 
-		},
+    dot: function (v) {
 
-		lengthSq: function () {
+        return this.x * v.x + this.y * v.y + this.z * v.z;
 
-			return this.x * this.x + this.y * this.y + this.z * this.z;
+    },
 
-		},
+    lengthSq: function () {
 
-		length: function () {
+        return this.x * this.x + this.y * this.y + this.z * this.z;
 
-			return Math.sqrt( this.lengthSq() );
+    },
 
-		},
+    length: function () {
 
-		normalize: function () {
+        return Math.sqrt(this.lengthSq());
 
-			return this.divideScalar( this.length() );
+    },
 
-		},
-		
-		lerp: function ( v, alpha ) {
+    normalize: function () {
 
-			this.x += ( v.x - this.x ) * alpha;
-			this.y += ( v.y - this.y ) * alpha;
-			this.z += ( v.z - this.z ) * alpha;
+        return this.divideScalar(this.length());
 
-			return this;
+    },
 
-		},
+    lerp: function (v, alpha) {
 
-		cross: function ( v ) {
+        this.x += (v.x - this.x) * alpha;
+        this.y += (v.y - this.y) * alpha;
+        this.z += (v.z - this.z) * alpha;
 
-			var x = this.x, y = this.y, z = this.z;
+        return this;
 
-			this.x = y * v.z - z * v.y;
-			this.y = z * v.x - x * v.z;
-			this.z = x * v.y - y * v.x;
+    },
 
-			return this;
+    cross: function (v) {
 
-		},
+        var x = this.x,
+            y = this.y,
+            z = this.z;
 
-		distance: function ( v ) {
+        this.x = y * v.z - z * v.y;
+        this.y = z * v.x - x * v.z;
+        this.z = x * v.y - y * v.x;
 
-			return Math.sqrt( this.distanceSq( v ) );
+        return this;
 
-		},
+    },
 
-		distanceSq: function ( v ) {
+    distance: function (v) {
 
-			return this.clone().sub( v ).lengthSq();
+        return Math.sqrt(this.distanceSq(v));
 
-		},
+    },
 
-		equals: function ( v ) {
+    distanceSq: function (v) {
 
-			return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) );
+        return this.clone().sub(v).lengthSq();
 
-		},
+    },
 
-		isZero: function () {
+    equals: function (v) {
 
-			return ( this.lengthSq() < 0.0001 /* almostZero */ );
+        return ((v.x === this.x) && (v.y === this.y) && (v.z === this.z));
 
-		},
-		
-		max: function () {
+    },
 
-			return Math.max(this.x,Math.max(this.y,this.z));
+    isZero: function () {
 
-		},
-		
-		min: function ( v ) {
+        return (this.lengthSq() < 0.0001 /* almostZero */ );
 
-			return Math.min(this.x,Math.min(this.y,this.z));
+    },
 
-		},
-		
-		setFromQuaternion: function ( q ) {
+    max: function () {
 
-			this.x = Math.atan2( 2 * ( q.x * q.w - q.y * q.z ), ( q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z ) );
-			this.y = Math.asin( 2 *  ( q.x * q.z + q.y * q.w ) );
-			this.z = Math.atan2( 2 * ( q.z * q.w - q.x * q.y ), ( q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z ) );
+        return Math.max(this.x, Math.max(this.y, this.z));
 
-		},
-		
+    },
+
+    min: function (v) {
+
+        return Math.min(this.x, Math.min(this.y, this.z));
+
+    },
+
+    setFromQuaternion: function (q) {
+
+        this.x = Math.atan2(2 * (q.x * q.w - q.y * q.z), (q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z));
+        this.y = Math.asin(2 * (q.x * q.z + q.y * q.w));
+        this.z = Math.atan2(2 * (q.z * q.w - q.x * q.y), (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z));
+
+    },
+
 };
 
 externs['Vector'] = Vector;

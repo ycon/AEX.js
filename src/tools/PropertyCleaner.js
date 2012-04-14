@@ -40,10 +40,14 @@ var PropertyCleaner = {
 		
 		if (result.is3D){
 			
+			
+			
 			this.cleanRotation(result.transform);
 			
-			result.transform.orientation = this.transformOrientation(result.transform.orientation);
-	        
+			if (result.transform.orientation){
+				result.transform.orientation = this.transformOrientation(result.transform.orientation);
+			}
+			
 			delete result.materialOptions;
 			
 			delete result.transform.xPosition;
@@ -179,7 +183,6 @@ var PropertyCleaner = {
 			for (var i = 0; i < obj.length; i++) {
 				k = obj[i];
 				if (isArray(k)){
-					
 					res.push([new ae.Quaternion().setFromEuler(k[0]), k[1]]);
 				} else if (ae.Vector.isVector(k)){
 					res.push(new ae.Quaternion().setFromEuler(k));

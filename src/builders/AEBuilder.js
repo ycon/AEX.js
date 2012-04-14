@@ -155,7 +155,8 @@ var AEBuilder = {
 			return;
 		}
 		
-		var i,k,val,offset,is_hold,keys,key,is_object,is_array,is_spatial,is_vector,target;
+		var i,k,val,offset,is_hold,keys,key,is_object,is_array,is_spatial,is_vector,
+			target = obj[name];;
 		
 		if (Array.isArray(value)){
 			
@@ -169,7 +170,7 @@ var AEBuilder = {
 				is_object = typeof k === 'object';
 				is_array = Array.isArray(k);
 				is_hold = ( is_array || !is_object || (k.e && k.e.o === 0));
-				val = (is_array) ? k[0] : (is_object && k.v) ? k.v : k;
+				val = (is_array) ? k[0] : (is_object && k.v != null) ? k.v : k;
 				is_vector = Vector.isVector(val);
 				
 				if (is_vector){
@@ -227,21 +228,20 @@ var AEBuilder = {
 			
 		} else if (Array.isArray(value.x)) {
 			
-			setProp(obj[name],'x',animator,value.x);
+			this.setProp(target,'x',animator,value.x);
 			
-			if (prop.y){
-				setProp(obj[name],'y',animator,value.y);
+			if (value.y){
+				this.setProp(target,'y',animator,value.y);
 			}
 			
-			if (prop.z){
-				setProp(obj[name],'z',animator,value.z);
+			if (value.z){
+				this.setProp(target,'z',animator,value.z);
 			}
 			
 		} else {
 			
 			if (Vector.isVector(value)){
 				
-				target = obj[name];
 				target.set(value.x,value.y,value.z);
 				if (target.w !== undefined){
 					target.w = value.w;
