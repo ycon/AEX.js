@@ -2,7 +2,7 @@
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17495 (2012/04/15 10:04 AM)
+ * Version: 0.1.1 - Build: 17538 (2012/04/15 07:50 PM)
  */
 
 
@@ -40,7 +40,6 @@ delete this._bindings;delete this._prevParams},toString:function(){return"[Signa
 
 var signals = this.signals;
 
-// vim: ts=4 sts=4 sw=4 expandtab
 // -- kriskowal Kris Kowal Copyright (C) 2009-2011 MIT License
 // -- tlrobinson Tom Robinson Copyright (C) 2009-2010 MIT License (Narwhal Project)
 // -- dantman Daniel Friesen Copyright (C) 2010 XXX TODO License or CLA
@@ -121,8 +120,17 @@ if (!Array.isArray) {
 
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function indexOf(sought /*, fromIndex */ ) {
-        var self = toObject(this),
-            length = self.length >>> 0;
+    	
+    	var self = this,
+    		length,
+    		prepareString = "a"[0] != "a";
+    	
+    	if (prepareString && typeof o == "string" && o) {
+            self = self.split("");
+        }
+    	
+        self = Object(this),
+        length = self.length >>> 0;
 
         if (!length) {
             return -1;
@@ -149,6 +157,87 @@ var TRANSFORM_STYLE = 'WebkitTransformStyle';
 var PERSPECTIVE = 'WebkitPerspective';
 var PERSPECTIVE_ORIGIN = 'WebkitPerspectiveOrigin';
 var BGCOLOUR = 'BackgroundColour';
+var VENDORS = 'Webkit Moz O ms Khtml'.split(' ');
+
+
+var upProperty = function(val){
+	return val.charAt(0).toUpperCase() + val.substr(1);
+};
+
+var getVendorProperty = function(val){
+	
+	var result = [val],
+		i = 0,
+		l = VENDORS.length;
+	
+	val = upProperty(val);
+	
+	for ( ; i < l; i += 1 ) {
+        result.push(VENDORS[i]+val);
+    }
+	
+	return result;
+};
+
+var Browser = {
+	
+	
+	
+	TRANSFORM: 'Transform',
+	TRANSFORM_STYLE: 'transformStyle',
+	PERSPECTIVE: 'perspective',
+	PERSPECTIVE_ORIGIN: 'perspectiveOrigin',
+	
+	
+};
+
+Browser.haveTransform = (function(){
+	
+	var element = document.createElement('div'),
+		props = getVendorProperty(this.TRANSFORM),
+		i = 0,
+		l = props.length;
+
+	for ( ; i < l; i += 1 ) {
+
+	    if ( element.style[props[i]] !== undefined ){
+	    	if (i){
+	    		this.TRANSFORM = VENDORS[i-1] + upProperty(this.TRANSFORM);
+	    	}
+	    	return true;
+	    }
+	}
+	return false;
+	
+}).call(Browser);
+
+Browser.have3DTransform = (function(){
+	
+	var element = document.createElement('div'),
+		props = getVendorProperty(this.PERSPECTIVE),
+		i = 0,
+		l = props.length,
+		vendor;
+	
+	for ( ; i < l; i += 1 ) {
+        if ( element.style[props[i]] !== undefined ){
+        	if (i){
+        		vendor = VENDORS[i-1];
+        		this.PERSPECTIVE = vendor + upProperty(this.PERSPECTIVE);
+        		this.PERSPECTIVE_ORIGIN = vendor + upProperty(this.PERSPECTIVE_ORIGIN);
+        		this.TRANSFORM_STYLE = vendor + upProperty(this.TRANSFORM_STYLE);
+        	}
+        	return true;
+        }
+    }
+	return false;
+	
+}).call(Browser),
+
+
+
+
+externs['Browser'] = Browser;
 
 /* getGaussLength
  * this may seem mysterious, but this is just an implementation of a Gaussian quadrature
@@ -1400,7 +1489,7 @@ Vector.prototype = {
         this.y = Math.asin(2 * (q.x * q.z + q.y * q.w));
         this.z = Math.atan2(2 * (q.z * q.w - q.x * q.y), (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z));
 
-    },
+    }
 
 };
 
@@ -2821,7 +2910,7 @@ var AEBuilder = {
 
 	    }
 
-    },
+    }
 
 };
 
@@ -2859,7 +2948,7 @@ LayerDomElement.prototype = {
 			if (val !== this.visible){
 				this.visible = val;
 				if (val){
-					this.element.style.display = undefined;
+					this.element.style.display = 'block';
 				} else {
 					this.element.style.display = 'none';
 				}
@@ -2884,7 +2973,7 @@ LayerDomElement.prototype = {
 			
 
 			
-			this.element.style[TRANSFORM] = mat.toString();
+			this.element.style[Browser.TRANSFORM] = mat.toString();
 			this.holder.style.opacity = ( m.opacity !== 1 ) ? m.opacity : undefined;
 			
 			
@@ -3244,11 +3333,11 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 
 		    if ( model.collapse ) {
 
-			    style[TRANSFORM_STYLE] = 'preserve-3d';
-			    style[PERSPECTIVE] = undefined;
-			    style[PERSPECTIVE_ORIGIN] = undefined;
-			    style.clip = undefined;
-			    style.overflow = undefined;
+			    style[Browser.TRANSFORM_STYLE] = 'preserve-3d';
+			    style[Browser.PERSPECTIVE] = "";
+			    style[Browser.PERSPECTIVE_ORIGIN] = "";
+			    style.clip = "";
+			    style.overflow = "";
 			    
 		    } else {
 
@@ -3256,7 +3345,7 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 		    	this.height = null;
 		    	this.zoom = null;
 
-			    style[TRANSFORM_STYLE] = 'flat';
+			    style[Browser.TRANSFORM_STYLE] = 'flat';
 
 		    }
 
@@ -3272,15 +3361,15 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 			    style.width = this.width.toString() + 'px';
 			    style.height = this.height.toString() + 'px';
 			    style.overflow = 'hidden';
-			    style.clip = "rect(0px," +this.width + "px," + this.height + ",0px)"
-			    style[PERSPECTIVE_ORIGIN] = ( this.width / 2 ).toString() + 'px '
+			    style.clip = "rect(0px , " +this.width + "px, " + this.height + "px, 0px)";
+			    style[Browser.PERSPECTIVE_ORIGIN] = ( this.width / 2 ).toString() + 'px '
 			    							+ ( this.height / 2 ).toString() + 'px';
 		    }
 
 		    if ( this.zoom !== cam_zoom ) {
 
 		    	this.zoom = cam_zoom;
-			    style[PERSPECTIVE] = this.zoom.toString() + 'px';
+			    style[Browser.PERSPECTIVE] = this.zoom.toString() + 'px';
 		    }
 	    }
 	    
@@ -3320,18 +3409,43 @@ var DomRenderer = function(scene,opt_camera){
 	this.element.appendChild(this.scene.element);
 	
 	if (!document.getElementById('AEStyleSheet')){
+		
 		var cssNode = document.createElement('style');
+		var cssRules = 
+			"scene * {" +
+				"position:absolute;" +
+				"display:block;" +
+				"top:0px;" +
+				"left:0px;" +
+				"word-wrap:break-word;" +
+				"-webkit-font-smoothing:antialiased;" +
+				"transform-origin:0% 0%;" +
+				"-o-transform-origin:0% 0%;" +
+				"-khtml-transform-origin:0% 0%;" +
+				"-moz-transform-origin:0% 0%;" +
+				"-webkit-transform-origin:0% 0%;" +
+				"-ms-transform-origin:0% 0%;" +
+			"}";
 		cssNode.id = 'AEStyleSheet';
 		cssNode.type = 'text/css';
 		cssNode.rel = 'stylesheet';
 		cssNode.media = 'screen';
 		cssNode.title = 'AEStyleSheet';
-		cssNode.innerHTML = "scene * {position:absolute;display:block;top:0px;left:0px;word-wrap:break-word;-webkit-font-smoothing:antialiased;-moz-transform-origin:0% 0%;-webkit-transform-origin:0% 0%;-ms-transform-origin:0% 0%;}";
+		
+		if (cssNode.styleSheet){
+			console.log(cssNode.styleSheet.cssText );
+			cssNode.styleSheet.cssText = cssRules;
+		} else {
+			console.log('cssNode.styleSheet.cssText' );
+			cssNode.innerHTML = cssRules;
+		}
+		
 		document.getElementsByTagName("head")[0].appendChild(cssNode);
 		
 	}
 	
 	if (scene.color){
+		console.log("fffff");
 		this.scene.element.style.backgroundColor = scene.color;
 	}
 	

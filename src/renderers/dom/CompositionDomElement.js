@@ -119,11 +119,11 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 
 		    if ( model.collapse ) {
 
-			    style[TRANSFORM_STYLE] = 'preserve-3d';
-			    style[PERSPECTIVE] = undefined;
-			    style[PERSPECTIVE_ORIGIN] = undefined;
-			    style.clip = undefined;
-			    style.overflow = undefined;
+			    style[Browser.TRANSFORM_STYLE] = 'preserve-3d';
+			    style[Browser.PERSPECTIVE] = "";
+			    style[Browser.PERSPECTIVE_ORIGIN] = "";
+			    style.clip = "";
+			    style.overflow = "";
 			    
 		    } else {
 
@@ -131,7 +131,7 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 		    	this.height = null;
 		    	this.zoom = null;
 
-			    style[TRANSFORM_STYLE] = 'flat';
+			    style[Browser.TRANSFORM_STYLE] = 'flat';
 
 		    }
 
@@ -147,15 +147,15 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 			    style.width = this.width.toString() + 'px';
 			    style.height = this.height.toString() + 'px';
 			    style.overflow = 'hidden';
-			    style.clip = "rect(0px," +this.width + "px," + this.height + ",0px)"
-			    style[PERSPECTIVE_ORIGIN] = ( this.width / 2 ).toString() + 'px '
+			    style.clip = "rect(0px , " +this.width + "px, " + this.height + "px, 0px)";
+			    style[Browser.PERSPECTIVE_ORIGIN] = ( this.width / 2 ).toString() + 'px '
 			    							+ ( this.height / 2 ).toString() + 'px';
 		    }
 
 		    if ( this.zoom !== cam_zoom ) {
 
 		    	this.zoom = cam_zoom;
-			    style[PERSPECTIVE] = this.zoom.toString() + 'px';
+			    style[Browser.PERSPECTIVE] = this.zoom.toString() + 'px';
 		    }
 	    }
 	    

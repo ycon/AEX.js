@@ -31,7 +31,7 @@ LayerDomElement.prototype = {
 			if (val !== this.visible){
 				this.visible = val;
 				if (val){
-					this.element.style.display = undefined;
+					this.element.style.display = 'block';
 				} else {
 					this.element.style.display = 'none';
 				}
@@ -56,7 +56,7 @@ LayerDomElement.prototype = {
 			
 
 			
-			this.element.style[TRANSFORM] = mat.toString();
+			this.element.style[Browser.TRANSFORM] = mat.toString();
 			this.holder.style.opacity = ( m.opacity !== 1 ) ? m.opacity : undefined;
 			
 			

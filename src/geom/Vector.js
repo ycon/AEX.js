@@ -244,7 +244,7 @@ Vector.prototype = {
         this.y = Math.asin(2 * (q.x * q.z + q.y * q.w));
         this.z = Math.atan2(2 * (q.z * q.w - q.x * q.y), (q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z));
 
-    },
+    }
 
 };
 

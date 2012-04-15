@@ -335,7 +335,7 @@ var AEBuilder = {
 
 	    }
 
-    },
+    }
 
 };
 

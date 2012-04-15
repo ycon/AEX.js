@@ -1,5 +1,4 @@
 
-// vim: ts=4 sts=4 sw=4 expandtab
 // -- kriskowal Kris Kowal Copyright (C) 2009-2011 MIT License
 // -- tlrobinson Tom Robinson Copyright (C) 2009-2010 MIT License (Narwhal Project)
 // -- dantman Daniel Friesen Copyright (C) 2010 XXX TODO License or CLA
@@ -80,8 +79,17 @@ if (!Array.isArray) {
 
 if (!Array.prototype.indexOf) {
     Array.prototype.indexOf = function indexOf(sought /*, fromIndex */ ) {
-        var self = toObject(this),
-            length = self.length >>> 0;
+    	
+    	var self = this,
+    		length,
+    		prepareString = "a"[0] != "a";
+    	
+    	if (prepareString && typeof o == "string" && o) {
+            self = self.split("");
+        }
+    	
+        self = Object(this),
+        length = self.length >>> 0;
 
         if (!length) {
             return -1;
