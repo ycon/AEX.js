@@ -5,7 +5,9 @@ var Text = function(){
 	Layer.call(this);
 	
 	this.text = "";
-	this.textArea = new Rectangle(0,0,150,150);
+	this.textPosition = new Vector();
+	this.width = 150;
+	this.height = 150;
 	this.textClass = null;
 	this.fontFamily = 'Arial';
 	this.textColor = '#888888';

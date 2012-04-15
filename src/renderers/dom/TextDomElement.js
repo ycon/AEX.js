@@ -14,8 +14,8 @@ var checkDifference = function(source,target){
 				res = true;
 				target[i] = s_prop;
 
-			} else if (s_prop !== null && s_prop.clone && s_prop.compare){
-				if (!s_prop.compare(t_prop)){
+			} else if (s_prop != null && s_prop.clone && s_prop.equals){
+				if (!s_prop.equals(t_prop)){
 					res = true;
 					target[i] = s_prop.clone();
 				}
@@ -33,13 +33,13 @@ var checkDifference = function(source,target){
 var TextDomElement = function(layer){
 
 	this.text = layer;
+	this.offsetMatrix_ = new Matrix();
 	
 	LayerDomElement.call(this,layer);
 	
 	
 	this.oldText = {
 		text : null,
-		textArea : null,
 		textClass : null,
 		fontFamily : null,
 		textColor : null,
@@ -47,7 +47,9 @@ var TextDomElement = function(layer){
 		lineHeight : null,
 		letterSpacing : null,
 		textAlign : null,
-		verticalAlign : null
+		verticalAlign : null,
+		width : null,
+		height : null
 	};
 	
 };
@@ -66,11 +68,11 @@ TextDomElement.prototype.render = function(camera_mat,camera_zoom){
 			text = this.text,
 			size = text.fontSize,
 			maxResize = 6,
-			maxHeight = text.textArea.height,
+			maxHeight = text.height,
 			offset = (size * text.leading) - size;
 			i = 0;
 		
-		style.width = text.textArea.width + 'px';
+		style.width = text.width + 'px';
 		style.color = text.textColor;
 		style.textAlign = text.textAlign;
 		style.fontFamily = text.fontFamily;
@@ -91,14 +93,15 @@ TextDomElement.prototype.render = function(camera_mat,camera_zoom){
 		
 		this.textNode = t_node;
 		
+		offset = (size * text.lineHeight) - size;
 		while (i <= maxResize && (holder.offsetHeight - offset) >= maxHeight) {
 			size = size * 0.92;
-			offset = (size * text.leading) - size;
+			offset = (size * text.lineHeight) - size;
 			style.fontSize = size + 'px';
 			i++;
 		}
 		
-		this.offsetY = (text.textArea.y - (offset / 2));
+		this.offsetY = (text.textPosition.y - (offset / 2));
 		var dif = (maxHeight - (holder.offsetHeight - (offset / 2)));
 		
 		switch (text.verticalAlign) {
@@ -112,8 +115,6 @@ TextDomElement.prototype.render = function(camera_mat,camera_zoom){
 				break;
 		}
 		
-		style.height = (holder.offsetHeight + 5) + 'px';
-		
 	}
 	
 	LayerDomElement.prototype.render.call(this,camera_mat,camera_zoom);
@@ -122,5 +123,13 @@ TextDomElement.prototype.render = function(camera_mat,camera_zoom){
 
 
 TextDomElement.prototype.modifyMatrix = function(mat){
+	
+	mat.preMultiply(
+		this.offsetMatrix_.translation(
+			this.text.textPosition.x,
+			this.offsetY,
+			0
+		)
+	);
 	return mat;
 };

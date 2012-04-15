@@ -11,7 +11,9 @@ var AEBuilder = {
 	    var comp = new Composition(),
 	    	item_animator = new AnimatorStack( comp ),
 	    	layers = item.layers,
-	    	i, layer_data, animator;
+	    	children = {},
+	    	parents = {},
+	    	i, key, layer_data, animator;
 
 	    comp.width = item.width;
 	    comp.height = item.height;
@@ -42,7 +44,19 @@ var AEBuilder = {
 		    }
 
 		    if ( animator ) {
-
+		    	
+		    	if (layer_data.parent != null){
+		    		
+		    		if ( !children[layer_data.parent] ){
+		    			children[layer_data.parent] = [];
+		    		}
+		    		
+		    		children[layer_data.parent].push(animator.layer);
+		    		
+		    	}
+		    	
+		    	parents[layer_data.id] = animator.layer;
+		    	
 		    	item_animator.add( animator );
 			    
 			    if (animator.layer instanceof Camera){
@@ -53,6 +67,25 @@ var AEBuilder = {
 		    }
 	    }
 
+	    
+	    for ( key in children ) {
+	    	
+	        if ( 
+	        		children.hasOwnProperty(key) 
+	        		&& Array.isArray(children[key]) 
+	        		&& parents.hasOwnProperty(key)
+	        	){
+	        	
+	        	for ( i = 0; i < children[key].length; i++) {
+	                
+	        		children[key][i].parent = parents[key];
+	        		
+                }
+	        }
+	    	
+        }
+	    
+	    
 	    return item_animator;
     },
 
@@ -113,35 +146,49 @@ var AEBuilder = {
 
     buildCameraLayer : function( data ) {
     	var camera = new Camera(),
-			animator = new Animator( camera, data.inPoint, data.outPoint ),
-			tr = data.transform;
+			animator = new Animator( camera, data.inPoint, data.outPoint );
 
     	camera.name = camera.name;
     	camera.haveTarget =  ( data.autoOrient !== 'none' || data.autoOrient === 'target' );
     	
-    	if ( tr ) {
-    		
-		    this.setProp( camera, "position", animator, tr.position );
-		    this.setProp( camera, "rotation", animator, tr.rotation );
-		    this.setProp( camera, "orientation", animator, tr.orientation );
-		    this.setProp( camera, "zoom", animator, tr.zoom );
+    	this.setProp( camera, "position", animator, data.position );
+		this.setProp( camera, "rotation", animator, data.rotation );
+		this.setProp( camera, "orientation", animator, data.orientation );
+		this.setProp( camera, "zoom", animator, data.zoom );
 		    
-		    if (camera.haveTarget){
-		    	this.setProp( camera, "target", animator, tr.target );
-		    }
-		    
+		if (camera.haveTarget){
+			this.setProp( camera, "target", animator, data.target );
 		}
-    	
+
     	return animator;
     },
 
     buildTextLayer : function( data ) {
     	
     	var text_layer = new Text(),
-    		animator = new Animator( text_layer, data.inPoint, data.outPoint );
+    		animator = new Animator( text_layer, data.inPoint, data.outPoint ),
+    		i = 0,
+    		props = [
+    		     'text',
+    		     'textPosition',
+    		     'width',
+    		     'height',
+    		     'textClass',
+    		     'fontFamily',
+    		     'textColor',
+    		     'fontSize',
+    		     'lineHeight',
+    		     'letterSpacing',
+    		     'textAlign',
+    		     'verticalAlign'
+    		],
+    		l = props.length;
     	
     	this.setLayerProperties( animator, data );
     	
+    	for ( ; i < l; i += 1 ) {
+	        this.setProp( text_layer, props[i], animator, data[props[i]] );
+        }
     	
     	
     	return animator;
@@ -151,29 +198,25 @@ var AEBuilder = {
     setLayerProperties : function( animator, data ) {
     	
     	/** @type Layer */
-	    var layer = animator.layer,
-	    	tr = data.transform;
+	    var layer = animator.layer;
 
 	    layer.name = data.name;
 	    layer.is3D = data.is3D || false;
 	    
 	    if (data.collapse != null){
-	    	layer.collapse = data.collapse === true;
+	    	layer.collapse = (data.collapse === true);
 	    }
 	    
-	    
-	    if ( tr ) {
-		    this.setProp( layer, "position", animator, tr.position );
-		    this.setProp( layer, "anchor", animator, tr.anchor );
-		    this.setProp( layer, "scale", animator, tr.scale );
-		    this.setProp( layer, "opacity", animator, tr.opacity );
-	    }
+		this.setProp( layer, "position", animator, data.position );
+		this.setProp( layer, "anchor", animator, data.anchor );
+		this.setProp( layer, "scale", animator, data.scale );
+		this.setProp( layer, "opacity", animator, data.opacity );
 
 	    if ( layer.is3D ) {
-		    this.setProp( layer, "rotation", animator, tr.rotation );
-		    this.setProp( layer, "orientation", animator, tr.orientation );
+		    this.setProp( layer, "rotation", animator, data.rotation );
+		    this.setProp( layer, "orientation", animator, data.orientation );
 	    } else {
-		    this.setProp( layer.rotation, "z", animator, tr.rotation );
+		    this.setProp( layer.rotation, "z", animator, data.rotation );
 	    }
 
     },
@@ -271,26 +314,20 @@ var AEBuilder = {
 			    animator.add( keys );
 		    }
 
-	    } else if ( Array.isArray( value.x ) ) {
-
-		    this.setProp( target, 'x', animator, value.x );
-
-		    if ( value.y ) {
-			    this.setProp( target, 'y', animator, value.y );
-		    }
-
-		    if ( value.z ) {
-			    this.setProp( target, 'z', animator, value.z );
-		    }
-
 	    } else {
 
-		    if ( Vector.isVector( value ) ) {
+		    if ( value.x != null && value.y != null ) {
 
-			    target.set( value.x, value.y, value.z );
-			    if ( target.w !== undefined ) {
-				    target.w = value.w;
-			    }
+		    	this.setProp( target, 'x', animator, value.x );
+				this.setProp( target, 'y', animator, value.y );
+
+				if ( value.z != null ) {
+					this.setProp( target, 'z', animator, value.z );
+				}
+				
+				if ( value.w != null ) {
+					this.setProp( target, 'w', animator, value.w );
+				}
 
 		    } else {
 			    obj[name] = value;

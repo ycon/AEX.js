@@ -22,7 +22,7 @@ LayerBase.prototype.getMatrix = function(){
 	var mat = this.matrix_.injectMatrix(this.getLocalMatrix()),
 		p = this.parent;
 	
-	if (p){
+	if (p && p != this){
 		mat.multiply(p.getMatrix());
 	}
 	

@@ -28,13 +28,12 @@ $(document).ready(function(){
 	
 
 	
-	$.get("tests/camera_test.js",function(data) {
+	$.get("tests/parent_test.js",function(data) {
 		
 		var animator = AE.AEBuilder.build(data);
 		
 		var comp = animator.item;
 		var renderer = new AE.DomRenderer(comp);
-		
 		
 		console.log(animator);
 		

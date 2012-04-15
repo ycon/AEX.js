@@ -42,21 +42,22 @@ LayerDomElement.prototype = {
 		
 		render : function(camera_mat,camera_zoom){
 			
-			var t = this,
-				m = t.model,
-				mat = t.matrix_.injectMatrix(m.getMatrix());
+			var m = this.model,
+				mat = this.matrix_.injectMatrix( m.getMatrix() );
 			
+			this.modifyMatrix( mat );
 			
-			t.modifyMatrix(mat);
-
-			if (camera_mat){
-				mat.multiply(camera_mat);
+			if ( camera_mat ) {
+				mat.multiply( camera_mat );
 			}
 			
-			t.modifyCollapse(mat,camera_zoom);
+			this.modifyCollapse( mat, camera_zoom );
 
-			t.element.style[TRANSFORM] = mat.toString();
-			t.holder.style.opacity = (m.opacity !== 1) ? m.opacity : undefined;
+			
+
+			
+			this.element.style[TRANSFORM] = mat.toString();
+			this.holder.style.opacity = ( m.opacity !== 1 ) ? m.opacity : undefined;
 			
 			
 		},
@@ -103,15 +104,18 @@ LayerDomElement.prototype = {
 					mz = mat.m23,
 					prev = t.prevScale;
 				
-				scale = Math.sqrt((mx * mx) + (my * my) + (mz * mz)) * (zoom / (zoom - mat.m43));
+				scale = Math.sqrt((mx * mx) + (my * my) + (mz * mz)) * (zoom / (zoom - mat.m43))*1.2;
 				
 				
 				
-				if (scale / prev > 1.5 || scale / prev < .75) {
+				if (scale / prev > 1.3 || scale / prev < .77) {
 					
 					t.prevScale = scale;
+					
 					h.style[TRANSFORM] = 'scale('+scale+','+scale+')';
 					
+				} else {
+					scale = prev;
 				}
 				
 				invScale = 1/scale;

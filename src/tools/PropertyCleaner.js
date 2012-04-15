@@ -74,15 +74,32 @@ var PropertyCleaner = {
 			
 		}
 		
+		this.mixin(result,result.transform);
+	    delete result.transform;
+		
 	},
 	
 	cleanTextLayer : function(result, layer, project, options){
 		
 		result.type = "Text";
 		
+		var key;
+		var txt = this.separateTextProperties(result.text.sourceText);
+		
+		
+		this.mixin(result, result.text.pathOptions);
+		this.mixin(result, result.text.moreOptions);
+		this.mixin(result, this.separateTextProperties(result.text.sourceText));
+		
+		
+		
+		
 		if (layer.Masks.numProperties >= 1){
 			
-			result.text.bounds = this.getMaskBounds(layer.Masks.property(1));
+			var bounds = this.getMaskBounds(layer.Masks.property(1));
+			result.textPosition = {x:bounds.x,y:bounds.y};
+			result.width = bounds.width;
+			result.height = bounds.height;
 			
 		}
 
@@ -107,10 +124,10 @@ var PropertyCleaner = {
 			
 		}
 		
-		result.width = (max_x-result.x).toFixed(2);
-		result.height = (max_y-result.y).toFixed(2);
-		result.x = result.x.toFixed(2);
-		result.y = result.y.toFixed(2);
+		result.width = parseFloat((max_x-result.x).toFixed(2));
+		result.height = parseFloat((max_y-result.y).toFixed(2));
+		result.x = parseFloat(result.x.toFixed(2));
+		result.y = parseFloat(result.y.toFixed(2));
 
 		return result;
 	},
@@ -128,7 +145,6 @@ var PropertyCleaner = {
 	    	
 	    	
 	        if (result.transform.pointofInterest){
-	        	//$.write(layer.Transform["Point of Interest"].active);
 	        	result.transform.target = result.transform.pointofInterest;
 	        	delete result.transform.pointofInterest;
 	        }
@@ -140,6 +156,9 @@ var PropertyCleaner = {
 	        }
 	    }
 	    delete result.cameraOptions;
+	    
+	    this.mixin(result,result.transform);
+	    delete result.transform;
 	},
 	
 	reduceProperty : function (prop){
@@ -171,7 +190,59 @@ var PropertyCleaner = {
 		}
 	},
 	
-	transformOrientation : function( obj ) {
+	separateTextProperties: function( obj ) {
+		if ( isArray( obj ) ) {
+			
+			var result = {},
+				offsets = {},
+				text_obj,
+				prev_text_obj,
+				i = 0,
+				l = obj.length,
+				current_time = 0,
+				old_offset = 0,
+				offset = 0,
+				key;
+			
+			for ( ; i < l; i += 1 ) {
+				text_obj = ( isArray(obj[i]) ) ? obj[i][0] : obj[i];
+				offset = ( isArray(obj[i]) ) ? obj[i][1] : old_offset;
+				current_time += offset;
+				old_offset = offset;
+				
+				for ( key in text_obj ) {
+					
+					prev_text_obj = ( isArray( result[key] ) )
+					        			? result[key][result[key].length-1][0]
+					        			: result[key];
+					
+	                if ( text_obj.hasOwnProperty( key ) && ( text_obj[key] !== prev_text_obj ) ) {
+	                	
+	                	if ( result.hasOwnProperty( key ) ) {
+	                		
+	                		if (!isArray( result[key] ) ){
+	                			result[key] = [ [ result[key], offsets[key] ] ];
+	                		}
+	                		
+	                		result[key].push([ text_obj[key], current_time - offsets[key] ]);
+	                		offsets[key] = current_time;
+	                		
+	                	} else {
+	                		result[key] = text_obj[key];
+	                		offsets[key] = current_time;
+	                	}
+	                }
+                }
+            }
+			
+			return result;
+			
+		} else {
+			return obj;
+		}
+	},
+	
+	transformOrientation: function( obj ) {
 		
 		var res,
 			ae = global.AE;
@@ -214,5 +285,24 @@ var PropertyCleaner = {
 		delete obj.xRotation;
 		delete obj.yRotation;
 		delete obj.zRotation;
+	},
+	
+	mixin : function(target, source, safe) {
+
+		if (typeof source === 'object'){
+			for ( var key in source ) {
+		        
+				if (source.hasOwnProperty(key) && !(target.hasOwnProperty(key) && safe) ){
+						target[key] = source[key];
+				}
+	        }
+		}
+	},
+	rename : function(obj,oldName,newName){
+		
+		if ( obj.hasOwnProperty(oldName) ){
+			obj[newName] = obj[oldName];
+			delete obj[oldName];
+		}
 	}
 };

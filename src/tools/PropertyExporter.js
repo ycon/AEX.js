@@ -412,27 +412,29 @@ var PropertyExporter = {
 		
 		var obj = {
 			text: val.text,
-			font: val.font,
+			fontFamily: val.font,
 			fontSize: val.fontSize,
-			color: ProjectExporter.getColor(val.fillColor)
+			textColor: ProjectExporter.getColor(val.fillColor)
 		};
 		
 		if (options.valign && options.valign !== 'top'){
-			obj.valign = options.valign;
+			obj.verticalAlign = options.valign;
 		}
 		
 		if (val.justification === ParagraphJustification.RIGHT_JUSTIFY) {
-			obj.align = 'right';
-		} else if (val.justification !== ParagraphJustification.CENTER_JUSTIFY) {
-			obj.align = 'center';
+			obj.textAlign = 'right';
+		} else if (val.justification === ParagraphJustification.CENTER_JUSTIFY) {
+			obj.textAlign = 'center';
+		} else {
+			obj.textAlign = 'left';
 		}
 
 		if (val.tracking){
-			obj.tracking = val.tracking;
+			obj.letterSpacing = val.tracking;
 		}
 		
 		if (options.leading){
-			obj.leading = options.leading;
+			obj.lineHeight = options.leading/val.fontSize;
 		}
 		
 		if (val.isParaText){

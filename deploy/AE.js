@@ -2,7 +2,7 @@
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17439 (2012/04/14 12:56 PM)
+ * Version: 0.1.1 - Build: 17495 (2012/04/15 10:04 AM)
  */
 
 
@@ -1606,6 +1606,17 @@ Quaternion.prototype = {
 			
 			return this;
 
+		},
+		
+		toJSON: function(){
+			
+			return {
+				x:this.x,
+				y:this.y,
+				z:this.z,
+				w:this.w
+			};
+			
 		}
 		
 };
@@ -2224,7 +2235,7 @@ LayerBase.prototype.getMatrix = function(){
 	var mat = this.matrix_.injectMatrix(this.getLocalMatrix()),
 		p = this.parent;
 	
-	if (p){
+	if (p && p != this){
 		mat.multiply(p.getMatrix());
 	}
 	
@@ -2452,7 +2463,9 @@ var Text = function(){
 	Layer.call(this);
 	
 	this.text = "";
-	this.textArea = new Rectangle(0,0,150,150);
+	this.textPosition = new Vector();
+	this.width = 150;
+	this.height = 150;
 	this.textClass = null;
 	this.fontFamily = 'Arial';
 	this.textColor = '#888888';
@@ -2484,7 +2497,9 @@ var AEBuilder = {
 	    var comp = new Composition(),
 	    	item_animator = new AnimatorStack( comp ),
 	    	layers = item.layers,
-	    	i, layer_data, animator;
+	    	children = {},
+	    	parents = {},
+	    	i, key, layer_data, animator;
 
 	    comp.width = item.width;
 	    comp.height = item.height;
@@ -2515,7 +2530,19 @@ var AEBuilder = {
 		    }
 
 		    if ( animator ) {
-
+		    	
+		    	if (layer_data.parent != null){
+		    		
+		    		if ( !children[layer_data.parent] ){
+		    			children[layer_data.parent] = [];
+		    		}
+		    		
+		    		children[layer_data.parent].push(animator.layer);
+		    		
+		    	}
+		    	
+		    	parents[layer_data.id] = animator.layer;
+		    	
 		    	item_animator.add( animator );
 			    
 			    if (animator.layer instanceof Camera){
@@ -2526,6 +2553,25 @@ var AEBuilder = {
 		    }
 	    }
 
+	    
+	    for ( key in children ) {
+	    	
+	        if ( 
+	        		children.hasOwnProperty(key) 
+	        		&& Array.isArray(children[key]) 
+	        		&& parents.hasOwnProperty(key)
+	        	){
+	        	
+	        	for ( i = 0; i < children[key].length; i++) {
+	                
+	        		children[key][i].parent = parents[key];
+	        		
+                }
+	        }
+	    	
+        }
+	    
+	    
 	    return item_animator;
     },
 
@@ -2586,35 +2632,49 @@ var AEBuilder = {
 
     buildCameraLayer : function( data ) {
     	var camera = new Camera(),
-			animator = new Animator( camera, data.inPoint, data.outPoint ),
-			tr = data.transform;
+			animator = new Animator( camera, data.inPoint, data.outPoint );
 
     	camera.name = camera.name;
     	camera.haveTarget =  ( data.autoOrient !== 'none' || data.autoOrient === 'target' );
     	
-    	if ( tr ) {
-    		
-		    this.setProp( camera, "position", animator, tr.position );
-		    this.setProp( camera, "rotation", animator, tr.rotation );
-		    this.setProp( camera, "orientation", animator, tr.orientation );
-		    this.setProp( camera, "zoom", animator, tr.zoom );
+    	this.setProp( camera, "position", animator, data.position );
+		this.setProp( camera, "rotation", animator, data.rotation );
+		this.setProp( camera, "orientation", animator, data.orientation );
+		this.setProp( camera, "zoom", animator, data.zoom );
 		    
-		    if (camera.haveTarget){
-		    	this.setProp( camera, "target", animator, tr.target );
-		    }
-		    
+		if (camera.haveTarget){
+			this.setProp( camera, "target", animator, data.target );
 		}
-    	
+
     	return animator;
     },
 
     buildTextLayer : function( data ) {
     	
     	var text_layer = new Text(),
-    		animator = new Animator( text_layer, data.inPoint, data.outPoint );
+    		animator = new Animator( text_layer, data.inPoint, data.outPoint ),
+    		i = 0,
+    		props = [
+    		     'text',
+    		     'textPosition',
+    		     'width',
+    		     'height',
+    		     'textClass',
+    		     'fontFamily',
+    		     'textColor',
+    		     'fontSize',
+    		     'lineHeight',
+    		     'letterSpacing',
+    		     'textAlign',
+    		     'verticalAlign'
+    		],
+    		l = props.length;
     	
     	this.setLayerProperties( animator, data );
     	
+    	for ( ; i < l; i += 1 ) {
+	        this.setProp( text_layer, props[i], animator, data[props[i]] );
+        }
     	
     	
     	return animator;
@@ -2624,29 +2684,25 @@ var AEBuilder = {
     setLayerProperties : function( animator, data ) {
     	
     	/** @type Layer */
-	    var layer = animator.layer,
-	    	tr = data.transform;
+	    var layer = animator.layer;
 
 	    layer.name = data.name;
 	    layer.is3D = data.is3D || false;
 	    
 	    if (data.collapse != null){
-	    	layer.collapse = data.collapse === true;
+	    	layer.collapse = (data.collapse === true);
 	    }
 	    
-	    
-	    if ( tr ) {
-		    this.setProp( layer, "position", animator, tr.position );
-		    this.setProp( layer, "anchor", animator, tr.anchor );
-		    this.setProp( layer, "scale", animator, tr.scale );
-		    this.setProp( layer, "opacity", animator, tr.opacity );
-	    }
+		this.setProp( layer, "position", animator, data.position );
+		this.setProp( layer, "anchor", animator, data.anchor );
+		this.setProp( layer, "scale", animator, data.scale );
+		this.setProp( layer, "opacity", animator, data.opacity );
 
 	    if ( layer.is3D ) {
-		    this.setProp( layer, "rotation", animator, tr.rotation );
-		    this.setProp( layer, "orientation", animator, tr.orientation );
+		    this.setProp( layer, "rotation", animator, data.rotation );
+		    this.setProp( layer, "orientation", animator, data.orientation );
 	    } else {
-		    this.setProp( layer.rotation, "z", animator, tr.rotation );
+		    this.setProp( layer.rotation, "z", animator, data.rotation );
 	    }
 
     },
@@ -2744,26 +2800,20 @@ var AEBuilder = {
 			    animator.add( keys );
 		    }
 
-	    } else if ( Array.isArray( value.x ) ) {
-
-		    this.setProp( target, 'x', animator, value.x );
-
-		    if ( value.y ) {
-			    this.setProp( target, 'y', animator, value.y );
-		    }
-
-		    if ( value.z ) {
-			    this.setProp( target, 'z', animator, value.z );
-		    }
-
 	    } else {
 
-		    if ( Vector.isVector( value ) ) {
+		    if ( value.x != null && value.y != null ) {
 
-			    target.set( value.x, value.y, value.z );
-			    if ( target.w !== undefined ) {
-				    target.w = value.w;
-			    }
+		    	this.setProp( target, 'x', animator, value.x );
+				this.setProp( target, 'y', animator, value.y );
+
+				if ( value.z != null ) {
+					this.setProp( target, 'z', animator, value.z );
+				}
+				
+				if ( value.w != null ) {
+					this.setProp( target, 'w', animator, value.w );
+				}
 
 		    } else {
 			    obj[name] = value;
@@ -2820,21 +2870,22 @@ LayerDomElement.prototype = {
 		
 		render : function(camera_mat,camera_zoom){
 			
-			var t = this,
-				m = t.model,
-				mat = t.matrix_.injectMatrix(m.getMatrix());
+			var m = this.model,
+				mat = this.matrix_.injectMatrix( m.getMatrix() );
 			
+			this.modifyMatrix( mat );
 			
-			t.modifyMatrix(mat);
-
-			if (camera_mat){
-				mat.multiply(camera_mat);
+			if ( camera_mat ) {
+				mat.multiply( camera_mat );
 			}
 			
-			t.modifyCollapse(mat,camera_zoom);
+			this.modifyCollapse( mat, camera_zoom );
 
-			t.element.style[TRANSFORM] = mat.toString();
-			t.holder.style.opacity = (m.opacity !== 1) ? m.opacity : undefined;
+			
+
+			
+			this.element.style[TRANSFORM] = mat.toString();
+			this.holder.style.opacity = ( m.opacity !== 1 ) ? m.opacity : undefined;
 			
 			
 		},
@@ -2881,15 +2932,18 @@ LayerDomElement.prototype = {
 					mz = mat.m23,
 					prev = t.prevScale;
 				
-				scale = Math.sqrt((mx * mx) + (my * my) + (mz * mz)) * (zoom / (zoom - mat.m43));
+				scale = Math.sqrt((mx * mx) + (my * my) + (mz * mz)) * (zoom / (zoom - mat.m43))*1.2;
 				
 				
 				
-				if (scale / prev > 1.5 || scale / prev < .75) {
+				if (scale / prev > 1.3 || scale / prev < .77) {
 					
 					t.prevScale = scale;
+					
 					h.style[TRANSFORM] = 'scale('+scale+','+scale+')';
 					
+				} else {
+					scale = prev;
 				}
 				
 				invScale = 1/scale;
@@ -2950,8 +3004,8 @@ var checkDifference = function(source,target){
 				res = true;
 				target[i] = s_prop;
 
-			} else if (s_prop !== null && s_prop.clone && s_prop.compare){
-				if (!s_prop.compare(t_prop)){
+			} else if (s_prop != null && s_prop.clone && s_prop.equals){
+				if (!s_prop.equals(t_prop)){
 					res = true;
 					target[i] = s_prop.clone();
 				}
@@ -2969,13 +3023,13 @@ var checkDifference = function(source,target){
 var TextDomElement = function(layer){
 
 	this.text = layer;
+	this.offsetMatrix_ = new Matrix();
 	
 	LayerDomElement.call(this,layer);
 	
 	
 	this.oldText = {
 		text : null,
-		textArea : null,
 		textClass : null,
 		fontFamily : null,
 		textColor : null,
@@ -2983,7 +3037,9 @@ var TextDomElement = function(layer){
 		lineHeight : null,
 		letterSpacing : null,
 		textAlign : null,
-		verticalAlign : null
+		verticalAlign : null,
+		width : null,
+		height : null
 	};
 	
 };
@@ -3002,11 +3058,11 @@ TextDomElement.prototype.render = function(camera_mat,camera_zoom){
 			text = this.text,
 			size = text.fontSize,
 			maxResize = 6,
-			maxHeight = text.textArea.height,
+			maxHeight = text.height,
 			offset = (size * text.leading) - size;
 			i = 0;
 		
-		style.width = text.textArea.width + 'px';
+		style.width = text.width + 'px';
 		style.color = text.textColor;
 		style.textAlign = text.textAlign;
 		style.fontFamily = text.fontFamily;
@@ -3027,14 +3083,15 @@ TextDomElement.prototype.render = function(camera_mat,camera_zoom){
 		
 		this.textNode = t_node;
 		
+		offset = (size * text.lineHeight) - size;
 		while (i <= maxResize && (holder.offsetHeight - offset) >= maxHeight) {
 			size = size * 0.92;
-			offset = (size * text.leading) - size;
+			offset = (size * text.lineHeight) - size;
 			style.fontSize = size + 'px';
 			i++;
 		}
 		
-		this.offsetY = (text.textArea.y - (offset / 2));
+		this.offsetY = (text.textPosition.y - (offset / 2));
 		var dif = (maxHeight - (holder.offsetHeight - (offset / 2)));
 		
 		switch (text.verticalAlign) {
@@ -3048,8 +3105,6 @@ TextDomElement.prototype.render = function(camera_mat,camera_zoom){
 				break;
 		}
 		
-		style.height = (holder.offsetHeight + 5) + 'px';
-		
 	}
 	
 	LayerDomElement.prototype.render.call(this,camera_mat,camera_zoom);
@@ -3058,6 +3113,14 @@ TextDomElement.prototype.render = function(camera_mat,camera_zoom){
 
 
 TextDomElement.prototype.modifyMatrix = function(mat){
+	
+	mat.preMultiply(
+		this.offsetMatrix_.translation(
+			this.text.textPosition.x,
+			this.offsetY,
+			0
+		)
+	);
 	return mat;
 };
 
@@ -3220,8 +3283,6 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 			    style[PERSPECTIVE] = this.zoom.toString() + 'px';
 		    }
 	    }
-	    
-	    
 	    
 	    for ( i = 0; i < l; i++ ) {
 
