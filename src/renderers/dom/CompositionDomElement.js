@@ -59,32 +59,36 @@ var _Composition_generate = function( obj ) {
  */
 var CompositionDomElement = function( comp ) {
 
-	var t = this, e, sig = comp.layers.on;
+	var e,
+		sig = comp.layers.on;
 
-	LayerDomElement.call( t, comp );
+	LayerDomElement.call( this, comp );
 
 	/** @type Composition */
-	t.composition = comp;
+	this.composition = comp;
 
-	t.collapse = null;
-	t.zoom = 1333.33;
-	t.width = 0;
-	t.height = 0;
+	this.collapse = null;
+	this.zoom = 1333.33;
+	this.width = 0;
+	this.height = 0;
+	this.origin = new Vector(0, 0);
 
 
 	/** @type Array.<Layer> */
-	t.layers = [];
+	this.layers = [];
+	
+	var self = this;
 
 	comp.layers.each( function( lyr ) {
 
 		e = _Composition_generate( lyr );
-		t.holder.appendChild( e.element );
-		t.layers.push( e );
+		self.holder.appendChild( e.element );
+		self.layers.push( e );
 	} );
 
-	sig.add.add( _Composition_add, t );
-	sig.remove.add( _Composition_remove, t );
-	sig.swap.add( _Composition_swap, t );
+	sig.add.add( _Composition_add, this );
+	sig.remove.add( _Composition_remove, this );
+	sig.swap.add( _Composition_swap, this );
 };
 
 CompositionDomElement.prototype = new LayerDomElement( null );
@@ -92,9 +96,9 @@ CompositionDomElement.prototype.constructor = CompositionDomElement;
 
 CompositionDomElement.prototype.tagName = 'composition';
 
-CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_camera ) {
+CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, origin, opt_camera ) {
 
-	    LayerDomElement.prototype.render.call( this, camera_mat, camera_zoom );
+	    LayerDomElement.prototype.render.call( this, camera_mat, camera_zoom, origin );
 
 	    var layers = this.layers,
 	    	l = this.layers.length,
@@ -110,11 +114,19 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 	        cam_mat = ( camera ) 
 	        	? camera.getCameraMatrix() 
 	        	: null,
-	        cam_zoom = ( camera ) 
-	        	? camera.zoom 
+	        cam_zoom = ( camera )
+	        	? camera.zoom
 	        	: 1333.33,
 	        layer;
 	
+	    
+	    if ( camera ) {
+	    	this.origin.copy(camera.center);
+	    } else {
+	    	this.origin.set(model.width/2,model.height/2);
+	    }
+	        	
+	        	
 	   	if ( this.collapse !== model.collapse ) {
 
 		    if ( model.collapse ) {
@@ -148,8 +160,8 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 			    style.height = this.height.toString() + 'px';
 			    style.overflow = 'hidden';
 			    style.clip = "rect(0px , " +this.width + "px, " + this.height + "px, 0px)";
-			    style[Browser.PERSPECTIVE_ORIGIN] = ( this.width / 2 ).toString() + 'px '
-			    							+ ( this.height / 2 ).toString() + 'px';
+			    style[Browser.PERSPECTIVE_ORIGIN] = ( this.origin.x ).toString() + 'px '
+			    							+ ( this.origin.y ).toString() + 'px';
 		    }
 
 		    if ( this.zoom !== cam_zoom ) {
@@ -166,9 +178,9 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 		    if ( layer.visible !== layer.model.visible ) {
 			    layer.setVisible( layer.model.visible );
 		    }
-
+		    
 		    if ( layer.visible ) {
-			    layer.render( cam_mat, cam_zoom );
+			    layer.render( cam_mat , this.zoom, this.origin );
 		    }
 
 	    }

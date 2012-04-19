@@ -14,6 +14,7 @@ var Camera = function(){
 	
 	this.localMatrix_ = new Matrix();
 	this.localMatrix2D_ = new Matrix();
+	this.perspectiveMatrix_ = new Matrix();
 	this.matrixCamera_ = new Matrix();
 	this.tempMatrixCamera_ = new Matrix();
 };
@@ -61,7 +62,6 @@ Camera.prototype.getCameraMatrix = function(){
 	
 	var c = this.center;
 
-	/*
 	return	this.matrixCamera_
 			.translation(c.x,c.y,this.zoom)
 			.preMultiply(
@@ -70,11 +70,7 @@ Camera.prototype.getCameraMatrix = function(){
 				.injectMatrix(this.getMatrix())
 				.invert()
 			);
-	*/	
-	return 	new Matrix()
-			.translate(c.x,c.y,this.zoom)
-			.preMultiply(this.getMatrix().createInvert());
-	
+
 };
 
 

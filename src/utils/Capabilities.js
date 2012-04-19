@@ -45,16 +45,19 @@ Browser.haveTransform = (function(){
 		props = getVendorProperty(this.TRANSFORM),
 		i = 0,
 		l = props.length;
+	
+	if (element) {
+		for ( ; i < l; i += 1 ) {
 
-	for ( ; i < l; i += 1 ) {
-
-	    if ( element.style[props[i]] !== undefined ){
-	    	if (i){
-	    		this.TRANSFORM = VENDORS[i-1] + upProperty(this.TRANSFORM);
-	    	}
-	    	return true;
-	    }
+		    if ( element.style[props[i]] !== undefined ){
+		    	if (i){
+		    		this.TRANSFORM = VENDORS[i-1] + upProperty(this.TRANSFORM);
+		    	}
+		    	return true;
+		    }
+		}
 	}
+
 	return false;
 	
 }).call(Browser);
@@ -67,17 +70,20 @@ Browser.have3DTransform = (function(){
 		l = props.length,
 		vendor;
 	
-	for ( ; i < l; i += 1 ) {
-        if ( element.style[props[i]] !== undefined ){
-        	if (i){
-        		vendor = VENDORS[i-1];
-        		this.PERSPECTIVE = vendor + upProperty(this.PERSPECTIVE);
-        		this.PERSPECTIVE_ORIGIN = vendor + upProperty(this.PERSPECTIVE_ORIGIN);
-        		this.TRANSFORM_STYLE = vendor + upProperty(this.TRANSFORM_STYLE);
-        	}
-        	return true;
-        }
-    }
+	if (element){
+		for ( ; i < l; i += 1 ) {
+	        if ( element.style[props[i]] !== undefined ){
+	        	if (i){
+	        		vendor = VENDORS[i-1];
+	        		this.PERSPECTIVE = vendor + upProperty(this.PERSPECTIVE);
+	        		this.PERSPECTIVE_ORIGIN = vendor + upProperty(this.PERSPECTIVE_ORIGIN);
+	        		this.TRANSFORM_STYLE = vendor + upProperty(this.TRANSFORM_STYLE);
+	        	}
+	        	return true;
+	        }
+	    }
+	}
+
 	return false;
 	
 }).call(Browser),

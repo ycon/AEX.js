@@ -519,7 +519,7 @@ if (!JSON) {
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17538 (2012/04/15 07:50 PM)
+ * Version: 0.1.1 - Build: 17561 (2012/04/19 08:08 AM)
  */
 
 
@@ -714,16 +714,19 @@ Browser.haveTransform = (function(){
 		props = getVendorProperty(this.TRANSFORM),
 		i = 0,
 		l = props.length;
+	
+	if (element) {
+		for ( ; i < l; i += 1 ) {
 
-	for ( ; i < l; i += 1 ) {
-
-	    if ( element.style[props[i]] !== undefined ){
-	    	if (i){
-	    		this.TRANSFORM = VENDORS[i-1] + upProperty(this.TRANSFORM);
-	    	}
-	    	return true;
-	    }
+		    if ( element.style[props[i]] !== undefined ){
+		    	if (i){
+		    		this.TRANSFORM = VENDORS[i-1] + upProperty(this.TRANSFORM);
+		    	}
+		    	return true;
+		    }
+		}
 	}
+
 	return false;
 	
 }).call(Browser);
@@ -735,18 +738,20 @@ Browser.have3DTransform = (function(){
 		i = 0,
 		l = props.length,
 		vendor;
-	
-	for ( ; i < l; i += 1 ) {
-        if ( element.style[props[i]] !== undefined ){
-        	if (i){
-        		vendor = VENDORS[i-1];
-        		this.PERSPECTIVE = vendor + upProperty(this.PERSPECTIVE);
-        		this.PERSPECTIVE_ORIGIN = vendor + upProperty(this.PERSPECTIVE_ORIGIN);
-        		this.TRANSFORM_STYLE = vendor + upProperty(this.TRANSFORM_STYLE);
-        	}
-        	return true;
-        }
-    }
+	if (element){
+		for ( ; i < l; i += 1 ) {
+	        if ( element.style[props[i]] !== undefined ){
+	        	if (i){
+	        		vendor = VENDORS[i-1];
+	        		this.PERSPECTIVE = vendor + upProperty(this.PERSPECTIVE);
+	        		this.PERSPECTIVE_ORIGIN = vendor + upProperty(this.PERSPECTIVE_ORIGIN);
+	        		this.TRANSFORM_STYLE = vendor + upProperty(this.TRANSFORM_STYLE);
+	        	}
+	        	return true;
+	        }
+	    }
+	}
+
 	return false;
 	
 }).call(Browser),
@@ -2944,6 +2949,7 @@ var Camera = function(){
 	
 	this.localMatrix_ = new Matrix();
 	this.localMatrix2D_ = new Matrix();
+	this.perspectiveMatrix_ = new Matrix();
 	this.matrixCamera_ = new Matrix();
 	this.tempMatrixCamera_ = new Matrix();
 };
@@ -2991,7 +2997,6 @@ Camera.prototype.getCameraMatrix = function(){
 	
 	var c = this.center;
 
-	/*
 	return	this.matrixCamera_
 			.translation(c.x,c.y,this.zoom)
 			.preMultiply(
@@ -3000,11 +3005,7 @@ Camera.prototype.getCameraMatrix = function(){
 				.injectMatrix(this.getMatrix())
 				.invert()
 			);
-	*/	
-	return 	new Matrix()
-			.translate(c.x,c.y,this.zoom)
-			.preMultiply(this.getMatrix().createInvert());
-	
+
 };
 
 
@@ -3474,24 +3475,29 @@ LayerDomElement.prototype = {
 		},
 		
 		
-		render : function(camera_mat,camera_zoom){
+		render : function( camera_mat, zoom, origin ){
 			
 			var m = this.model,
 				mat = this.matrix_.injectMatrix( m.getMatrix() );
 			
 			this.modifyMatrix( mat );
 			
+			console.log(m.getMatrix(),camera_mat);
+			
 			if ( camera_mat ) {
 				mat.multiply( camera_mat );
 			}
-			
-			this.modifyCollapse( mat, camera_zoom );
+
+			this.modifyCollapse( mat, zoom );
 
 			
-
-			
+			//Browser.setMatrix(element, mat, zoom, center, m.opacity);
+			//console.log(mat,this.element);
 			this.element.style[Browser.TRANSFORM] = mat.toString();
-			this.holder.style.opacity = ( m.opacity !== 1 ) ? m.opacity : undefined;
+			
+			mat.identity();
+			
+			this.holder.style.opacity = ( m.opacity !== 1 ) ? m.opacity : "";
 			
 			
 		},
@@ -3790,32 +3796,36 @@ var _Composition_generate = function( obj ) {
  */
 var CompositionDomElement = function( comp ) {
 
-	var t = this, e, sig = comp.layers.on;
+	var e,
+		sig = comp.layers.on;
 
-	LayerDomElement.call( t, comp );
+	LayerDomElement.call( this, comp );
 
 	/** @type Composition */
-	t.composition = comp;
+	this.composition = comp;
 
-	t.collapse = null;
-	t.zoom = 1333.33;
-	t.width = 0;
-	t.height = 0;
+	this.collapse = null;
+	this.zoom = 1333.33;
+	this.width = 0;
+	this.height = 0;
+	this.origin = new Vector(0, 0);
 
 
 	/** @type Array.<Layer> */
-	t.layers = [];
+	this.layers = [];
+	
+	var self = this;
 
 	comp.layers.each( function( lyr ) {
 
 		e = _Composition_generate( lyr );
-		t.holder.appendChild( e.element );
-		t.layers.push( e );
+		self.holder.appendChild( e.element );
+		self.layers.push( e );
 	} );
 
-	sig.add.add( _Composition_add, t );
-	sig.remove.add( _Composition_remove, t );
-	sig.swap.add( _Composition_swap, t );
+	sig.add.add( _Composition_add, this );
+	sig.remove.add( _Composition_remove, this );
+	sig.swap.add( _Composition_swap, this );
 };
 
 CompositionDomElement.prototype = new LayerDomElement( null );
@@ -3823,9 +3833,9 @@ CompositionDomElement.prototype.constructor = CompositionDomElement;
 
 CompositionDomElement.prototype.tagName = 'composition';
 
-CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_camera ) {
+CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, origin, opt_camera ) {
 
-	    LayerDomElement.prototype.render.call( this, camera_mat, camera_zoom );
+	    LayerDomElement.prototype.render.call( this, camera_mat, camera_zoom, origin );
 
 	    var layers = this.layers,
 	    	l = this.layers.length,
@@ -3841,11 +3851,19 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 	        cam_mat = ( camera ) 
 	        	? camera.getCameraMatrix() 
 	        	: null,
-	        cam_zoom = ( camera ) 
-	        	? camera.zoom 
+	        cam_zoom = ( camera )
+	        	? camera.zoom
 	        	: 1333.33,
 	        layer;
 	
+	    
+	    if ( camera ) {
+	    	this.origin.copy(camera.center);
+	    } else {
+	    	this.origin.set(model.width/2,model.height/2);
+	    }
+	        	
+	        	
 	   	if ( this.collapse !== model.collapse ) {
 
 		    if ( model.collapse ) {
@@ -3879,8 +3897,8 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 			    style.height = this.height.toString() + 'px';
 			    style.overflow = 'hidden';
 			    style.clip = "rect(0px , " +this.width + "px, " + this.height + "px, 0px)";
-			    style[Browser.PERSPECTIVE_ORIGIN] = ( this.width / 2 ).toString() + 'px '
-			    							+ ( this.height / 2 ).toString() + 'px';
+			    style[Browser.PERSPECTIVE_ORIGIN] = ( this.origin.x ).toString() + 'px '
+			    							+ ( this.origin.y ).toString() + 'px';
 		    }
 
 		    if ( this.zoom !== cam_zoom ) {
@@ -3897,9 +3915,9 @@ CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, opt_
 		    if ( layer.visible !== layer.model.visible ) {
 			    layer.setVisible( layer.model.visible );
 		    }
-
+		    
 		    if ( layer.visible ) {
-			    layer.render( cam_mat, cam_zoom );
+			    layer.render( cam_mat , this.zoom, this.origin );
 		    }
 
 	    }
@@ -3962,7 +3980,6 @@ var DomRenderer = function(scene,opt_camera){
 	}
 	
 	if (scene.color){
-		console.log("fffff");
 		this.scene.element.style.backgroundColor = scene.color;
 	}
 	

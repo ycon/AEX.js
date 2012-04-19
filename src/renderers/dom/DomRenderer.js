@@ -49,7 +49,6 @@ var DomRenderer = function(scene,opt_camera){
 	}
 	
 	if (scene.color){
-		console.log("fffff");
 		this.scene.element.style.backgroundColor = scene.color;
 	}
 	

@@ -40,30 +40,33 @@ LayerDomElement.prototype = {
 		},
 		
 		
-		render : function(camera_mat,camera_zoom){
+		render : function( camera_mat, zoom, origin ){
 			
 			var m = this.model,
 				mat = this.matrix_.injectMatrix( m.getMatrix() );
 			
 			this.modifyMatrix( mat );
 			
+			
 			if ( camera_mat ) {
 				mat.multiply( camera_mat );
 			}
-			
-			this.modifyCollapse( mat, camera_zoom );
+
+			this.modifyCollapse( mat, zoom );
 
 			
-
-			
+			//Browser.setMatrix(element, mat, zoom, center, m.opacity);
+			//console.log(mat,this.element);
 			this.element.style[Browser.TRANSFORM] = mat.toString();
-			this.holder.style.opacity = ( m.opacity !== 1 ) ? m.opacity : undefined;
+			
+			mat.identity();
+			
+			this.holder.style.opacity = ( m.opacity !== 1 ) ? m.opacity : "";
 			
 			
 		},
 		
 		modifyCollapse : function(mat,zoom){
-			
 			
 			var t = this,
 				e = t.element,
@@ -94,7 +97,6 @@ LayerDomElement.prototype = {
 				
 			}
 			
-			
 			if (m.collapse){
 				
 				var scale = 1,
@@ -105,8 +107,6 @@ LayerDomElement.prototype = {
 					prev = t.prevScale;
 				
 				scale = Math.sqrt((mx * mx) + (my * my) + (mz * mz)) * (zoom / (zoom - mat.m43))*1.2;
-				
-				
 				
 				if (scale / prev > 1.3 || scale / prev < .77) {
 					
