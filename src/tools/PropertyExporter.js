@@ -295,7 +295,7 @@ var PropertyExporter = {
 	getSimpleProperty : function( prop, value, options){
 		
 		var divider = (prop.unitsText === "percent") ? 100 : 1;
-		var presision = 0.01/divider;
+		var presision = 0.0001/divider;
 		
         switch (prop.propertyValueType){
         	case PropertyValueType.MARKER:

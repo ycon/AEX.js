@@ -56,7 +56,10 @@ var PropertyCleaner = {
 			
 		} else {
 			
-			result.transform.rotation = result.transform.zRotation;
+			if (result.transform.zRotation){
+				result.transform.rotation = {z: result.transform.zRotation};
+			}
+			delete result.transform.zRotation;
 			delete result.transform.xRotation;
 			delete result.transform.yRotation;
 			delete result.transform.orientation;
@@ -142,7 +145,9 @@ var PropertyCleaner = {
 	    	
 	    	this.cleanRotation(result.transform);
 	        
-	    	
+	    	if (result.transform.orientation){
+				result.transform.orientation = this.transformOrientation(result.transform.orientation);
+			}
 	    	
 	        if (result.transform.pointofInterest){
 	        	result.transform.target = result.transform.pointofInterest;
@@ -166,10 +171,10 @@ var PropertyCleaner = {
 		var k,
 			ae = global.AE;
 		
-		if (isArray(prop)){
+		if (Array.isArray(prop)){
 			for (var i = 0; i < prop.length; i++) {
 				k = prop[i];
-				if (isArray(k)){
+				if (Array.isArray(k)){
 					delete k[0].z;
 				} else if (ae.Vector.isVector(k)){
 					delete k.z;
@@ -191,7 +196,7 @@ var PropertyCleaner = {
 	},
 	
 	separateTextProperties: function( obj ) {
-		if ( isArray( obj ) ) {
+		if ( Array.isArray( obj ) ) {
 			
 			var result = {},
 				offsets = {},
@@ -205,8 +210,8 @@ var PropertyCleaner = {
 				key;
 			
 			for ( ; i < l; i += 1 ) {
-				text_obj = ( isArray(obj[i]) ) ? obj[i][0] : obj[i];
-				offset = ( isArray(obj[i]) ) ? obj[i][1] : old_offset;
+				text_obj = ( Array.isArray(obj[i]) ) ? obj[i][0] : obj[i];
+				offset = ( Array.isArray(obj[i]) ) ? obj[i][1] : old_offset;
 				current_time += offset;
 				old_offset = offset;
 				
@@ -220,7 +225,7 @@ var PropertyCleaner = {
 	                	
 	                	if ( result.hasOwnProperty( key ) ) {
 	                		
-	                		if (!isArray( result[key] ) ){
+	                		if (!Array.isArray( result[key] ) ){
 	                			result[key] = [ [ result[key], offsets[key] ] ];
 	                		}
 	                		
@@ -247,13 +252,13 @@ var PropertyCleaner = {
 		var res,
 			ae = global.AE;
 		
-		if (isArray(obj)){
+		if (Array.isArray(obj)){
 			
 			res = [];
 			
 			for (var i = 0; i < obj.length; i++) {
 				k = obj[i];
-				if (isArray(k)){
+				if (Array.isArray(k)){
 					res.push([new ae.Quaternion().setFromEuler(k[0]), k[1]]);
 				} else if (ae.Vector.isVector(k)){
 					res.push(new ae.Quaternion().setFromEuler(k));

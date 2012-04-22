@@ -1,28 +1,25 @@
 
 
+var SolidDomElement = function(model){
 
-/**
- * @constructor
- */
-var SolidDomElement = function(layer){
-
-	LayerDomElement.call(this,layer);
+	this.element = document.createElement('solid');
+	this.model = model;
 	
 };
 
-SolidDomElement.prototype = new LayerDomElement(null);
-SolidDomElement.prototype.constructor = SolidDomElement;
-SolidDomElement.prototype.tagName = 'solid';
-
-SolidDomElement.prototype.render = function(camera_mat,camera_zoom){
+SolidDomElement.prototype = {
+		
+	constructor: SolidDomElement,
 	
-	LayerDomElement.prototype.render.call(this,camera_mat,camera_zoom);
-	
-	var h = this.holder,
-		m = this.model;
-	
-	h.style.width = m.width;
-	h.style.height = m.height;
-	h.style.backgroundColor = m.color;
-	
+	render: function(){
+		
+		var style = this.element.style,
+			model = this.model;
+		
+		style.width = model.width;
+		style.height = model.height;
+		style.backgroundColor = model.color;
+		
+	}
 };
+

@@ -17,6 +17,7 @@ var Text = function(){
 	this.textAlign = 'left';
 	this.verticalAlign = 'top';
 	this.collapse = true;
+	this.type = 'text';
 	
 };
 
@@ -25,4 +26,4 @@ Text.prototype = new Layer();
 Text.prototype.constructor = Text;
 
 
-externs['Text'] = Text;
+externs.Text = Text;

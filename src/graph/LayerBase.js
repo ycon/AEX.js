@@ -6,9 +6,10 @@ var LayerBase = function(){
 	this.parent = null;
 	this.visible = true;
 	this.name = null;
+	this.type = 'null';
 	
-	this.matrix_ = new Matrix;;
-	this.matrix2D_ = new Matrix;
+	this.matrix_ = new Matrix();
+	this.matrix2D_ = new Matrix();
 	
 };
 
@@ -22,7 +23,7 @@ LayerBase.prototype.getMatrix = function(){
 	var mat = this.matrix_.injectMatrix(this.getLocalMatrix()),
 		p = this.parent;
 	
-	if (p && p != this){
+	if (p && p !== this){
 		mat.multiply(p.getMatrix());
 	}
 	

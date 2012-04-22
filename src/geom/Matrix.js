@@ -8,6 +8,11 @@ var Matrix = function(){
 	}
 };
 
+Matrix.tMat_ = new Matrix();
+Matrix.tVec1_ = new Vector();
+Matrix.tVec2_ = new Vector();
+Matrix.tVec3_ = new Vector();
+
 Matrix.prototype = {
 		
 		constructor : Matrix,
@@ -34,7 +39,7 @@ Matrix.prototype = {
 		 * @param {number} n42
 		 * @param {number} n43
 		 * @param {number} n44
-		 * 
+		 *
 		 * @returns {Matrix}
 		 */
 		set:function(n11,n12,n13,n14,n21,n22,n23,n24,n31,n32,n33,n34,n41,n42,n43,n44){
@@ -53,7 +58,7 @@ Matrix.prototype = {
 		},
 		
 		/**
-		 * 
+		 *
 		 * @param {Array.<Number>} a
 		 * @returns {Matrix}
 		 */
@@ -63,7 +68,7 @@ Matrix.prototype = {
 		},
 		
 		/**
-		 * 
+		 *
 		 * @param {Matrix} m
 		 * @returns {Matrix}
 		 */
@@ -106,17 +111,14 @@ Matrix.prototype = {
 		 */
 		translation:function(x,y,z){
 			
-			this.set(	
-					
+			this.set(
 				1,0,0,0,
 				0,1,0,0,
 				0,0,1,0,
 				x||0,y||0,z||0,1
-				
 			);
 			
 			return this;
-			
 		},
 		
 		/**
@@ -222,6 +224,9 @@ Matrix.prototype = {
 			
 			t.m41 = t.m42 = t.m43 = 0;
 			
+			
+			//console.log(this.toCSS());
+			
 			return this;
 			
 		},
@@ -243,7 +248,7 @@ Matrix.prototype = {
 		},
 		
 		/**
-		 * 
+		 *
 		 * @param {number} x
 		 * @param {number} y
 		 * @param {number} z
@@ -268,24 +273,24 @@ Matrix.prototype = {
 		    
 		    var tmp1 = x*y;
 		    var tmp2 = z*w;
-		    t.m21 = 2 * (tmp1 + tmp2)*invs ;
-		    t.m12 = 2 * (tmp1 - tmp2)*invs ;
+		    t.m21 = 2 * (tmp1 + tmp2)*invs;
+		    t.m12 = 2 * (tmp1 - tmp2)*invs;
 		    
 		    tmp1 = x*z;
 		    tmp2 = y*w;
-		    t.m31 = 2 * (tmp1 - tmp2)*invs ;
-		    t.m13 = 2 * (tmp1 + tmp2)*invs ;
+		    t.m31 = 2 * (tmp1 - tmp2)*invs;
+		    t.m13 = 2 * (tmp1 + tmp2)*invs;
 		    tmp1 = y*z;
 		    tmp2 = x*w;
-		    t.m32 = 2 * (tmp1 + tmp2)*invs ;
-		    t.m23 = 2 * (tmp1 - tmp2)*invs ;  
+		    t.m32 = 2 * (tmp1 + tmp2)*invs;
+		    t.m23 = 2 * (tmp1 - tmp2)*invs;
 			
 		    return this;
 
 		},
 		
 		/**
-		 * 
+		 *
 		 * @param {number} x
 		 * @param {number} y
 		 * @param {number} z
@@ -313,31 +318,24 @@ Matrix.prototype = {
 		 */
 		lookingAt:function(x,y,z){
 			
+			var v_x = Matrix.tVec1_.set(0,1,0);
+			var v_y = Matrix.tVec2_;
+			var v_z = Matrix.tVec3_.set(-x,-y,z).normalize();
 			
-			x = x||0;
-			y = y||0;
-			z = -z||0;
+			v_x.cross(v_z);
+			v_y.copy(v_z).cross(v_x);
 			
-			var l = Math.sqrt((x * x) + (y * y) + (z * z));
+			v_x.normalize();
+			v_y.normalize();
 			
-			if (l){
-
-				x /= l;
-				y /= l;
-				z /= l;
-				
-				this.set(
-						
-					-z,    0,        x,    0,
-					-x*y,  x*x+z*z, -z*y,  0,
-					-x,   -y,       -z,    0,
+			this.set(
+					v_x.x,   v_x.y, v_x.z,  0,
+					v_y.x,   v_y.y, v_y.z,  0,
+					v_z.x,   v_z.y, v_z.z,  0,
 					 0,    0,        0,    1
-						
 				);
-			}
 			
 			return this;
-			
 		},
 		
 		/**
@@ -489,16 +487,12 @@ Matrix.prototype = {
 		/**
 		 * @returns {String}
 		 */
-		toString:function(){
+		toCSS:function(){
 			var m = this;
-			if (this.m13 || this.m23 || this.m33 !== 1 || this.m43){
-				return "matrix3d("+m.m11.toFixed(4)+","+m.m12.toFixed(4)+","+m.m13.toFixed(4)+","+m.m14.toFixed(4)+","+
-								m.m21.toFixed(4)+","+m.m22.toFixed(4)+","+m.m23.toFixed(4)+","+m.m24.toFixed(4)+","+
-								m.m31.toFixed(4)+","+m.m32.toFixed(4)+","+m.m33.toFixed(4)+","+m.m34.toFixed(4)+","+
-								m.m41.toFixed(4)+","+m.m42.toFixed(4)+","+m.m43.toFixed(4)+","+m.m44.toFixed(4)+")";
-			} else {
-				return "matrix("+m.m11.toFixed(4)+","+m.m12.toFixed(4)+","+m.m21.toFixed(4)+","+m.m22.toFixed(4)+","+m.m41.toFixed(4)+","+m.m42.toFixed(4)+")";
-			}
+			return "matrix3d("+m.m11.toFixed(4)+","+m.m12.toFixed(4)+","+m.m13.toFixed(4)+","+m.m14.toFixed(4)+","+
+							   m.m21.toFixed(4)+","+m.m22.toFixed(4)+","+m.m23.toFixed(4)+","+m.m24.toFixed(4)+","+
+							   m.m31.toFixed(4)+","+m.m32.toFixed(4)+","+m.m33.toFixed(4)+","+m.m34.toFixed(4)+","+
+							   m.m41.toFixed(4)+","+m.m42.toFixed(4)+","+m.m43.toFixed(4)+","+m.m44.toFixed(4)+")";
 			
 		},
 		
@@ -517,4 +511,4 @@ Matrix.prototype = {
 };
 
 
-externs['Matrix'] = Matrix;
+externs.Matrix = Matrix;

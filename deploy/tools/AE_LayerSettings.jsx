@@ -519,7 +519,7 @@ if (!JSON) {
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17561 (2012/04/19 08:08 AM)
+ * Version: 0.1.1 - Build: 17699 (2012/04/22 07:55 PM)
  */
 
 
@@ -588,7 +588,7 @@ if (!Function.prototype.bind) {
 
         var target = this;
 
-        if (typeof target != "function") {
+        if (typeof target !== "function") {
             throw new TypeError("Function.prototype.bind called on incompatible " + target);
         }
 
@@ -630,7 +630,7 @@ if (!Function.prototype.bind) {
 
 if (!Array.isArray) {
     Array.isArray = function isArray(obj) {
-        return Object.prototype.toString.call(obj) == "[object Array]";
+        return Object.prototype.toString.call(obj) === "[object Array]";
     };
 }
 
@@ -668,98 +668,84 @@ if (!Array.prototype.indexOf) {
     };
 }
 
-
-var TRANSFORM = 'WebkitTransform';
-var TRANSFORM_STYLE = 'WebkitTransformStyle';
-var PERSPECTIVE = 'WebkitPerspective';
-var PERSPECTIVE_ORIGIN = 'WebkitPerspectiveOrigin';
-var BGCOLOUR = 'BackgroundColour';
-var VENDORS = 'Webkit Moz O ms Khtml'.split(' ');
-
-
-var upProperty = function(val){
+var upProperty = function(val) {
 	return val.charAt(0).toUpperCase() + val.substr(1);
 };
 
-var getVendorProperty = function(val){
-	
-	var result = [val],
-		i = 0,
-		l = VENDORS.length;
-	
+var getVendorProperty = function(val) {
+
+	var result = [ val ], i = 0, l = vendors.length;
+
 	val = upProperty(val);
-	
-	for ( ; i < l; i += 1 ) {
-        result.push(VENDORS[i]+val);
-    }
-	
+
+	for (; i < l; i += 1) {
+		result.push(vendors[i] + val);
+	}
+
 	return result;
 };
 
+var vendors = 'Webkit Moz O ms Khtml'.split(' ');
+
 var Browser = {
-	
-	
-	
+
 	TRANSFORM: 'Transform',
 	TRANSFORM_STYLE: 'transformStyle',
 	PERSPECTIVE: 'perspective',
-	PERSPECTIVE_ORIGIN: 'perspectiveOrigin',
-	
-	
+	ORIGIN: 'perspectiveOrigin'
+
 };
 
-Browser.haveTransform = (function(){
-	
+Browser.haveTransform = (function() {
+
 	var element = document.createElement('div'),
 		props = getVendorProperty(this.TRANSFORM),
 		i = 0,
 		l = props.length;
-	
-	if (element) {
-		for ( ; i < l; i += 1 ) {
 
-		    if ( element.style[props[i]] !== undefined ){
-		    	if (i){
-		    		this.TRANSFORM = VENDORS[i-1] + upProperty(this.TRANSFORM);
-		    	}
-		    	return true;
-		    }
+	if (element) {
+		for (; i < l; i += 1) {
+
+			if (i && element.style[props[i]] !== undefined) {
+
+				this.TRANSFORM = vendors[i - 1] + upProperty(this.TRANSFORM);
+				return true;
+			}
 		}
 	}
 
 	return false;
-	
-}).call(Browser);
 
-Browser.have3DTransform = (function(){
-	
+}.call(Browser));
+
+Browser.have3DTransform = (function() {
+
 	var element = document.createElement('div'),
 		props = getVendorProperty(this.PERSPECTIVE),
 		i = 0,
 		l = props.length,
 		vendor;
-	if (element){
-		for ( ; i < l; i += 1 ) {
-	        if ( element.style[props[i]] !== undefined ){
-	        	if (i){
-	        		vendor = VENDORS[i-1];
-	        		this.PERSPECTIVE = vendor + upProperty(this.PERSPECTIVE);
-	        		this.PERSPECTIVE_ORIGIN = vendor + upProperty(this.PERSPECTIVE_ORIGIN);
-	        		this.TRANSFORM_STYLE = vendor + upProperty(this.TRANSFORM_STYLE);
-	        	}
-	        	return true;
-	        }
-	    }
+
+	if (element) {
+		for (; i < l; i += 1) {
+			if (i && element.style[props[i]] !== undefined) {
+				
+				vendor = vendors[i-1];
+				
+				this.PERSPECTIVE = vendor + upProperty(this.PERSPECTIVE);
+				this.ORIGIN = vendor + upProperty(this.ORIGIN);
+				this.TRANSFORM_STYLE = vendor + upProperty(this.TRANSFORM_STYLE);
+				return true;
+
+			}
+		}
 	}
 
 	return false;
-	
-}).call(Browser),
 
+}.call(Browser));
 
-
-
-externs['Browser'] = Browser;
+externs.Browser = Browser;
 
 /* getGaussLength
  * this may seem mysterious, but this is just an implementation of a Gaussian quadrature
@@ -1245,526 +1231,6 @@ var BezierEasing = {
         }
     }
 };
-
-
-
-/** @constructor */
-var Matrix = function(){
-	if (arguments.length){
-		this.injectArray(arguments);
-	}
-};
-
-Matrix.prototype = {
-		
-		constructor : Matrix,
-		
-		m11:1,m12:0,m13:0,m14:0,
-		m21:0,m22:1,m23:0,m24:0,
-		m31:0,m32:0,m33:1,m34:0,
-		m41:0,m42:0,m43:0,m44:1,
-		
-		/**
-		 * @param {number} n11
-		 * @param {number} n12
-		 * @param {number} n13
-		 * @param {number} n14
-		 * @param {number} n21
-		 * @param {number} n22
-		 * @param {number} n23
-		 * @param {number} n24
-		 * @param {number} n31
-		 * @param {number} n32
-		 * @param {number} n33
-		 * @param {number} n34
-		 * @param {number} n41
-		 * @param {number} n42
-		 * @param {number} n43
-		 * @param {number} n44
-		 * 
-		 * @returns {Matrix}
-		 */
-		set:function(n11,n12,n13,n14,n21,n22,n23,n24,n31,n32,n33,n34,n41,n42,n43,n44){
-			
-			var m = this;
-			
-			m.m11 = n11;m.m12 = n12;m.m13 = n13;m.m14 = n14;
-			
-			m.m21 = n21;m.m22 = n22;m.m23 = n23;m.m24 = n24;
-			
-			m.m31 = n31;m.m32 = n32;m.m33 = n33;m.m34 = n34;
-			
-			m.m41 = n41;m.m42 = n42;m.m43 = n43;m.m44 = n44;
-			
-			return this;
-		},
-		
-		/**
-		 * 
-		 * @param {Array.<Number>} a
-		 * @returns {Matrix}
-		 */
-		injectArray:function(a){
-			
-			return this.set.apply(this,a);
-		},
-		
-		/**
-		 * 
-		 * @param {Matrix} m
-		 * @returns {Matrix}
-		 */
-		injectMatrix:function(m){
-			
-			/** @type Matrix */
-			var t = this;
-			
-			t.m11 = m.m11;t.m12 = m.m12;t.m13 = m.m13;t.m14 = m.m14;
-			
-			t.m21 = m.m21;t.m22 = m.m22;t.m23 = m.m23;t.m24 = m.m24;
-			
-			t.m31 = m.m31;t.m32 = m.m32;t.m33 = m.m33;t.m34 = m.m34;
-			
-			t.m41 = m.m41;t.m42 = m.m42;t.m43 = m.m43;t.m44 = m.m44;
-			
-			return t;
-		},
-		
-		/** @returns {Matrix} */
-		identity:function(){
-			
-			this.set(
-					
-				1,0,0,0,
-				0,1,0,0,
-				0,0,1,0,
-				0,0,0,1
-				
-			);
-			
-			return this;
-		},
-		
-		/**
-		 * @param {number} x
-		 * @param {number} y
-		 * @param {number} z
-		 * @returns {Matrix}
-		 */
-		translation:function(x,y,z){
-			
-			this.set(	
-					
-				1,0,0,0,
-				0,1,0,0,
-				0,0,1,0,
-				x||0,y||0,z||0,1
-				
-			);
-			
-			return this;
-			
-		},
-		
-		/**
-		 * @param {number} x
-		 * @param {number} y
-		 * @param {number} z
-		 * @returns {Matrix}
-		 */
-		translate:function(x, y, z){
-			
-			this.m41 += x||0;
-			this.m42 += y||0;
-			this.m43 += z||0;
-			
-			return this;
-			
-		},
-		
-		/**
-		 * @param {number} scaleX
-		 * @param {number} scaleY
-		 * @param {number} scaleZ
-		 * @returns {Matrix}
-		 */
-		scaling:function(scaleX, scaleY, scaleZ){
-			
-			this.set(
-					
-				scaleX||0,0,0,0,
-				0,scaleY||0,0,0,
-				0,0,scaleZ||0,0,
-				0,0,0,1
-				
-			);
-			
-			return this;
-			
-		},
-		
-		/**
-		 * @param {number} scaleX
-		 * @param {number} scaleY
-		 * @param {number} scaleZ
-		 * @returns {Matrix}
-		 */
-		scale:function(scaleX, scaleY, scaleZ){
-			
-			scaleX = scaleX||0.000001;
-			scaleY = scaleY||0.000001;
-			scaleZ = scaleZ||0.000001;
-			
-			var t = this;
-			
-			if (scaleX !== 1 || scaleY !== 1 || scaleZ !== 1){
-				
-				t.m11*=scaleX;t.m21*=scaleX;t.m31*=scaleX;t.m41*=scaleX;
-				
-				t.m12*=scaleY;t.m22*=scaleY;t.m32*=scaleY;t.m42*=scaleY;
-				
-				t.m13*=scaleZ;t.m23*=scaleZ;t.m33*=scaleZ;t.m43*=scaleZ;
-			}
-
-			return t;
-			
-		},
-		
-		/**
-		 * @param {number} rotationX
-		 * @param {number} rotationY
-		 * @param {number} rotationZ
-		 * @returns {Matrix}
-		 */
-		rotation:function(rotationX,rotationY,rotationZ){
-			
-			this.identity();
-			
-			var p = Math.PI/180,
-				t = this;
-			
-			rotationX = (rotationX||0)*p;
-			rotationY = (rotationY||0)*p;
-			rotationZ = (-rotationZ||0)*p;
-			
-			var	cos = Math.cos,
-				sin = Math.sin,
-				a = cos( rotationX ), b = sin( rotationX ),
-				c = cos( rotationY ), d = sin( rotationY ),
-				e = cos( rotationZ ), f = sin( rotationZ );
-			
-			var ae = a * e, af = a * f, be = b * e, bf = b * f;
-
-			t.m11 = c * e;
-			t.m12 = be * d - af;
-			t.m13 = ae * d + bf;
-
-			t.m21 = c * f;
-			t.m22 = bf * d + ae;
-			t.m23 = af * d - be;
-
-			t.m31 = - d;
-			t.m32 = b * c;
-			t.m33 = a * c;
-			
-			t.m41 = t.m42 = t.m43 = 0;
-			
-			return this;
-			
-		},
-		
-		/**
-		 * @param {number} rotationX
-		 * @param {number} rotationY
-		 * @param {number} rotationZ
-		 * @returns {Matrix}
-		 */
-		rotate:function(rotationX, rotationY, rotationZ){
-
-			if (!this.temp_){
-				this.temp_ = new Matrix();
-			}
-			
-			return (rotationX || rotationY || rotationZ) ? this.multiply(this.temp_.rotation(rotationX, rotationY, rotationZ)) : this;
-			
-		},
-		
-		/**
-		 * 
-		 * @param {number} x
-		 * @param {number} y
-		 * @param {number} z
-		 * @param {number} w
-		 * @returns {Matrix}
-		 */
-		quaternionRotation: function( x, y, z, w ) {
-
-			var t = this,
-				sqw = w * w,
-				sqx = x * x,
-				sqy = y * y,
-				sqz = z * z,
-				invs = 1 / (sqx + sqy + sqz + sqw);
-			
-			
-			t.m11 = ( sqx - sqy - sqz + sqw)*invs ;
-		    t.m22 = (-sqx + sqy - sqz + sqw)*invs ;
-		    t.m33 = (-sqx - sqy + sqz + sqw)*invs ;
-		    
-		    
-		    
-		    var tmp1 = x*y;
-		    var tmp2 = z*w;
-		    t.m21 = 2 * (tmp1 + tmp2)*invs ;
-		    t.m12 = 2 * (tmp1 - tmp2)*invs ;
-		    
-		    tmp1 = x*z;
-		    tmp2 = y*w;
-		    t.m31 = 2 * (tmp1 - tmp2)*invs ;
-		    t.m13 = 2 * (tmp1 + tmp2)*invs ;
-		    tmp1 = y*z;
-		    tmp2 = x*w;
-		    t.m32 = 2 * (tmp1 + tmp2)*invs ;
-		    t.m23 = 2 * (tmp1 - tmp2)*invs ;  
-			
-		    return this;
-
-		},
-		
-		/**
-		 * 
-		 * @param {number} x
-		 * @param {number} y
-		 * @param {number} z
-		 * @param {number} w
-		 * @returns {Matrix}
-		 */
-		quaternionRotate:function(x, y, z, w){
-
-			if (!this.temp_){
-				this.temp_ = new Matrix();
-			}
-			w = (!w && w !== 0) ? 1 : w;
-			
-			
-			return  this.multiply(this.temp_.quaternionRotation(x, y, z, w));
-			//return (x && y && z && w === 1) ? this : this.multiply(this.temp_.quaternionRotation(x, y, z, w));
-			
-		},
-		
-		/**
-		 * @param {number} x
-		 * @param {number} y
-		 * @param {number} z
-		 * @returns {Matrix}
-		 */
-		lookingAt:function(x,y,z){
-			
-			
-			x = x||0;
-			y = y||0;
-			z = -z||0;
-			
-			var l = Math.sqrt((x * x) + (y * y) + (z * z));
-			
-			if (l){
-
-				x /= l;
-				y /= l;
-				z /= l;
-				
-				this.set(
-						
-					-z,    0,        x,    0,
-					-x*y,  x*x+z*z, -z*y,  0,
-					-x,   -y,       -z,    0,
-					 0,    0,        0,    1
-						
-				);
-			}
-			
-			return this;
-			
-		},
-		
-		/**
-		 * @param {number} x
-		 * @param {number} y
-		 * @param {number} z
-		 * @returns {Matrix}
-		 */
-		lookAt:function(x, y, z){
-			
-			if (!this.temp_){
-				this.temp_ = new Matrix();
-			}
-			
-			return (x || y) ? this.multiply(this.temp_.lookingAt(x, y, z)) : this;
-			
-		},
-		
-		determinant: function(){
-			
-			var t = this;
-			
-			return -t.m13 * t.m22 * t.m31+
-					t.m12 * t.m23 * t.m31+
-					t.m13 * t.m21 * t.m32-
-					t.m11 * t.m23 * t.m32-
-					t.m12 * t.m21 * t.m33+
-					t.m11 * t.m22 * t.m33;
-		},
-		
-		/**
-		 * @returns {Matrix}
-		 */
-		invert:function(){
-			var m = this,
-				n11 = m.m11, n12 = m.m12, n13 = m.m13,
-				n21 = m.m21, n22 = m.m22, n23 = m.m23,
-				n31 = m.m31, n32 = m.m32, n33 = m.m33,
-				n41 = m.m41, n42 = m.m42, n43 = m.m43,
-				d = 1 / this.determinant();
-
-			m.m11 = (-n23*n32 + n22*n33)*d;
-			m.m12 = ( n13*n32 - n12*n33)*d;
-			m.m13 = (-n13*n22 + n12*n23)*d;
-			m.m14 = 0;
-			m.m21 = ( n23*n31 - n21*n33)*d;
-			m.m22 = (-n13*n31 + n11*n33)*d;
-			m.m23 = ( n13*n21 - n11*n23)*d;
-			m.m24 = 0;
-			m.m31 = (-n22*n31 + n21*n32)*d;
-			m.m32 = ( n12*n31 - n11*n32)*d;
-			m.m33 = (-n12*n21 + n11*n22)*d;
-			m.m34 = 0;
-
-			m.m41 = (n23*n32*n41 - n22*n33*n41 - n23*n31*n42 + n21*n33*n42 + n22*n31*n43 - n21*n32*n43)*d;
-			m.m42 = (n12*n33*n41 - n13*n32*n41 + n13*n31*n42 - n11*n33*n42 - n12*n31*n43 + n11*n32*n43)*d;
-			m.m43 = (n13*n22*n41 - n12*n23*n41 - n13*n21*n42 + n11*n23*n42 + n12*n21*n43 - n11*n22*n43)*d;
-			m.m44 = 1;
-			    
-			return m;
-		},
-
-		/**
-		 * @returns {Matrix}
-		 */
-		createInvert:function(){
-			return this.clone().invert();
-		},
-		
-		/**
-		 * @returns {Matrix}
-		 */
-		clone:function(){
-			var m = this;
-			
-			return new Matrix().set(
-					
-				m.m11,m.m12,m.m13,m.m14,
-				m.m21,m.m22,m.m23,m.m24,
-				m.m31,m.m32,m.m33,m.m34,
-				m.m41,m.m42,m.m43,m.m44
-				
-			);
-			
-		},
-		
-		/**
-		 * @param {Matrix} a
-		 * @param {Matrix} b
-		 * @returns {Matrix}
-		 */
-		join:function(a,b){
-			
-			var a11 = a.m11, a12 = a.m12, a13 = a.m13, a14 = a.m14,
-				a21 = a.m21, a22 = a.m22, a23 = a.m23, a24 = a.m24,
-				a31 = a.m31, a32 = a.m32, a33 = a.m33, a34 = a.m34,
-				a41 = a.m41, a42 = a.m42, a43 = a.m43, a44 = a.m44,
-		
-				b11 = b.m11, b12 = b.m12, b13 = b.m13, b14 = b.m14,
-				b21 = b.m21, b22 = b.m22, b23 = b.m23, b24 = b.m24,
-				b31 = b.m31, b32 = b.m32, b33 = b.m33, b34 = b.m34,
-				b41 = b.m41, b42 = b.m42, b43 = b.m43, b44 = b.m44;
-
-			this.m11 = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
-			this.m12 = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
-			this.m13 = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
-			this.m14 = a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44;
-
-			this.m21 = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
-			this.m22 = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
-			this.m23 = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
-			this.m24 = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
-
-			this.m31 = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
-			this.m32 = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
-			this.m33 = a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43;
-			this.m34 = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
-
-			this.m41 = a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41;
-			this.m42 = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
-			this.m43 = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
-			this.m44 = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
-			
-			return this;
-			
-		},
-		
-		/**
-		 * @param {Matrix} matrix
-		 * @returns {Matrix}
-		 */
-		multiply:function(matrix){
-			
-			return this.join(this, matrix);
-			
-		},
-		
-		/**
-		 * @param {Matrix} matrix
-		 * @returns {Matrix}
-		 */
-		preMultiply:function(matrix){
-			
-			return this.join(matrix, this);
-			
-			
-		},
-		
-		/**
-		 * @returns {String}
-		 */
-		toString:function(){
-			var m = this;
-			if (this.m13 || this.m23 || this.m33 !== 1 || this.m43){
-				return "matrix3d("+m.m11.toFixed(4)+","+m.m12.toFixed(4)+","+m.m13.toFixed(4)+","+m.m14.toFixed(4)+","+
-								m.m21.toFixed(4)+","+m.m22.toFixed(4)+","+m.m23.toFixed(4)+","+m.m24.toFixed(4)+","+
-								m.m31.toFixed(4)+","+m.m32.toFixed(4)+","+m.m33.toFixed(4)+","+m.m34.toFixed(4)+","+
-								m.m41.toFixed(4)+","+m.m42.toFixed(4)+","+m.m43.toFixed(4)+","+m.m44.toFixed(4)+")";
-			} else {
-				return "matrix("+m.m11.toFixed(4)+","+m.m12.toFixed(4)+","+m.m21.toFixed(4)+","+m.m22.toFixed(4)+","+m.m41.toFixed(4)+","+m.m42.toFixed(4)+")";
-			}
-			
-		},
-		
-		/**
-		 * @returns {Array}
-		 */
-		toArray:function(){
-			var m = this;
-			return [
-			        m.m11, m.m12, m.m13, m.m14,
-			        m.m21, m.m22, m.m23, m.m24,
-			        m.m31, m.m32, m.m33, m.m34,
-			        m.m41, m.m42, m.m43, m.m44
-			];
-		}
-};
-
-
-externs['Matrix'] = Matrix;
 /**
  * @author mr.doob / http://mrdoob.com/
  * @author kile / http://kile.stravaganza.org/
@@ -2016,6 +1482,520 @@ Vector.prototype = {
 };
 
 externs['Vector'] = Vector;
+
+
+
+/** @constructor */
+var Matrix = function(){
+	if (arguments.length){
+		this.injectArray(arguments);
+	}
+};
+
+Matrix.tMat_ = new Matrix();
+Matrix.tVec1_ = new Vector();
+Matrix.tVec2_ = new Vector();
+Matrix.tVec3_ = new Vector();
+
+Matrix.prototype = {
+		
+		constructor : Matrix,
+		
+		m11:1,m12:0,m13:0,m14:0,
+		m21:0,m22:1,m23:0,m24:0,
+		m31:0,m32:0,m33:1,m34:0,
+		m41:0,m42:0,m43:0,m44:1,
+		
+		/**
+		 * @param {number} n11
+		 * @param {number} n12
+		 * @param {number} n13
+		 * @param {number} n14
+		 * @param {number} n21
+		 * @param {number} n22
+		 * @param {number} n23
+		 * @param {number} n24
+		 * @param {number} n31
+		 * @param {number} n32
+		 * @param {number} n33
+		 * @param {number} n34
+		 * @param {number} n41
+		 * @param {number} n42
+		 * @param {number} n43
+		 * @param {number} n44
+		 *
+		 * @returns {Matrix}
+		 */
+		set:function(n11,n12,n13,n14,n21,n22,n23,n24,n31,n32,n33,n34,n41,n42,n43,n44){
+			
+			var m = this;
+			
+			m.m11 = n11;m.m12 = n12;m.m13 = n13;m.m14 = n14;
+			
+			m.m21 = n21;m.m22 = n22;m.m23 = n23;m.m24 = n24;
+			
+			m.m31 = n31;m.m32 = n32;m.m33 = n33;m.m34 = n34;
+			
+			m.m41 = n41;m.m42 = n42;m.m43 = n43;m.m44 = n44;
+			
+			return this;
+		},
+		
+		/**
+		 *
+		 * @param {Array.<Number>} a
+		 * @returns {Matrix}
+		 */
+		injectArray:function(a){
+			
+			return this.set.apply(this,a);
+		},
+		
+		/**
+		 *
+		 * @param {Matrix} m
+		 * @returns {Matrix}
+		 */
+		injectMatrix:function(m){
+			
+			/** @type Matrix */
+			var t = this;
+			
+			t.m11 = m.m11;t.m12 = m.m12;t.m13 = m.m13;t.m14 = m.m14;
+			
+			t.m21 = m.m21;t.m22 = m.m22;t.m23 = m.m23;t.m24 = m.m24;
+			
+			t.m31 = m.m31;t.m32 = m.m32;t.m33 = m.m33;t.m34 = m.m34;
+			
+			t.m41 = m.m41;t.m42 = m.m42;t.m43 = m.m43;t.m44 = m.m44;
+			
+			return t;
+		},
+		
+		/** @returns {Matrix} */
+		identity:function(){
+			
+			this.set(
+					
+				1,0,0,0,
+				0,1,0,0,
+				0,0,1,0,
+				0,0,0,1
+				
+			);
+			
+			return this;
+		},
+		
+		/**
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @returns {Matrix}
+		 */
+		translation:function(x,y,z){
+			
+			this.set(
+				1,0,0,0,
+				0,1,0,0,
+				0,0,1,0,
+				x||0,y||0,z||0,1
+			);
+			
+			return this;
+		},
+		
+		/**
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @returns {Matrix}
+		 */
+		translate:function(x, y, z){
+			
+			this.m41 += x||0;
+			this.m42 += y||0;
+			this.m43 += z||0;
+			
+			return this;
+			
+		},
+		
+		/**
+		 * @param {number} scaleX
+		 * @param {number} scaleY
+		 * @param {number} scaleZ
+		 * @returns {Matrix}
+		 */
+		scaling:function(scaleX, scaleY, scaleZ){
+			
+			this.set(
+					
+				scaleX||0,0,0,0,
+				0,scaleY||0,0,0,
+				0,0,scaleZ||0,0,
+				0,0,0,1
+				
+			);
+			
+			return this;
+			
+		},
+		
+		/**
+		 * @param {number} scaleX
+		 * @param {number} scaleY
+		 * @param {number} scaleZ
+		 * @returns {Matrix}
+		 */
+		scale:function(scaleX, scaleY, scaleZ){
+			
+			scaleX = scaleX||0.000001;
+			scaleY = scaleY||0.000001;
+			scaleZ = scaleZ||0.000001;
+			
+			var t = this;
+			
+			if (scaleX !== 1 || scaleY !== 1 || scaleZ !== 1){
+				
+				t.m11*=scaleX;t.m21*=scaleX;t.m31*=scaleX;t.m41*=scaleX;
+				
+				t.m12*=scaleY;t.m22*=scaleY;t.m32*=scaleY;t.m42*=scaleY;
+				
+				t.m13*=scaleZ;t.m23*=scaleZ;t.m33*=scaleZ;t.m43*=scaleZ;
+			}
+
+			return t;
+			
+		},
+		
+		/**
+		 * @param {number} rotationX
+		 * @param {number} rotationY
+		 * @param {number} rotationZ
+		 * @returns {Matrix}
+		 */
+		rotation:function(rotationX,rotationY,rotationZ){
+			
+			this.identity();
+			
+			var p = Math.PI/180,
+				t = this;
+			
+			rotationX = (rotationX||0)*p;
+			rotationY = (rotationY||0)*p;
+			rotationZ = (-rotationZ||0)*p;
+			
+			var	cos = Math.cos,
+				sin = Math.sin,
+				a = cos( rotationX ), b = sin( rotationX ),
+				c = cos( rotationY ), d = sin( rotationY ),
+				e = cos( rotationZ ), f = sin( rotationZ );
+			
+			var ae = a * e, af = a * f, be = b * e, bf = b * f;
+
+			t.m11 = c * e;
+			t.m12 = be * d - af;
+			t.m13 = ae * d + bf;
+
+			t.m21 = c * f;
+			t.m22 = bf * d + ae;
+			t.m23 = af * d - be;
+
+			t.m31 = - d;
+			t.m32 = b * c;
+			t.m33 = a * c;
+			
+			t.m41 = t.m42 = t.m43 = 0;
+			
+			
+			//console.log(this.toCSS());
+			
+			return this;
+			
+		},
+		
+		/**
+		 * @param {number} rotationX
+		 * @param {number} rotationY
+		 * @param {number} rotationZ
+		 * @returns {Matrix}
+		 */
+		rotate:function(rotationX, rotationY, rotationZ){
+
+			if (!this.temp_){
+				this.temp_ = new Matrix();
+			}
+			
+			return (rotationX || rotationY || rotationZ) ? this.multiply(this.temp_.rotation(rotationX, rotationY, rotationZ)) : this;
+			
+		},
+		
+		/**
+		 *
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @param {number} w
+		 * @returns {Matrix}
+		 */
+		quaternionRotation: function( x, y, z, w ) {
+
+			var t = this,
+				sqw = w * w,
+				sqx = x * x,
+				sqy = y * y,
+				sqz = z * z,
+				invs = 1 / (sqx + sqy + sqz + sqw);
+			
+			
+			t.m11 = ( sqx - sqy - sqz + sqw)*invs ;
+		    t.m22 = (-sqx + sqy - sqz + sqw)*invs ;
+		    t.m33 = (-sqx - sqy + sqz + sqw)*invs ;
+		    
+		    
+		    
+		    var tmp1 = x*y;
+		    var tmp2 = z*w;
+		    t.m21 = 2 * (tmp1 + tmp2)*invs;
+		    t.m12 = 2 * (tmp1 - tmp2)*invs;
+		    
+		    tmp1 = x*z;
+		    tmp2 = y*w;
+		    t.m31 = 2 * (tmp1 - tmp2)*invs;
+		    t.m13 = 2 * (tmp1 + tmp2)*invs;
+		    tmp1 = y*z;
+		    tmp2 = x*w;
+		    t.m32 = 2 * (tmp1 + tmp2)*invs;
+		    t.m23 = 2 * (tmp1 - tmp2)*invs;
+			
+		    return this;
+
+		},
+		
+		/**
+		 *
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @param {number} w
+		 * @returns {Matrix}
+		 */
+		quaternionRotate:function(x, y, z, w){
+
+			if (!this.temp_){
+				this.temp_ = new Matrix();
+			}
+			w = (!w && w !== 0) ? 1 : w;
+			
+			
+			return  this.multiply(this.temp_.quaternionRotation(x, y, z, w));
+			//return (x && y && z && w === 1) ? this : this.multiply(this.temp_.quaternionRotation(x, y, z, w));
+			
+		},
+		
+		/**
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @returns {Matrix}
+		 */
+		lookingAt:function(x,y,z){
+			
+			var v_x = Matrix.tVec1_.set(0,1,0);
+			var v_y = Matrix.tVec2_;
+			var v_z = Matrix.tVec3_.set(-x,-y,z).normalize();
+			
+			v_x.cross(v_z);
+			v_y.copy(v_z).cross(v_x);
+			
+			v_x.normalize();
+			v_y.normalize();
+			
+			this.set(
+					v_x.x,   v_x.y, v_x.z,  0,
+					v_y.x,   v_y.y, v_y.z,  0,
+					v_z.x,   v_z.y, v_z.z,  0,
+					 0,    0,        0,    1
+				);
+			
+			return this;
+		},
+		
+		/**
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @returns {Matrix}
+		 */
+		lookAt:function(x, y, z){
+			
+			if (!this.temp_){
+				this.temp_ = new Matrix();
+			}
+			
+			return (x || y) ? this.multiply(this.temp_.lookingAt(x, y, z)) : this;
+			
+		},
+		
+		determinant: function(){
+			
+			var t = this;
+			
+			return -t.m13 * t.m22 * t.m31+
+					t.m12 * t.m23 * t.m31+
+					t.m13 * t.m21 * t.m32-
+					t.m11 * t.m23 * t.m32-
+					t.m12 * t.m21 * t.m33+
+					t.m11 * t.m22 * t.m33;
+		},
+		
+		/**
+		 * @returns {Matrix}
+		 */
+		invert:function(){
+			var m = this,
+				n11 = m.m11, n12 = m.m12, n13 = m.m13,
+				n21 = m.m21, n22 = m.m22, n23 = m.m23,
+				n31 = m.m31, n32 = m.m32, n33 = m.m33,
+				n41 = m.m41, n42 = m.m42, n43 = m.m43,
+				d = 1 / this.determinant();
+
+			m.m11 = (-n23*n32 + n22*n33)*d;
+			m.m12 = ( n13*n32 - n12*n33)*d;
+			m.m13 = (-n13*n22 + n12*n23)*d;
+			m.m14 = 0;
+			m.m21 = ( n23*n31 - n21*n33)*d;
+			m.m22 = (-n13*n31 + n11*n33)*d;
+			m.m23 = ( n13*n21 - n11*n23)*d;
+			m.m24 = 0;
+			m.m31 = (-n22*n31 + n21*n32)*d;
+			m.m32 = ( n12*n31 - n11*n32)*d;
+			m.m33 = (-n12*n21 + n11*n22)*d;
+			m.m34 = 0;
+
+			m.m41 = (n23*n32*n41 - n22*n33*n41 - n23*n31*n42 + n21*n33*n42 + n22*n31*n43 - n21*n32*n43)*d;
+			m.m42 = (n12*n33*n41 - n13*n32*n41 + n13*n31*n42 - n11*n33*n42 - n12*n31*n43 + n11*n32*n43)*d;
+			m.m43 = (n13*n22*n41 - n12*n23*n41 - n13*n21*n42 + n11*n23*n42 + n12*n21*n43 - n11*n22*n43)*d;
+			m.m44 = 1;
+			    
+			return m;
+		},
+
+		/**
+		 * @returns {Matrix}
+		 */
+		createInvert:function(){
+			return this.clone().invert();
+		},
+		
+		/**
+		 * @returns {Matrix}
+		 */
+		clone:function(){
+			var m = this;
+			
+			return new Matrix().set(
+					
+				m.m11,m.m12,m.m13,m.m14,
+				m.m21,m.m22,m.m23,m.m24,
+				m.m31,m.m32,m.m33,m.m34,
+				m.m41,m.m42,m.m43,m.m44
+				
+			);
+			
+		},
+		
+		/**
+		 * @param {Matrix} a
+		 * @param {Matrix} b
+		 * @returns {Matrix}
+		 */
+		join:function(a,b){
+			
+			var a11 = a.m11, a12 = a.m12, a13 = a.m13, a14 = a.m14,
+				a21 = a.m21, a22 = a.m22, a23 = a.m23, a24 = a.m24,
+				a31 = a.m31, a32 = a.m32, a33 = a.m33, a34 = a.m34,
+				a41 = a.m41, a42 = a.m42, a43 = a.m43, a44 = a.m44,
+		
+				b11 = b.m11, b12 = b.m12, b13 = b.m13, b14 = b.m14,
+				b21 = b.m21, b22 = b.m22, b23 = b.m23, b24 = b.m24,
+				b31 = b.m31, b32 = b.m32, b33 = b.m33, b34 = b.m34,
+				b41 = b.m41, b42 = b.m42, b43 = b.m43, b44 = b.m44;
+
+			this.m11 = a11 * b11 + a12 * b21 + a13 * b31 + a14 * b41;
+			this.m12 = a11 * b12 + a12 * b22 + a13 * b32 + a14 * b42;
+			this.m13 = a11 * b13 + a12 * b23 + a13 * b33 + a14 * b43;
+			this.m14 = a11 * b14 + a12 * b24 + a13 * b34 + a14 * b44;
+
+			this.m21 = a21 * b11 + a22 * b21 + a23 * b31 + a24 * b41;
+			this.m22 = a21 * b12 + a22 * b22 + a23 * b32 + a24 * b42;
+			this.m23 = a21 * b13 + a22 * b23 + a23 * b33 + a24 * b43;
+			this.m24 = a21 * b14 + a22 * b24 + a23 * b34 + a24 * b44;
+
+			this.m31 = a31 * b11 + a32 * b21 + a33 * b31 + a34 * b41;
+			this.m32 = a31 * b12 + a32 * b22 + a33 * b32 + a34 * b42;
+			this.m33 = a31 * b13 + a32 * b23 + a33 * b33 + a34 * b43;
+			this.m34 = a31 * b14 + a32 * b24 + a33 * b34 + a34 * b44;
+
+			this.m41 = a41 * b11 + a42 * b21 + a43 * b31 + a44 * b41;
+			this.m42 = a41 * b12 + a42 * b22 + a43 * b32 + a44 * b42;
+			this.m43 = a41 * b13 + a42 * b23 + a43 * b33 + a44 * b43;
+			this.m44 = a41 * b14 + a42 * b24 + a43 * b34 + a44 * b44;
+			
+			return this;
+			
+		},
+		
+		/**
+		 * @param {Matrix} matrix
+		 * @returns {Matrix}
+		 */
+		multiply:function(matrix){
+			
+			return this.join(this, matrix);
+			
+		},
+		
+		/**
+		 * @param {Matrix} matrix
+		 * @returns {Matrix}
+		 */
+		preMultiply:function(matrix){
+			
+			return this.join(matrix, this);
+			
+			
+		},
+		
+		/**
+		 * @returns {String}
+		 */
+		toCSS:function(){
+			var m = this;
+			return "matrix3d("+m.m11.toFixed(4)+","+m.m12.toFixed(4)+","+m.m13.toFixed(4)+","+m.m14.toFixed(4)+","+
+							   m.m21.toFixed(4)+","+m.m22.toFixed(4)+","+m.m23.toFixed(4)+","+m.m24.toFixed(4)+","+
+							   m.m31.toFixed(4)+","+m.m32.toFixed(4)+","+m.m33.toFixed(4)+","+m.m34.toFixed(4)+","+
+							   m.m41.toFixed(4)+","+m.m42.toFixed(4)+","+m.m43.toFixed(4)+","+m.m44.toFixed(4)+")";
+			
+		},
+		
+		/**
+		 * @returns {Array}
+		 */
+		toArray:function(){
+			var m = this;
+			return [
+			        m.m11, m.m12, m.m13, m.m14,
+			        m.m21, m.m22, m.m23, m.m24,
+			        m.m31, m.m32, m.m33, m.m34,
+			        m.m41, m.m42, m.m43, m.m44
+			];
+		}
+};
+
+
+externs.Matrix = Matrix;
 /**
  * @author mr.doob / http://mrdoob.com/
  * @author kile / http://kile.stravaganza.org/
@@ -2830,9 +2810,10 @@ var LayerBase = function(){
 	this.parent = null;
 	this.visible = true;
 	this.name = null;
+	this.type = 'null';
 	
-	this.matrix_ = new Matrix;;
-	this.matrix2D_ = new Matrix;
+	this.matrix_ = new Matrix();
+	this.matrix2D_ = new Matrix();
 	
 };
 
@@ -2846,7 +2827,7 @@ LayerBase.prototype.getMatrix = function(){
 	var mat = this.matrix_.injectMatrix(this.getLocalMatrix()),
 		p = this.parent;
 	
-	if (p && p != this){
+	if (p && p !== this){
 		mat.multiply(p.getMatrix());
 	}
 	
@@ -2891,6 +2872,7 @@ var Layer = function(){
 	this.rotation = new Vector();
 	this.orientation = new Quaternion();
 	this.opacity = 1;
+	this.type = 'null';
 	
 	this.localMatrix_ = new Matrix();
 	this.localMatrix2D_ = new Matrix();
@@ -2902,37 +2884,35 @@ Layer.prototype.constructor = Layer;
 
 Layer.prototype.getLocalMatrix = function(){
 	
-	var t = this,
-		p = t.position,
-		a = t.anchor,
-		s = t.scale,
-		r = t.rotation,
-		o = t.orientation;
+	var p = this.position,
+		a = this.anchor,
+		s = this.scale,
+		r = this.rotation,
+		o = this.orientation;
 	
-	return 	this.localMatrix_
-			.translation(-a.x,-a.y, -a.z)
-			.scale(s.x, s.y, s.z)
-			.rotate(r.x, r.y, r.z)
-			.quaternionRotate(o.x, o.y, o.z, o.w)
-			.translate(p.x,p.y, -p.z);
+	return this.localMatrix_
+		   .translation(-a.x,-a.y, a.z)
+		   .scale(s.x, s.y, s.z)
+		   .rotate(r.x, r.y, r.z)
+		   .quaternionRotate(o.x, o.y, o.z, o.w)
+		   .translate(p.x,p.y, -p.z);
 };
 
 Layer.prototype.getLocalMatrix2D = function(){
 	
-	var t = this,
-		p = t.position,
-		a = t.anchor,
-		s = t.scale;
+	var p = this.position,
+		a = this.anchor,
+		s = this.scale;
 
-	return 	this.localMatrix2D_
-			.translation(-a.x, -a.y, 0)
-			.scale(s.x, s.y, 1)
-			.rotate(0, 0, t.rotation.z)
-			.translate(p.x, p.y, 0);
+	return this.localMatrix2D_
+		   .translation(-a.x, -a.y, 0)
+		   .scale(s.x, s.y, 1)
+		   .rotate(0, 0, this.rotation.z)
+		   .translate(p.x, p.y, 0);
 };
 
 
-externs['Layer'] = Layer;
+externs.Layer = Layer;
 
 /** @constructor */
 var Camera = function(){
@@ -2941,15 +2921,16 @@ var Camera = function(){
 	
 	this.position = new Vector();
 	this.rotation = new Vector();
+	this.orientation = new Quaternion();
 	this.target = new Vector();
 	this.haveTarget = true;
 	this.zoom = 1333.33;
 	this.center = new Vector();
 	this.is3D = true;
+	this.type = 'camera';
 	
 	this.localMatrix_ = new Matrix();
 	this.localMatrix2D_ = new Matrix();
-	this.perspectiveMatrix_ = new Matrix();
 	this.matrixCamera_ = new Matrix();
 	this.tempMatrixCamera_ = new Matrix();
 };
@@ -2959,41 +2940,43 @@ Camera.prototype.constructor = Camera;
 
 Camera.prototype.getLocalMatrix = function(){
 	
-	var t   = 	this,
-		r	=	t.rotation,
-		ta	=	t.target,
-		p	=	t.position,
-		mat = 	this.localMatrix_
-				.rotation(r.x,r.y,r.z);
+	var t = this,
+		r =	t.rotation,
+		ta = t.target,
+		p = t.position,
+		o = t.orientation,
+		mat = this.localMatrix_
+			  .rotation(r.x,r.y,r.z);
 	
 	mat.m41 = mat.m42 = mat.m43 = 0;
 	
+	mat.quaternionRotate(o.x, o.y, o.z, o.w);
+	
 	if (t.haveTarget){
-		
 		mat.lookAt(
 				ta.x - p.x,
-				ta.y - p.y, 
+				ta.y - p.y,
 				ta.z - p.z
 		);
-		
 	}
 	
-	mat.translate(p.x,p.y, -p.z);
+	
+	
+	mat.translate(p.x, p.y, -p.z);
 	
 	return 	mat;
 };
 
 Camera.prototype.getLocalMatrix2D = function(){
 	
-	return 	this.localMatrix2D_
-			.rotation(0,0,this.rotation.z)
-			.translate(this.position.x,this.position.y, 0);
+	return this.localMatrix2D_
+		   .rotation(0,0,this.rotation.z)
+		   .translate(this.position.x,this.position.y, 0);
 	
 };
 
 
 Camera.prototype.getCameraMatrix = function(){
-	
 	
 	var c = this.center;
 
@@ -3005,11 +2988,18 @@ Camera.prototype.getCameraMatrix = function(){
 				.injectMatrix(this.getMatrix())
 				.invert()
 			);
+};
 
+Camera.prototype.align = function(x, y){
+	
+	this.center.x = this.position.x = x;
+	this.center.y = this.position.y = y;
+	this.position.z = -this.zoom;
+	
 };
 
 
-externs['Camera'] = Camera;
+externs.Camera = Camera;
 
 /** @constructor */
 var Solid = function(){
@@ -3019,6 +3009,7 @@ var Solid = function(){
 	this.color = '#000000';
 	this.width = 640;
 	this.height = 360;
+	this.type = 'solid';
 	
 };
 
@@ -3027,42 +3018,51 @@ Solid.prototype = new Layer();
 Solid.prototype.constructor = Solid;
 
 
-externs['Solid'] = Solid;
+externs.Solid = Solid;
 
 /** @constructor */
 var Composition = function(){
 	Layer.call(this);
+	
+	var cam = new Camera();
+	
+	cam.haveTarget = false;
 	
 	this.layers = new Stack(Layer);
 	this.cameras = new Stack(Camera);
 	this.width = 640;
 	this.height = 360;
 	this.color = "#000000";
-};
+	this.type = 'composition';
 
+	cam.align(this.width/2, this.height/2);
+	this.defaultCam_ = cam;
+};
 
 Composition.prototype = new Layer();
 Composition.prototype.constructor = Composition;
 
-
 Composition.prototype.getCamera = function(){
-	
 	
 	var i = 0,
 		l = this.cameras.getLength(),
 		temp_cam;
 
 	for ( i = 0; i < l; i += 1 ) {
-		
 		temp_cam = this.cameras.get(i);
 		if (temp_cam.visible){
+			temp_cam.center.set(this.width/2, this.height/2);
 			return temp_cam;
 		}
-		
 	}
+	
+	temp_cam = this.defaultCam_;
+	temp_cam.align(this.width/2, this.height/2);
+	
+	return temp_cam;
 };
 
-externs['Composition'] = Composition;
+externs.Composition = Composition;
 /** constructor */
 
 var Text = function(){
@@ -3082,6 +3082,7 @@ var Text = function(){
 	this.textAlign = 'left';
 	this.verticalAlign = 'top';
 	this.collapse = true;
+	this.type = 'text';
 	
 };
 
@@ -3090,557 +3091,344 @@ Text.prototype = new Layer();
 Text.prototype.constructor = Text;
 
 
-externs['Text'] = Text;
+externs.Text = Text;
 var AEBuilder = {
 
-    build : function( data ) {
+	build : function(data) {
 
-	    return this.buildItem( data.items[data.root], data.items );
+		return this.buildItem(data.items[data.root], data.items);
 
-    },
+	},
 
-    buildCompItem : function( item, items ) {
+	buildCompItem : function(item, items) {
 
-	    var comp = new Composition(),
-	    	item_animator = new AnimatorStack( comp ),
-	    	layers = item.layers,
-	    	children = {},
-	    	parents = {},
-	    	i, key, layer_data, animator;
+		var comp = new Composition(),
+			item_animator = new AnimatorStack(comp),
+			layers = item.layers,
+			children = {},
+			parents = {},
+			key = "",
+			i, layer_data, animator;
 
-	    comp.width = item.width;
-	    comp.height = item.height;
-	    comp.color = item.color || "#000000";
-	    item_animator.duration = item.duration || 1;
-	    item_animator.frameRate = item.frameRate || 25;
+		comp.width = item.width;
+		comp.height = item.height;
+		comp.color = item.color || "#000000";
+		item_animator.duration = item.duration || 1;
+		item_animator.frameRate = item.frameRate || 25;
 
+		for (i = 0; i < layers.length; i++) {
 
-	    for ( i = 0; i < layers.length; i++ ) {
+			layer_data = layers[i];
+			animator = null;
 
-		    layer_data = layers[i];
-		    animator = null;
+			switch (layer_data.type) {
+			case 'Camera':
+				animator = this.buildCameraLayer(layer_data);
+				animator.layer.center.set(comp.width / 2, comp.height / 2);
 
-		    switch ( layer_data.type ) {
-		    case 'Camera':
-			    animator = this.buildCameraLayer( layer_data );
-			    animator.layer.center.set(comp.width/2, comp.height/2);
-			    
-			    break;
-		    case 'Text':
-			    animator = this.buildTextLayer( layer_data );
-			    break;
-		    default:
-			    if ( layer_data.source ) {
-				    animator = this.buildAVLayer( layer_data, items );
-			    }
-			    break;
-		    }
+				break;
+			case 'Text':
+				animator = this.buildTextLayer(layer_data);
+				break;
+			default:
+				if (layer_data.source) {
+					animator = this.buildAVLayer(layer_data, items);
+				}
+				break;
+			}
 
-		    if ( animator ) {
-		    	
-		    	if (layer_data.parent != null){
-		    		
-		    		if ( !children[layer_data.parent] ){
-		    			children[layer_data.parent] = [];
-		    		}
-		    		
-		    		children[layer_data.parent].push(animator.layer);
-		    		
-		    	}
-		    	
-		    	parents[layer_data.id] = animator.layer;
-		    	
-		    	item_animator.add( animator );
-			    
-			    if (animator.layer instanceof Camera){
-			    	comp.cameras.add(animator.layer);
-			    } else {
-			    	comp.layers.add(animator.layer);
-			    }
-		    }
-	    }
+			if (animator) {
 
-	    
-	    for ( key in children ) {
-	    	
-	        if ( 
-	        		children.hasOwnProperty(key) 
-	        		&& Array.isArray(children[key]) 
-	        		&& parents.hasOwnProperty(key)
-	        	){
-	        	
-	        	for ( i = 0; i < children[key].length; i++) {
-	                
-	        		children[key][i].parent = parents[key];
-	        		
-                }
-	        }
-	    	
-        }
-	    
-	    
-	    return item_animator;
-    },
+				if (layer_data.parent != null) {
+					
+					if (!children[layer_data.parent]) {
+						children[layer_data.parent] = [];
+					}
 
-    buildSolidItem : function( data, items ) {
+					children[layer_data.parent].push(animator.layer);
 
-	    var solid = new Solid(),
-	    	item_animator = new AnimatorStack( solid );
+				}
 
-	    solid.width = data.width;
-	    solid.height = data.height;
-	    solid.color = data.color;
+				parents[layer_data.id] = animator.layer;
 
-	    return item_animator;
+				item_animator.add(animator);
 
-    },
-
-    buildItem : function( item, items ) {
-
-	    switch ( item.type ) {
-	    case 'Composition':
-		    return this.buildCompItem( item, items );
-		    break;
-	    case 'Solid':
-		    return this.buildSolidItem( item, items );
-		    break;
-	    case 'Image':
-		    return this.buildImageItem( item, items );
-		    break;
-	    case 'Video':
-		    return this.buildVideoItem( item, items );
-		    break;
-	    }
-
-    },
-
-    buildImageItem : function( item, items ) {
-
-    },
-
-    buildVideoItem : function( item, items ) {
-
-    },
-    
-    buildAVLayer : function( data, items ) {
-
-	    var item_animator = this.buildItem( items[data.source], items ),
-	    	layer = item_animator.item,
-	    	animator = new Animator( layer, data.inPoint, data.outPoint );
-
-	    this.setLayerProperties( animator, data );
-
-	    animator.source = item_animator;
-	    animator.startTime = data.startTime || 0;
-	    animator.speed = data.speed || 1;
-
-	    return animator;
-    },
-
-    buildCameraLayer : function( data ) {
-    	var camera = new Camera(),
-			animator = new Animator( camera, data.inPoint, data.outPoint );
-
-    	camera.name = camera.name;
-    	camera.haveTarget =  ( data.autoOrient !== 'none' || data.autoOrient === 'target' );
-    	
-    	this.setProp( camera, "position", animator, data.position );
-		this.setProp( camera, "rotation", animator, data.rotation );
-		this.setProp( camera, "orientation", animator, data.orientation );
-		this.setProp( camera, "zoom", animator, data.zoom );
-		    
-		if (camera.haveTarget){
-			this.setProp( camera, "target", animator, data.target );
+				if (animator.layer instanceof Camera) {
+					comp.cameras.add(animator.layer);
+				} else {
+					comp.layers.add(animator.layer);
+				}
+			}
 		}
 
-    	return animator;
-    },
+		for (key in children) {
 
-    buildTextLayer : function( data ) {
-    	
-    	var text_layer = new Text(),
-    		animator = new Animator( text_layer, data.inPoint, data.outPoint ),
-    		i = 0,
-    		props = [
-    		     'text',
-    		     'textPosition',
-    		     'width',
-    		     'height',
-    		     'textClass',
-    		     'fontFamily',
-    		     'textColor',
-    		     'fontSize',
-    		     'lineHeight',
-    		     'letterSpacing',
-    		     'textAlign',
-    		     'verticalAlign'
-    		],
-    		l = props.length;
-    	
-    	this.setLayerProperties( animator, data );
-    	
-    	for ( ; i < l; i += 1 ) {
-	        this.setProp( text_layer, props[i], animator, data[props[i]] );
-        }
-    	
-    	
-    	return animator;
-    	
-    },
+			if (
+				children.hasOwnProperty(key) &&
+				Array.isArray(children[key]) &&
+				parents.hasOwnProperty(key)
+			) {
 
-    setLayerProperties : function( animator, data ) {
-    	
-    	/** @type Layer */
-	    var layer = animator.layer;
-
-	    layer.name = data.name;
-	    layer.is3D = data.is3D || false;
-	    
-	    if (data.collapse != null){
-	    	layer.collapse = (data.collapse === true);
-	    }
-	    
-		this.setProp( layer, "position", animator, data.position );
-		this.setProp( layer, "anchor", animator, data.anchor );
-		this.setProp( layer, "scale", animator, data.scale );
-		this.setProp( layer, "opacity", animator, data.opacity );
-
-	    if ( layer.is3D ) {
-		    this.setProp( layer, "rotation", animator, data.rotation );
-		    this.setProp( layer, "orientation", animator, data.orientation );
-	    } else {
-		    this.setProp( layer.rotation, "z", animator, data.rotation );
-	    }
-
-    },
-
-    setProp : function( obj, name, animator, value ) {
-
-	    if ( !value && value !== 0 ) {
-		    return;
-	    }
-
-	    var i,
-	    	k,
-	    	val,
-	    	offset,
-	    	is_hold,
-	    	keys,
-	    	key,
-	    	is_object,
-	    	is_array,
-	    	is_spatial,
-	    	is_vector,
-	    	target = obj[name];
-
-	    if ( Array.isArray( value ) ) {
-
-		    is_spatial = null;
-		    offset = 0;
-
-		    for ( i = 0; i < value.length; i++ ) {
-
-			    k = value[i];
-
-			    is_object = typeof k === 'object';
-			    is_array = Array.isArray( k );
-			    is_hold = ( is_array || !is_object || ( k.e && k.e.o === 0 ) );
-			    val = ( is_array )
-			    			? k[0] 
-			    			: ( is_object && k.v != null ) 
-			    				? k.v
-			    				: k;
-			    is_vector = Vector.isVector( val );
-
-			    if ( is_vector ) {
-				    if ( val.w !== undefined ) {
-					    val = new Quaternion( val.x, val.y, val.z, val.w );
-				    } else {
-					    val = new Vector( val.x, val.y, val.z );
-				    }
-			    }
-
-			    if ( is_spatial === null ) {
-
-				    is_spatial = is_vector;
-
-				    if ( is_spatial ) {
-					    keys = new SpatialKeys( obj, name );
-				    } else {
-					    keys = new Keys( obj, name );
-				    }
-			    }
-
-			    if ( is_array ) {
-				    offset = k[1];
-			    } else if ( is_object && k.d !== undefined ) {
-
-				    offset = k.d || 0;
-			    }
-
-			    key = keys.add( offset, val, is_hold );
-
-			    if ( k.e && Array.isArray( k.e.i ) ) {
-				    key.inX = k.e.i[0];
-				    key.inY = k.e.i[1];
-			    }
-			    if ( k.e && Array.isArray( k.e.o ) ) {
-				    key.outX = k.e.o[0];
-				    key.outY = k.e.o[1];
-			    }
-
-			    if ( is_spatial && k.t ) {
-				    if ( Array.isArray( k.t.i ) ) {
-					    key.inTangent = new Vector( k.t.i[0], k.t.i[1],
-					        k.t.i[2] );
-				    }
-				    if ( Array.isArray( k.t.o ) ) {
-					    key.outTangent = new Vector( k.t.o[0], k.t.o[1],
-					        k.t.o[2] );
-				    }
-				    key.update = true;
-			    }
-
-		    }
-
-		    if ( keys ) {
-			    animator.add( keys );
-		    }
-
-	    } else {
-
-		    if ( value.x != null && value.y != null ) {
-
-		    	this.setProp( target, 'x', animator, value.x );
-				this.setProp( target, 'y', animator, value.y );
-
-				if ( value.z != null ) {
-					this.setProp( target, 'z', animator, value.z );
-				}
-				
-				if ( value.w != null ) {
-					this.setProp( target, 'w', animator, value.w );
-				}
-
-		    } else {
-			    obj[name] = value;
-		    }
-
-	    }
-
-    }
-
-};
-
-externs["AEBuilder"] = AEBuilder;
-
-
-
-/**
- * @constructor
- */
-var LayerDomElement = function(layer){
-
-	this.model = layer;
-	
-	this.holder = document.createElement(this.tagName);
-	this.element = this.holder;
-
-	this.prevScale = 0;
-	this.visible = false;
-	
-	this.matrix_ = new Matrix();
-	this.tempMatrix_ = new Matrix();
-};
-
-LayerDomElement.prototype = {
-		
-		constructor : LayerDomElement,
-		
-		tagName : 'layer',
-		
-		visible : false,
-		
-		setVisible : function(val){
-			
-			if (val !== this.visible){
-				this.visible = val;
-				if (val){
-					this.element.style.display = 'block';
-				} else {
-					this.element.style.display = 'none';
+				for (i = 0; i < children[key].length; i++) {
+					children[key][i].parent = parents[key];
 				}
 			}
-			
-		},
-		
-		
-		render : function( camera_mat, zoom, origin ){
-			
-			var m = this.model,
-				mat = this.matrix_.injectMatrix( m.getMatrix() );
-			
-			this.modifyMatrix( mat );
-			
-			console.log(m.getMatrix(),camera_mat);
-			
-			if ( camera_mat ) {
-				mat.multiply( camera_mat );
-			}
 
-			this.modifyCollapse( mat, zoom );
+		}
 
+		return item_animator;
+	},
+
+	buildSolidItem : function(data, items) {
+
+		var solid = new Solid(), item_animator = new AnimatorStack(solid);
+
+		solid.width = data.width;
+		solid.height = data.height;
+		solid.color = data.color;
+
+		return item_animator;
+
+	},
+
+	buildItem : function(item, items) {
+
+		switch (item.type) {
+		case 'Composition':
+			return this.buildCompItem(item, items);
+		case 'Solid':
+			return this.buildSolidItem(item, items);
+		case 'Image':
+			return this.buildImageItem(item, items);
+		case 'Video':
+			return this.buildVideoItem(item, items);
+		}
+
+	},
+
+	buildImageItem : function(item, items) {
+
+	},
+
+	buildVideoItem : function(item, items) {
+
+	},
+
+	buildAVLayer : function(data, items) {
+
+		var item_animator = this.buildItem(items[data.source], items),
+			layer = item_animator.item,
+			animator = new Animator(layer, data.inPoint, data.outPoint);
+
+		this.setLayerProperties(animator, data);
+
+		animator.source = item_animator;
+		animator.startTime = data.startTime || 0;
+		animator.speed = data.speed || 1;
+
+		return animator;
+	},
+
+	buildCameraLayer : function(data) {
+
+		var camera = new Camera(),
+			animator = new Animator(camera, data.inPoint, data.outPoint);
+
+		camera.name = camera.name;
+		camera.haveTarget = (data.autoOrient !== 'none' || data.autoOrient === 'target');
+
+		this.setProp(camera, "position", animator, data.position);
+		this.setProp(camera, "rotation", animator, data.rotation);
+		this.setProp(camera, "orientation", animator, data.orientation);
+		this.setProp(camera, "zoom", animator, data.zoom);
+
+		if (camera.haveTarget) {
+			this.setProp(camera, "target", animator, data.target);
+		}
+
+		return animator;
+	},
+
+	buildTextLayer : function(data) {
+
+		var text_layer = new Text(), animator = new Animator(text_layer,
+				data.inPoint, data.outPoint), i = 0, props = [ 'text',
+				'textPosition', 'width', 'height', 'textClass', 'fontFamily',
+				'textColor', 'fontSize', 'lineHeight', 'letterSpacing',
+				'textAlign', 'verticalAlign' ], l = props.length;
+
+		this.setLayerProperties(animator, data);
+
+		for (; i < l; i += 1) {
+			this.setProp(text_layer, props[i], animator, data[props[i]]);
+		}
+
+		return animator;
+
+	},
+
+	setLayerProperties : function(animator, data) {
+
+		/** @type Layer */
+		var layer = animator.layer;
+
+		layer.name = data.name;
+		layer.is3D = data.is3D || false;
+
+		if (data.collapse != null) {
+			layer.collapse = (data.collapse === true);
+		}
+
+		this.setProp(layer, "position", animator, data.position);
+		this.setProp(layer, "anchor", animator, data.anchor);
+		this.setProp(layer, "scale", animator, data.scale);
+		this.setProp(layer, "opacity", animator, data.opacity);
+
+		if (layer.is3D) {
+			this.setProp(layer, "rotation", animator, data.rotation);
+			this.setProp(layer, "orientation", animator, data.orientation);
+		} else {
+			this.setProp(layer.rotation, "z", animator, data.rotation);
+		}
+
+	},
+
+	setProp : function(obj, name, animator, value) {
+
+		if (!value && value !== 0) {
+			return;
+		}
+		var i, k, val, offset, is_hold, keys, key, is_object, is_array, is_spatial, is_vector, target = obj[name];
+
+		if (Array.isArray(value)) {
+
+			is_spatial = null;
+			offset = 0;
+			is_spatial = value.length &&
+						 (Array.isArray(value[0]) && Vector.isVector(value[0][0])) ||
+						 Vector.isVector(value[0]) ||
+						 (typeof value[0] === 'object') &&
+						 Vector.isVector(value[0].v);
 			
-			//Browser.setMatrix(element, mat, zoom, center, m.opacity);
-			//console.log(mat,this.element);
-			this.element.style[Browser.TRANSFORM] = mat.toString();
+			keys = (is_spatial) ?
+				   new SpatialKeys(obj, name) :
+				   new Keys(obj, name);
 			
-			mat.identity();
-			
-			this.holder.style.opacity = ( m.opacity !== 1 ) ? m.opacity : "";
-			
-			
-		},
-		
-		modifyCollapse : function(mat,zoom){
-			
-			
-			var t = this,
-				e = t.element,
-				h = t.holder,
-				m = t.model;
-			
-			if ((e === h) === m.collapse){
-				
-				if (m.collapse){
-					
-					e = t.element = document.createElement('transform');
-					
-					if (h.parentElement){
-						h.parentElement.replaceChild(e,h);
-						e.style[TRANSFORM] = h.style[TRANSFORM];
-						e.appendChild(h);
+			for (i = 0; i < value.length; i++) {
+
+				k = value[i];
+
+				is_object = typeof k === 'object';
+				is_array = Array.isArray(k);
+				is_hold = (is_array || !is_object || (k.e && k.e.o === 0));
+				val = (is_array) ? k[0] : (is_object && k.v != null) ? k.v : k;
+				is_vector = Vector.isVector(val);
+
+				if (is_vector) {
+					if (val.w !== undefined) {
+						val = new Quaternion(val.x, val.y, val.z, val.w);
+					} else {
+						val = new Vector(val.x, val.y, val.z);
 					}
-					
-				} else {
-					
-					if (e.parentElement){
-						e.parentElement.replaceChild(h,e);
-						h.style[TRANSFORM] = e.style[TRANSFORM];
+				}
+
+				if (is_array) {
+					offset = k[1];
+				} else if (is_object && k.d !== undefined) {
+					offset = k.d || 0;
+				}
+
+				key = keys.add(offset, val, is_hold);
+
+				if (k.e && Array.isArray(k.e.i)) {
+					key.inX = k.e.i[0];
+					key.inY = k.e.i[1];
+				}
+				if (k.e && Array.isArray(k.e.o)) {
+					key.outX = k.e.o[0];
+					key.outY = k.e.o[1];
+				}
+
+				if (is_spatial && k.t) {
+					if (Array.isArray(k.t.i)) {
+						key.inTangent = new Vector(k.t.i[0], k.t.i[1], k.t.i[2]);
 					}
-					
-					t.element = h;
+					if (Array.isArray(k.t.o)) {
+						key.outTangent = new Vector(k.t.o[0], k.t.o[1],
+								k.t.o[2]);
+					}
+					key.update = true;
 				}
-				
+
 			}
-			
-			
-			if (m.collapse){
-				
-				var scale = 1,
-					invScale,
-					mx = mat.m21,
-					my = mat.m22,
-					mz = mat.m23,
-					prev = t.prevScale;
-				
-				scale = Math.sqrt((mx * mx) + (my * my) + (mz * mz)) * (zoom / (zoom - mat.m43))*1.2;
-				
-				
-				
-				if (scale / prev > 1.3 || scale / prev < .77) {
-					
-					t.prevScale = scale;
-					
-					h.style[TRANSFORM] = 'scale('+scale+','+scale+')';
-					
-				} else {
-					scale = prev;
+
+			if (keys) {
+				animator.add(keys);
+			}
+
+		} else {
+
+			if (value.x != null && value.y != null) {
+
+				this.setProp(target, 'x', animator, value.x);
+				this.setProp(target, 'y', animator, value.y);
+
+				if (value.z != null) {
+					this.setProp(target, 'z', animator, value.z);
 				}
-				
-				invScale = 1/scale;
-				mat.preMultiply(t.tempMatrix_.scaling(invScale, invScale, 1));
-				
+
+				if (value.w != null) {
+					this.setProp(target, 'w', animator, value.w);
+				}
+
 			} else {
-				this.prevScale = 0;
+				obj[name] = value;
 			}
 
-		},
-
-		modifyMatrix : function(mat){
-			return mat;
 		}
-};
 
-
-
-
-/**
- * @constructor
- */
-var SolidDomElement = function(layer){
-
-	LayerDomElement.call(this,layer);
-	
-};
-
-SolidDomElement.prototype = new LayerDomElement(null);
-SolidDomElement.prototype.constructor = SolidDomElement;
-SolidDomElement.prototype.tagName = 'solid';
-
-SolidDomElement.prototype.render = function(camera_mat,camera_zoom){
-	
-	LayerDomElement.prototype.render.call(this,camera_mat,camera_zoom);
-	
-	var h = this.holder,
-		m = this.model;
-	
-	h.style.width = m.width;
-	h.style.height = m.height;
-	h.style.backgroundColor = m.color;
-	
-};
-
-var checkDifference = function(source,target){
-	var res = false,
-		s_prop,
-		t_prop;
-	
-	for ( var i in target) {
-		
-		if (target.hasOwnProperty(i)){
-			s_prop = source[i];
-			t_prop = target[i];
-			if (s_prop !== t_prop && (typeof s_prop !== 'object' || s_prop === null)){
-				
-				res = true;
-				target[i] = s_prop;
-
-			} else if (s_prop != null && s_prop.clone && s_prop.equals){
-				if (!s_prop.equals(t_prop)){
-					res = true;
-					target[i] = s_prop.clone();
-				}
-			}
-		}
 	}
-	
-	return res;
+
 };
 
+externs.AEBuilder = AEBuilder;
 
-/**
- * @constructor
- */
-var TextDomElement = function(layer){
 
-	this.text = layer;
-	this.offsetMatrix_ = new Matrix();
+var SolidDomElement = function(model){
+
+	this.element = document.createElement('solid');
+	this.model = model;
 	
-	LayerDomElement.call(this,layer);
+};
+
+SolidDomElement.prototype = {
+		
+	constructor: SolidDomElement,
 	
+	render: function(){
+		
+		var style = this.element.style,
+			model = this.model;
+		
+		style.width = model.width;
+		style.height = model.height;
+		style.backgroundColor = model.color;
+		
+	}
+};
+
+var TextDomElement = function(model){
+
+	this.model = model;
+	this.element = document.createElement('text');
+	this.text = document.createElement('p');
+	this.element.appendChild(this.text);
 	
-	this.oldText = {
+	this.oldX = 0;
+	this.oldY = 0;
+	this.offsetY = 0;
+	
+	this.oldModel = {
 		text : null,
 		textClass : null,
 		fontFamily : null,
@@ -3656,57 +3444,79 @@ var TextDomElement = function(layer){
 	
 };
 
-TextDomElement.prototype = new LayerDomElement(null);
-TextDomElement.prototype.constructor = SolidDomElement;
-
-TextDomElement.prototype.tagName = 'text';
-
-TextDomElement.prototype.render = function(camera_mat,camera_zoom){
-
-	if (checkDifference(this.text,this.oldText)){
+TextDomElement.prototype = {
+	
+	constructor: TextDomElement,
+	
+	checkDifference : function(source,target){
 		
-		var holder = this.holder,
-			style = this.holder.style,
-			text = this.text,
-			size = text.fontSize,
+		var res = false,
+			s_prop,
+			t_prop;
+		
+		for ( var i in target) {
+			
+			if (target.hasOwnProperty(i)){
+				s_prop = source[i];
+				t_prop = target[i];
+				if (s_prop !== t_prop && (typeof s_prop !== 'object' || s_prop === null)){
+					
+					res = true;
+					target[i] = s_prop;
+
+				} else if (s_prop != null && s_prop.clone && s_prop.equals){
+					if (!s_prop.equals(t_prop)){
+						res = true;
+						target[i] = s_prop.clone();
+					}
+				}
+			}
+		}
+		
+		return res;
+	},
+	
+	render: function() {
+		
+		var model = this.model,
+			style = this.text.style,
+			size = model.fontSize,
 			maxResize = 6,
-			maxHeight = text.height,
-			offset = (size * text.leading) - size;
-			i = 0;
+			maxHeight = model.height,
+			offset = (size * model.leading) - size,
+			i = 0,
+			node;
 		
-		style.width = text.width + 'px';
-		style.color = text.textColor;
-		style.textAlign = text.textAlign;
-		style.fontFamily = text.fontFamily;
-		style.fontSize = text.fontSize + 'px';
-		style.lineHeight = text.lineHeight + 'em';
-		
-		var t_node = document.createTextNode(text.text);
-		
-		if (this.textNode){
+		if (this.checkDifference(this.model, this.oldModel)){
 			
-			holder.replaceChild(t_node,this.textNode);
+			node = document.createTextNode(model.text);
+			if (this.node){
+				this.text.replaceChild(node,this.node);
+			} else {
+				this.text.appendChild(node);
+			}
+			this.node = node;
 			
-		} else {
 			
-			holder.appendChild(t_node);
+			style.width = model.width + 'px';
+			style.color = model.textColor;
+			style.textAlign = model.textAlign;
+			style.fontFamily = model.fontFamily;
+			style.fontSize = model.fontSize + 'px';
+			style.lineHeight = model.lineHeight + 'em';
 			
-		}
-		
-		this.textNode = t_node;
-		
-		offset = (size * text.lineHeight) - size;
-		while (i <= maxResize && (holder.offsetHeight - offset) >= maxHeight) {
-			size = size * 0.92;
-			offset = (size * text.lineHeight) - size;
-			style.fontSize = size + 'px';
-			i++;
-		}
-		
-		this.offsetY = (text.textPosition.y - (offset / 2));
-		var dif = (maxHeight - (holder.offsetHeight - (offset / 2)));
-		
-		switch (text.verticalAlign) {
+			offset = (size * model.lineHeight) - size;
+			while (i <= maxResize && (this.text.offsetHeight - offset) >= maxHeight) {
+				size = size * 0.92;
+				offset = (size * model.lineHeight) - size;
+				style.fontSize = size + 'px';
+				i++;
+			}
+			
+			this.offsetY = (model.textPosition.y - (offset / 2));
+			var dif = (maxHeight - (this.text.offsetHeight - (offset / 2)));
+			
+			switch (model.verticalAlign) {
 			case 'bottom':
 				this.offsetY += dif;
 				break;
@@ -3715,219 +3525,354 @@ TextDomElement.prototype.render = function(camera_mat,camera_zoom){
 				break;
 			default:
 				break;
+			}
+			
 		}
 		
+		if (this.oldX !== model.textPosition.x){
+			this.oldX = model.textPosition.x;
+			style.left = this.oldX;
+		}
+		
+		if (this.oldY !== this.offsetY){
+			this.oldY = this.offsetY;
+			style.top = this.oldY;
+		}
 	}
+};
+
+var CompositionDomElement = function(model) {
+
+		var sig = model.layers.on,
+			e;
+		
+		this.model = model;
+		this.element = document.createElement('composition');
+		this.collapse = null;
+		this.zoom = 0;
+		this.centerX = 0;
+		this.centerY = 0;
+		this.width = 0;
+		this.height = 0;
+		this.layers = [];
+
+		var self = this;
+		model.layers.each(function(layer) {
+			e = self.generate(layer);
+			if (e) {
+				if(self.element.firstChild){
+					self.element.insertBefore(e.element,self.element.firstChild);
+				} else {
+					self.element.appendChild(e.element);
+				}
+				self.layers.push(e);
+			}
+		});
+
+		sig.add.add(this.add, this);
+		sig.remove.add(this.remove, this);
+		sig.swap.add(this.swap, this);
+		
+		this.matrix_ = new Matrix();
+		this.matrix2D_ = new Matrix();
+		this.tempMatrix_ = new Matrix();
+};
+
+CompositionDomElement.prototype = {
 	
-	LayerDomElement.prototype.render.call(this,camera_mat,camera_zoom);
+	constructor: CompositionDomElement,
 	
-};
+	add: function(layer, pos) {
 
+		var e = this.generate(layer),
+			elem = thid.element,
+			children;
+		
+		if (e) {
+			
+			//TODO test DOM layer insertion properly
+			if(elem.hasChildNodes() || pos < 0) {
+				children = elem.childNodes();
+				elem.insertBefore(e.element,children[children.length-pos-1]);
+			} else {
+				elem.appendChild(e.element);
+			}
+			this.layers.splice(pos, 0, e);
+		}
+		
 
-TextDomElement.prototype.modifyMatrix = function(mat){
+	},
 	
-	mat.preMultiply(
-		this.offsetMatrix_.translation(
-			this.text.textPosition.x,
-			this.offsetY,
-			0
-		)
-	);
-	return mat;
-};
+	remove: function(layer, pos) {
 
-/** @this {CompositionDomElement} */
-var _Composition_add = function( layer, pos ) {
+		var e = this.layers[pos];
+		this.element.removeChild(e.element);
+		this.layers.splice(pos, 1);
 
-	var e = _Composition_generate( layer );
-	this.holder.appendChild( e.element );
-	this.layers.splice( pos, 0, e );
+	},
+	
+	swap: function(pos_1, pos_2) {
 
+		var e = this.layers[pos_1];
+		this.layers[pos_1] = this.layers[pos_2];
+		this.layers[pos_2] = e;
 
+	},
+	
+	generate: function(model) {
 
-};
+		var element = document.createElement('layer'),
+			result = {
+				model: model,
+				element: element,
+				mask: null,
+				scale: 1,
+				opacity: 1
+			},
+			handler = null;
+		
+		switch (model.type) {
+		case 'composition':
+			handler = new CompositionDomElement(model);
+			break;
+		case 'text':
+			handler = new TextDomElement(model);
+			break;
+		case 'solid':
+			handler = new SolidDomElement(model);
+			break;
+		}
+		
+		if (handler && handler.element) {
+			element.appendChild(handler.element);
+			result.content = handler.element;
+			result.handler = handler;
+		}
+		
+		return result;
+	},
+	
+	render: function(opt_camera, opt_parent, opt_parent_2D) {
 
-/** @this {CompositionDomElement} */
-var _Composition_remove = function( layer, pos ) {
+		var layers = this.layers,
+			l = this.layers.length,
+			model = this.model,
+			style = this.element.style,
+			camera = (opt_camera)?
+					 opt_camera :
+					 model.getCamera(),
+			cam_mat = camera.getCameraMatrix(),
+			i, layer, mat, mat_2D;
+		
+		if (this.collapse !== model.collapse) {
+			
+			this.collapse = model.collapse;
+			this.setCollapse();
+			
+			if (!this.collapse) {
+				this.width = this.height = this.zoom = null;
+			}
+		}
 
-	var e = this.layers[pos];
-	this.holder.removeChild( e.element );
-	this.layers.splice( pos, 1 );
+		if (!this.collapse) {
+			
+			if (this.width !== model.width || this.heigh !== model.height) {
 
+				this.width = model.width;
+				this.height = model.height;
+				style.width = this.width.toString() + 'px';
+				style.height = this.height.toString() + 'px';
+				style.clip = "rect(0px , " + this.width + "px, " + this.height + "px, 0px)";
+			}
+			
+			if (Browser.have3DTransform){
+				
+				if (this.zoom !== camera.zoom) {
+					
+					this.zoom = camera.zoom;
+					style[Browser.PERSPECTIVE] = this.zoom.toString() + 'px';
+				}
+				
+				if (this.centerX !== camera.center.x || this.centerY !== camera.center.y) {
+					
+					this.centerX = camera.center.x;
+					this.centerY = camera.center.y;
+					style[Browser.ORIGIN] = this.centerX.toString() + 'px ' +
+											this.centerY.toString() + 'px';
+				}
+				
+			}
 
-};
+		}
 
-/** @this {CompositionDomElement} */
-var _Composition_swap = function( pos_1, pos_2 ) {
+		for (i = 0; i < l; i++) {
 
-	var e = this.layers[pos_1];
-	this.layers[pos_1] = this.layers[pos_2];
-	this.layers[pos_2] = e;
+			layer = layers[i];
 
-};
+			if (layer.visible !== layer.model.visible) {
+				layer.visible = layer.model.visible;
+				style.display = (layer.visible) ? 'block' : 'none';
+			}
 
-/**
- * 
- * @this {CompositionDomElement}
- * @param {Layer}
- *            obj
- * @returns {LayerDomElement}
- * 
- */
-var _Composition_generate = function( obj ) {
+			if (layer.visible && layer.handler && layer.content) {
+				
+				mat = this.matrix_.injectMatrix(layer.model.getMatrix());
+				
+				if (opt_parent && layer.model.is3D){
+					mat.multiply(opt_parent);
+				} else if (opt_parent_2D && !layer.model.is3D) {
+					mat.multiply(opt_parent_2D);
+				}
+				
+				if (layer.model.type === 'composition' && layer.model.collapse){
+					
+					if (!layer.collapse) {
+						layer.collapse  = true;
+						this.cleanTransform(layer.element);
+					}
+					
+					mat_2D = mat;
+					
+					if (layer.model.is3D){
+						
+						mat_2D = this.matrix2D_.injectMatrix(layer.model.getMatrix2D());
+						if (opt_parent_2D){
+							mat_2D.multiply(opt_parent_2D);
+						}
+						
+					}
+					
+					
+					layer.handler.render(camera, mat, mat_2D);
+					
+				} else if (layer.handler && layer.content) {
+					
+					if (layer.model.is3D){
+						mat.multiply(cam_mat);
+					}
+					
+					if (layer.model.collapse || !layer.model.is3D) {
+						
+						var mx = mat.m21,
+							my = mat.m22,
+							mz = mat.m23,
+							scale = (
+								(layer.model.is3D) ?
+									Math.sqrt(
+										(mx * mx) + (my * my) + (mz * mz)) *
+										(this.zoom / (this.zoom - mat.m43)
+									) :
+									Math.sqrt( (mx * mx) + (my * my) )
+							) * 1.2 ,
+							ratio = scale / layer.scale;
+						
+						if (ratio > 1.3 || ratio < 0.77) {
+							layer.scale = (scale > 0.77 && scale < 1.1) ? 1 : scale;
+							this.setScale(layer.content, scale);
+						}
+						
+						scale = 1/layer.scale;
+						mat.preMultiply(this.tempMatrix_.scaling(scale, scale, 1));
+						
+					} else if (!layer.model.collapse && layer.model.is3D && layer.scale !== 1) {
+						
+						layer.scale = 1;
+						this.setScale(layer.content, layer.scale);
+						
+					}
+					
+					layer.collapse = layer.model.collapse;
+					
+					layer.handler.render();
+					this.setMatrix(layer.element, mat, (layer.model.is3D) ? camera : null);
+					
+				}
+				
+				if (layer.opacity !== layer.model.opacity){
+					layer.opacity = layer.model.opacity;
+					this.setOpacity(layer.element, layer.model.opacity);
+				}
 
-	if ( obj instanceof Composition ) {
-		return new CompositionDomElement( obj );
-	} else if ( obj instanceof Solid ) {
-		return new SolidDomElement( obj );
-	} else if ( obj instanceof Text ) {
-		return new TextDomElement( obj );
-	} else {
-		return new LayerDomElement( obj );
+				mat.identity();
+
+			}
+		}
+	},
+	
+	setCollapse: function(){
+		
+		var style = this.element.style;
+		
+		if (this.collapse){
+			
+			style[Browser.TRANSFORM_STYLE] = "";
+			style[Browser.PERSPECTIVE] = "";
+			style[Browser.PERSPECTIVE_ORIGIN] = "";
+			style.clip = "";
+			style.overflow = "";
+		} else {
+			style.overflow = 'hidden';
+			style[Browser.TRANSFORM_STYLE] = 'flat';
+		}
+		
+	},
+	
+	setScale: function(elem, scale) {
+		
+		elem.style[Browser.TRANSFORM] = (scale !== 1) ?
+										'scale('+scale.toFixed(4)+','+scale.toFixed(4)+')' : '';
+	},
+	
+	setMatrix: function(elem, matrix, camera) {
+		
+		if (Browser.have3DTransform) {
+			elem.style[Browser.TRANSFORM] = matrix.toCSS();
+		} else {
+			
+			var m11 = matrix.m11,
+				m12 = matrix.m12,
+				m21 = matrix.m21,
+				m22 = matrix.m22,
+				x = matrix.m41,
+				y = matrix.m42,
+				z = matrix.m43;
+			
+			if (camera) {
+				var scale = camera.zoom / (camera.zoom - z);
+				m11 *= scale;
+				m12 *= scale;
+				m21 *= scale;
+				m22 *= scale;
+				x *= scale;
+				y *= scale;
+				x += camera.center.x*(1-scale);
+				y += camera.center.y*(1-scale);
+			}
+			
+			if (Browser.haveTransform) {
+				elem.style[Browser.TRANSFORM] = "matrix("+
+					m11.toFixed(4)+","+m12.toFixed(4)+","+
+					m21.toFixed(4)+","+m22.toFixed(4)+","+
+					x.toFixed(4)+","+y.toFixed(4)+
+				")";
+			} else {
+				elem.style.left = x + 'px';
+				elem.style.top = y + 'px';
+			}
+			
+		}
+		
+	},
+	
+	cleanTransform: function(elem) {
+		
+		elem.style[Browser.TRANSFORM] = '';
+	},
+	
+	setOpacity: function(elem, opacity) {
+		
+		elem.style.opacity = ( opacity !== 1 ) ? opacity : "";
 	}
-	;
-
-};
-
-/**
- * @constructor
- * @param {Composition}
- *            layer
- */
-var CompositionDomElement = function( comp ) {
-
-	var e,
-		sig = comp.layers.on;
-
-	LayerDomElement.call( this, comp );
-
-	/** @type Composition */
-	this.composition = comp;
-
-	this.collapse = null;
-	this.zoom = 1333.33;
-	this.width = 0;
-	this.height = 0;
-	this.origin = new Vector(0, 0);
-
-
-	/** @type Array.<Layer> */
-	this.layers = [];
-	
-	var self = this;
-
-	comp.layers.each( function( lyr ) {
-
-		e = _Composition_generate( lyr );
-		self.holder.appendChild( e.element );
-		self.layers.push( e );
-	} );
-
-	sig.add.add( _Composition_add, this );
-	sig.remove.add( _Composition_remove, this );
-	sig.swap.add( _Composition_swap, this );
-};
-
-CompositionDomElement.prototype = new LayerDomElement( null );
-CompositionDomElement.prototype.constructor = CompositionDomElement;
-
-CompositionDomElement.prototype.tagName = 'composition';
-
-CompositionDomElement.prototype.render = function( camera_mat, camera_zoom, origin, opt_camera ) {
-
-	    LayerDomElement.prototype.render.call( this, camera_mat, camera_zoom, origin );
-
-	    var layers = this.layers,
-	    	l = this.layers.length,
-	    	model = this.model,
-	    	style = this.element.style,
-	    	i,
-	    	camera = (
-	    		opt_camera 
-	    		|| ( !model.collapse )
-					? this.composition.getCamera()
-				    : null
-			),
-	        cam_mat = ( camera ) 
-	        	? camera.getCameraMatrix() 
-	        	: null,
-	        cam_zoom = ( camera )
-	        	? camera.zoom
-	        	: 1333.33,
-	        layer;
-	
-	    
-	    if ( camera ) {
-	    	this.origin.copy(camera.center);
-	    } else {
-	    	this.origin.set(model.width/2,model.height/2);
-	    }
-	        	
-	        	
-	   	if ( this.collapse !== model.collapse ) {
-
-		    if ( model.collapse ) {
-
-			    style[Browser.TRANSFORM_STYLE] = 'preserve-3d';
-			    style[Browser.PERSPECTIVE] = "";
-			    style[Browser.PERSPECTIVE_ORIGIN] = "";
-			    style.clip = "";
-			    style.overflow = "";
-			    
-		    } else {
-
-		    	this.width = null;
-		    	this.height = null;
-		    	this.zoom = null;
-
-			    style[Browser.TRANSFORM_STYLE] = 'flat';
-
-		    }
-
-		    this.collapse = model.collapse;
-	    }
-	    
-	    if ( !this.collapse ) {
-
-		    if ( this.width !== model.width || this.heigh !== model.height ) {
-
-		    	this.width = model.width;
-		    	this.height = model.height;
-			    style.width = this.width.toString() + 'px';
-			    style.height = this.height.toString() + 'px';
-			    style.overflow = 'hidden';
-			    style.clip = "rect(0px , " +this.width + "px, " + this.height + "px, 0px)";
-			    style[Browser.PERSPECTIVE_ORIGIN] = ( this.origin.x ).toString() + 'px '
-			    							+ ( this.origin.y ).toString() + 'px';
-		    }
-
-		    if ( this.zoom !== cam_zoom ) {
-
-		    	this.zoom = cam_zoom;
-			    style[Browser.PERSPECTIVE] = this.zoom.toString() + 'px';
-		    }
-	    }
-	    
-	    for ( i = 0; i < l; i++ ) {
-
-		    layer = layers[i];
-
-		    if ( layer.visible !== layer.model.visible ) {
-			    layer.setVisible( layer.model.visible );
-		    }
-		    
-		    if ( layer.visible ) {
-			    layer.render( cam_mat , this.zoom, this.origin );
-		    }
-
-	    }
-
-    };
-
-CompositionDomElement.prototype.modifyCollapse = function( mat, zoom ) {
-
-	return mat;
-
 };
 
 /**
@@ -3946,12 +3891,15 @@ var DomRenderer = function(scene,opt_camera){
 	if (!document.getElementById('AEStyleSheet')){
 		
 		var cssNode = document.createElement('style');
-		var cssRules = 
-			"scene * {" +
+		
+		var cssRules = "scene * {" +
 				"position:absolute;" +
 				"display:block;" +
 				"top:0px;" +
 				"left:0px;" +
+				"margin:0px;" +
+				"padding:0px;" +
+				"border:0px;" +
 				"word-wrap:break-word;" +
 				"-webkit-font-smoothing:antialiased;" +
 				"transform-origin:0% 0%;" +
@@ -3961,6 +3909,7 @@ var DomRenderer = function(scene,opt_camera){
 				"-webkit-transform-origin:0% 0%;" +
 				"-ms-transform-origin:0% 0%;" +
 			"}";
+		
 		cssNode.id = 'AEStyleSheet';
 		cssNode.type = 'text/css';
 		cssNode.rel = 'stylesheet';
@@ -3988,13 +3937,12 @@ var DomRenderer = function(scene,opt_camera){
 
 DomRenderer.prototype.render = function(){
 	
-	this.scene.render(null,null,this.camera);
+	this.scene.render();
 	
 };
 
 
-
-externs['DomRenderer'] = DomRenderer;
+externs.DomRenderer = DomRenderer;
 
 
 
@@ -4010,39 +3958,6 @@ if(typeof define === 'function' && define.amd){ //AMD
 
 }(this));
 
-if (!Array.prototype.indexOf)
-{
-  Array.prototype.indexOf = function(elt /*, from*/)
-  {
-    var len = this.length;
-
-    var from = Number(arguments[1]) || 0;
-    from = (from < 0)
-         ? Math.ceil(from)
-         : Math.floor(from);
-    if (from < 0)
-      from += len;
-
-    for (; from < len; from++)
-    {
-      if (from in this &&
-          this[from] === elt)
-        return from;
-    }
-    return -1;
-  };
-}
-
-if (!isArray){
-	
-	var isArray = function (o) {
-		return Object.prototype.toString.call(o) === '[object Array]';
-	};
-	
-}
-
-
-
 var BlendingModes = {
 		
 	getString : function(val){
@@ -4051,46 +3966,32 @@ var BlendingModes = {
 
 			case BlendingMode.ADD:
 				return "add";
-				break;
 			case BlendingMode.COLOR_BURN:
 				return "subtract";
-				break;
 			case BlendingMode.DARKEN:
 				return "darken";
-				break;
 			case BlendingMode.DIFFERENCE:
 				return "difference";
-				break;
 			case BlendingMode.HARD_LIGHT:
 				return "hardlight";
-				break;
 			case BlendingMode.LIGHTEN:
 				return "lighten";
-				break;
 			case BlendingMode.LINEAR_LIGHT:
 				return "hardlight";
-				break;
 			case BlendingMode.MULTIPLY:
 				return "multiply";
-				break;
 			case BlendingMode.NORMAL:
 				return "normal";
-				break;
 			case BlendingMode.OVERLAY:
 				return "overlay";
-				break;
 			case BlendingMode.SCREEN:
 				return "screen";
-				break;
 			case BlendingMode.SILHOUETE_ALPHA:
 				return "erase";
-				break;
 			case BlendingMode.STENCIL_ALPHA:
 				return "alpha";
-				break;
 			default:
 				return "normal";
-			break;
 		}
 	},
 
@@ -4099,25 +4000,18 @@ var BlendingModes = {
 		switch(val){
 			case MaskMode.NONE:
 				return 'none';
-				break;
 			case MaskMode.ADD:
 				return 'add';
-				break;
 			case MaskMode.SUBTRACT:
 				return 'subtract';
-				break;
 			case MaskMode.INTERSECT:
 				return 'intersect';
-				break;
 			case MaskMode.LIGHTEN:
 				return 'lighten';
-				break;
 			case MaskMode.DARKEN:
 				return 'darken';
-				break;
 			case MaskMode.DIFFERENCE:
 				return 'difference';
-				break;
 			default:
 				return 'add';
 		}
@@ -4181,7 +4075,10 @@ var PropertyCleaner = {
 			
 		} else {
 			
-			result.transform.rotation = result.transform.zRotation;
+			if (result.transform.zRotation){
+				result.transform.rotation = {z: result.transform.zRotation};
+			}
+			delete result.transform.zRotation;
 			delete result.transform.xRotation;
 			delete result.transform.yRotation;
 			delete result.transform.orientation;
@@ -4267,7 +4164,9 @@ var PropertyCleaner = {
 	    	
 	    	this.cleanRotation(result.transform);
 	        
-	    	
+	    	if (result.transform.orientation){
+				result.transform.orientation = this.transformOrientation(result.transform.orientation);
+			}
 	    	
 	        if (result.transform.pointofInterest){
 	        	result.transform.target = result.transform.pointofInterest;
@@ -4291,10 +4190,10 @@ var PropertyCleaner = {
 		var k,
 			ae = global.AE;
 		
-		if (isArray(prop)){
+		if (Array.isArray(prop)){
 			for (var i = 0; i < prop.length; i++) {
 				k = prop[i];
-				if (isArray(k)){
+				if (Array.isArray(k)){
 					delete k[0].z;
 				} else if (ae.Vector.isVector(k)){
 					delete k.z;
@@ -4316,7 +4215,7 @@ var PropertyCleaner = {
 	},
 	
 	separateTextProperties: function( obj ) {
-		if ( isArray( obj ) ) {
+		if ( Array.isArray( obj ) ) {
 			
 			var result = {},
 				offsets = {},
@@ -4330,8 +4229,8 @@ var PropertyCleaner = {
 				key;
 			
 			for ( ; i < l; i += 1 ) {
-				text_obj = ( isArray(obj[i]) ) ? obj[i][0] : obj[i];
-				offset = ( isArray(obj[i]) ) ? obj[i][1] : old_offset;
+				text_obj = ( Array.isArray(obj[i]) ) ? obj[i][0] : obj[i];
+				offset = ( Array.isArray(obj[i]) ) ? obj[i][1] : old_offset;
 				current_time += offset;
 				old_offset = offset;
 				
@@ -4345,7 +4244,7 @@ var PropertyCleaner = {
 	                	
 	                	if ( result.hasOwnProperty( key ) ) {
 	                		
-	                		if (!isArray( result[key] ) ){
+	                		if (!Array.isArray( result[key] ) ){
 	                			result[key] = [ [ result[key], offsets[key] ] ];
 	                		}
 	                		
@@ -4372,13 +4271,13 @@ var PropertyCleaner = {
 		var res,
 			ae = global.AE;
 		
-		if (isArray(obj)){
+		if (Array.isArray(obj)){
 			
 			res = [];
 			
 			for (var i = 0; i < obj.length; i++) {
 				k = obj[i];
-				if (isArray(k)){
+				if (Array.isArray(k)){
 					res.push([new ae.Quaternion().setFromEuler(k[0]), k[1]]);
 				} else if (ae.Vector.isVector(k)){
 					res.push(new ae.Quaternion().setFromEuler(k));
@@ -4728,7 +4627,7 @@ var PropertyExporter = {
 	getSimpleProperty : function( prop, value, options){
 		
 		var divider = (prop.unitsText === "percent") ? 100 : 1;
-		var presision = 0.01/divider;
+		var presision = 0.0001/divider;
 		
         switch (prop.propertyValueType){
         	case PropertyValueType.MARKER:
@@ -5264,7 +5163,7 @@ var LayerWatcher = function(panel){
 	
 	
 	this.flash = panel.add("flashplayer", [0,0,1,1]);
-	this.flash.loadMovie(File("AELoop.swf"));
+	this.flash.loadMovie(new File("AELoop.swf"));
 	
 	this.oldLayer = null;
 	
@@ -5296,7 +5195,7 @@ LayerWatcher.prototype = {
 				
 				var item = app.project.activeItem;
 				
-				if ( item.typeName == "Composition"){
+				if ( item.typeName === "Composition"){
 					
 					if (item.selectedLayers.length){
 						
@@ -5318,19 +5217,19 @@ LayerWatcher.prototype = {
 
 			try{
 
-			    if ( layer && this.oldLayer !== layer ){
-			    	
-			    	this.changed.dispatch( layer );
-					
-			    	this.oldLayer = layer;
-			    		
-			    } else if ( !layer  && !this.pauseCheck){
-			    	
-			    	this.changed.dispatch(null);
-			    	
-			    	this.oldLayer = null;
-			    	this.pauseCheck = true;
-			    }
+			    if (layer && this.oldLayer !== layer) {
+
+				this.changed.dispatch(layer);
+
+				this.oldLayer = layer;
+
+			} else if (!layer && !this.pauseCheck) {
+
+				this.changed.dispatch(null);
+
+				this.oldLayer = null;
+				this.pauseCheck = true;
+			}
 			  
 			    
 			} catch(e){
@@ -5342,61 +5241,64 @@ LayerWatcher.prototype = {
 		}
 	
 };
-var LayerSetting = function(panel){
+var LayerSetting = function(panel) {
 
 	panel.layout.layout(true);
 	panel.layout.resize();
-	panel.onResizing = panel.onResize = function () {this.layout.resize();};
-	
+	panel.onResizing = panel.onResize = function() {
+		this.layout.resize();
+	};
+
 	this.panel = panel;
 	this.panel.alignment = 'left';
 	this.panel.margins = 0;
 	this.panel.spacing = 0;
-	
+
 	this.watcher = new LayerWatcher(panel);
-	
-	this.watcher.changed.add(this.change,this);
+
+	this.watcher.changed.add(this.change, this);
 	this.watcher.start();
 };
 
 LayerSetting.prototype = {
-		
-		change : function(layer){
-			
-			if (this.layerPanel){
-				
-				this.layerPanel.clear();
-				
-			}
-			
-			if (layer){
-				
-				this.layerPanel = new LayerPanel(this.panel,layer,this);
-				
-			} else {
-				
-				if ( 	app && app.project 
-						&& app.project.activeItem 
-						&& app.project.activeItem.typeName == "Composition"){
-					
-					this.layerPanel = new ItemSubPanel(this.panel,app.project.activeItem,undefined,this);
 
-				} else {
-					
-					this.layerPanel = null;
-					
-				}
-				
-			}
-			
-			this.panel.layout.layout(true);
-			this.panel.layout.resize();
-			
-			
-			this.layer = layer;
-			
+	change : function(layer) {
+
+		if (this.layerPanel) {
+
+			this.layerPanel.clear();
+
 		}
-		
+
+		if (layer) {
+
+			this.layerPanel = new LayerPanel(this.panel, layer, this);
+
+		} else {
+
+			if (
+				app && app.project && app.project.activeItem &&
+				app.project.activeItem.typeName === "Composition"
+			) {
+
+				this.layerPanel = new ItemSubPanel(this.panel,
+						app.project.activeItem, undefined, this);
+
+			} else {
+
+				this.layerPanel = null;
+
+			}
+
+		}
+
+		this.panel.layout.layout(true);
+		this.panel.layout.resize();
+
+		this.layer = layer;
+
+	}
+
 };
 
 var base = new LayerSetting(this);

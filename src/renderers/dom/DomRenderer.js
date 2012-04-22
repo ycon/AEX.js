@@ -15,12 +15,15 @@ var DomRenderer = function(scene,opt_camera){
 	if (!document.getElementById('AEStyleSheet')){
 		
 		var cssNode = document.createElement('style');
-		var cssRules = 
-			"scene * {" +
+		
+		var cssRules = "scene * {" +
 				"position:absolute;" +
 				"display:block;" +
 				"top:0px;" +
 				"left:0px;" +
+				"margin:0px;" +
+				"padding:0px;" +
+				"border:0px;" +
 				"word-wrap:break-word;" +
 				"-webkit-font-smoothing:antialiased;" +
 				"transform-origin:0% 0%;" +
@@ -30,6 +33,7 @@ var DomRenderer = function(scene,opt_camera){
 				"-webkit-transform-origin:0% 0%;" +
 				"-ms-transform-origin:0% 0%;" +
 			"}";
+		
 		cssNode.id = 'AEStyleSheet';
 		cssNode.type = 'text/css';
 		cssNode.rel = 'stylesheet';
@@ -57,10 +61,9 @@ var DomRenderer = function(scene,opt_camera){
 
 DomRenderer.prototype.render = function(){
 	
-	this.scene.render(null,null,this.camera);
+	this.scene.render();
 	
 };
 
 
-
-externs['DomRenderer'] = DomRenderer;
+externs.DomRenderer = DomRenderer;

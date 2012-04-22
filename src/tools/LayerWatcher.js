@@ -6,7 +6,7 @@ var LayerWatcher = function(panel){
 	
 	
 	this.flash = panel.add("flashplayer", [0,0,1,1]);
-	this.flash.loadMovie(File("AELoop.swf"));
+	this.flash.loadMovie(new File("AELoop.swf"));
 	
 	this.oldLayer = null;
 	
@@ -38,7 +38,7 @@ LayerWatcher.prototype = {
 				
 				var item = app.project.activeItem;
 				
-				if ( item.typeName == "Composition"){
+				if ( item.typeName === "Composition"){
 					
 					if (item.selectedLayers.length){
 						
@@ -60,19 +60,19 @@ LayerWatcher.prototype = {
 
 			try{
 
-			    if ( layer && this.oldLayer !== layer ){
-			    	
-			    	this.changed.dispatch( layer );
-					
-			    	this.oldLayer = layer;
-			    		
-			    } else if ( !layer  && !this.pauseCheck){
-			    	
-			    	this.changed.dispatch(null);
-			    	
-			    	this.oldLayer = null;
-			    	this.pauseCheck = true;
-			    }
+			    if (layer && this.oldLayer !== layer) {
+
+				this.changed.dispatch(layer);
+
+				this.oldLayer = layer;
+
+			} else if (!layer && !this.pauseCheck) {
+
+				this.changed.dispatch(null);
+
+				this.oldLayer = null;
+				this.pauseCheck = true;
+			}
 			  
 			    
 			} catch(e){

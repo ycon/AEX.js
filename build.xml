@@ -37,7 +37,6 @@
 			"/>
 
 			<filelist dir="${src.dir}/utils" files="
-				IndexOf.js,
 				BlendingModes.js
 			"/>
 			
@@ -109,14 +108,14 @@
     		<filelist dir="${src.dir}/libs" files="signals.min.js"/>
     		<filelist dir="${src.dir}/utils" files="
     			ES5.js,
-    			Capabilities.js,
+    			Browser.js,
     			Curve.js
     		"/>
     		<filelist dir="${src.dir}/core" files="Stack.js"/>
     		<filelist dir="${src.dir}/geom" files="
     			BezierEasing.js,
-    			Matrix.js,
     			Vector.js,
+    			Matrix.js,
     			Quaternion.js,
     			Rectangle.js
     		"/>
@@ -145,7 +144,6 @@
     			AEBuilder.js
     		"/>
     		<filelist dir="${src.dir}/renderers/dom" files="
-    			LayerDomElement.js,
     			SolidDomElement.js,
     			TextDomElement.js,
     			CompositionDomElement.js,

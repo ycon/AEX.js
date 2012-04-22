@@ -30,7 +30,7 @@ if (!Function.prototype.bind) {
 
         var target = this;
 
-        if (typeof target != "function") {
+        if (typeof target !== "function") {
             throw new TypeError("Function.prototype.bind called on incompatible " + target);
         }
 
@@ -72,7 +72,7 @@ if (!Function.prototype.bind) {
 
 if (!Array.isArray) {
     Array.isArray = function isArray(obj) {
-        return Object.prototype.toString.call(obj) == "[object Array]";
+        return Object.prototype.toString.call(obj) === "[object Array]";
     };
 }
 
