@@ -25,5 +25,25 @@ var Text = function(){
 Text.prototype = new Layer();
 Text.prototype.constructor = Text;
 
+Text.prototype.getDepthPoint = function(){
+	
+	var x = this.textPosition.x,
+		y = this.textPosition.y;
+	
+	if (this.textAlign === 'center') {
+		x += this.width*0.5;
+	} else if (this.textAlign === 'right') {
+		x += this.width;
+	}
+	
+	if (this.verticalAlign === 'middle') {
+		y += this.height*0.5;
+	} else if (this.verticalAlign === 'bottom') {
+		y += this.height;
+	}
+	
+	return this.depthPoint_.set(x, y);
+};
+
 
 externs.Text = Text;

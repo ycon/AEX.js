@@ -120,7 +120,7 @@ CompositionDomElement.prototype = {
 					 opt_camera :
 					 model.getCamera(),
 			cam_mat = camera.getCameraMatrix(),
-			i, layer, mat, mat_2D;
+			i, layer, mat, mat_2D,depth_point;
 		
 		if (this.collapse !== model.collapse) {
 			
@@ -242,7 +242,12 @@ CompositionDomElement.prototype = {
 					layer.collapse = layer.model.collapse;
 					
 					layer.handler.render();
-					this.setMatrix(layer.element, mat, (layer.model.is3D) ? camera : null);
+					this.setMatrix(
+						layer.element,
+						mat,
+						(layer.model.is3D) ? camera : null,
+						layer.model.getDepthPoint()
+					);
 					
 				}
 				
@@ -281,7 +286,7 @@ CompositionDomElement.prototype = {
 										'scale('+scale.toFixed(4)+','+scale.toFixed(4)+')' : '';
 	},
 	
-	setMatrix: function(elem, matrix, camera) {
+	setMatrix: function(elem, matrix, camera, depth_point) {
 		
 		if (Browser.have3DTransform) {
 			elem.style[Browser.TRANSFORM] = matrix.toCSS();
@@ -293,10 +298,17 @@ CompositionDomElement.prototype = {
 				m22 = matrix.m22,
 				x = matrix.m41,
 				y = matrix.m42,
-				z = matrix.m43;
+				z = matrix.m43,
+				d, scale;
 			
 			if (camera) {
-				var scale = camera.zoom / (camera.zoom - z);
+				
+				if (depth_point) {
+					d = 1/(x * depth_point.x + y * depth_point.y + 1);
+					z = (matrix.m31 * depth_point.x + matrix.m32 * depth_point.y)*d;
+				}
+				
+				scale = camera.zoom / (camera.zoom - z);
 				m11 *= scale;
 				m12 *= scale;
 				m21 *= scale;

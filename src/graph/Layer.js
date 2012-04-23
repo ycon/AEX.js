@@ -19,6 +19,7 @@ var Layer = function(){
 	
 	this.localMatrix_ = new Matrix();
 	this.localMatrix2D_ = new Matrix();
+	this.depthPoint_ = new Vector();
 	
 };
 
@@ -54,5 +55,13 @@ Layer.prototype.getLocalMatrix2D = function(){
 		   .translate(p.x, p.y, 0);
 };
 
+Layer.prototype.getDepthPoint = function(){
+	
+	return this.depthPoint_.set(
+			Math.max(Math.min(this.width || 1024, this.anchor.x), 0),
+			Math.max(Math.min(this.height || 768, this.anchor.y), 0),
+			0
+	);
+};
 
 externs.Layer = Layer;
