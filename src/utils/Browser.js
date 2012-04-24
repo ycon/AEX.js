@@ -76,3 +76,4 @@ Browser.have3DTransform = (function() {
 
 }.call(Browser));
 
+externs.Browser = Browser;

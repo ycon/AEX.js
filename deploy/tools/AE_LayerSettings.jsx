@@ -519,7 +519,7 @@ if (!JSON) {
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17737 (2012/04/23 08:31 AM)
+ * Version: 0.1.1 - Build: 17743 (2012/04/23 11:14 PM)
  */
 
 
@@ -745,6 +745,7 @@ Browser.have3DTransform = (function() {
 
 }.call(Browser));
 
+externs.Browser = Browser;
 /* getGaussLength
  * this may seem mysterious, but this is just an implementation of a Gaussian quadrature
  * algorithm to calculate the length of a quadratic curve
@@ -3865,8 +3866,8 @@ CompositionDomElement.prototype = {
 			if (camera) {
 				
 				if (depth_point) {
-					d = 1/(x * depth_point.x + y * depth_point.y + 1);
-					z = (matrix.m31 * depth_point.x + matrix.m32 * depth_point.y)*d;
+					//d = 1/(x * depth_point.x + y * depth_point.y + 1);
+					z = matrix.m31 * depth_point.x + matrix.m32 * depth_point.y + z;
 				}
 				
 				scale = camera.zoom / (camera.zoom - z);
@@ -3881,6 +3882,9 @@ CompositionDomElement.prototype = {
 			}
 			
 			if (Browser.haveTransform) {
+				
+				console.log(matrix.clone(),z,matrix.m43);
+				
 				elem.style[Browser.TRANSFORM] = "matrix("+
 					m11.toFixed(4)+","+m12.toFixed(4)+","+
 					m21.toFixed(4)+","+m22.toFixed(4)+","+

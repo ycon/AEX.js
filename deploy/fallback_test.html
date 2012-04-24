@@ -1,0 +1,106 @@
+<html>
+<head>
+<!--[if IE]>
+<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>
+<![endif]-->
+
+
+<script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="AE.js"></script>
+<script type="text/javascript">
+
+window.requestAnimationFrame || (window.requestAnimationFrame = 
+	window.webkitRequestAnimationFrame || 
+	window.mozRequestAnimationFrame    || 
+	window.oRequestAnimationFrame      || 
+	window.msRequestAnimationFrame     || 
+	function(callback, element) {
+		return window.setTimeout(function() {
+			callback(+new Date());
+	}, 1000 / 60);
+});
+
+
+</script>
+
+</head>
+<body>
+
+
+</body>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+	
+
+	
+	$.get("tests/orientation_test.js",function(data) {
+		
+		var animator = AE.AEBuilder.build(data);
+		
+		var comp = animator.item;
+		var renderer = new AE.DomRenderer(comp);
+		
+		var renderer2 = new AE.DomRenderer(comp);
+		
+		
+		$('body').append(renderer.element);
+		$('body').append(renderer2.element);
+		renderer2.element.style.opacity = ".5";
+		
+		var animStart = new Date().getTime();
+		var play = true;
+		var pauseOffset = 0;
+		var loop = function(t){
+			
+			if (play){
+				animator.animate(((t-animStart)+pauseOffset)/1000);
+				AE.Browser.have3DTransform = true;
+				renderer.render();
+				AE.Browser.have3DTransform = false;
+				renderer2.render();
+				requestAnimationFrame(loop);
+			} else {
+				pauseOffset = t-animStart;
+			}
+			
+		}
+		
+		loop(animStart);
+		
+		
+		$('body').click(function(){
+			if(play){
+				play = false;
+			} else {
+				play = true;
+				animStart = new Date().getTime();
+				loop(animStart);
+			}
+		});
+		
+		
+		//console.log(data,animator);
+	},"json");
+			
+			
+			
+	
+
+
+	
+	
+	
+	
+	
+});
+
+
+
+
+</script>
+
+
+
+</html>

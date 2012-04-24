@@ -299,13 +299,12 @@ CompositionDomElement.prototype = {
 				x = matrix.m41,
 				y = matrix.m42,
 				z = matrix.m43,
-				d, scale;
+				scale;
 			
 			if (camera) {
 				
 				if (depth_point) {
-					d = 1/(x * depth_point.x + y * depth_point.y + 1);
-					z = (matrix.m31 * depth_point.x + matrix.m32 * depth_point.y)*d;
+					z += matrix.m31 * depth_point.x + matrix.m32 * depth_point.y;
 				}
 				
 				scale = camera.zoom / (camera.zoom - z);
@@ -320,6 +319,9 @@ CompositionDomElement.prototype = {
 			}
 			
 			if (Browser.haveTransform) {
+				
+				console.log(matrix.clone(),z,matrix.m43);
+				
 				elem.style[Browser.TRANSFORM] = "matrix("+
 					m11.toFixed(4)+","+m12.toFixed(4)+","+
 					m21.toFixed(4)+","+m22.toFixed(4)+","+
