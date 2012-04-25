@@ -484,6 +484,19 @@ Matrix.prototype = {
 			
 		},
 		
+		multiplyVector:function(v){
+			
+			var vx = v.x;
+				vy = v.y;
+				vz = v.z;
+			
+			v.x = this.m11 * vx + this.m21 * vy + this.m31 * vz + this.m41;
+			v.y = this.m12 * vx + this.m22 * vy + this.m32 * vz + this.m42;
+			v.z = this.m13 * vx + this.m23 * vy + this.m33 * vz + this.m43;
+			
+			return v;
+		},
+		
 		/**
 		 * @returns {String}
 		 */

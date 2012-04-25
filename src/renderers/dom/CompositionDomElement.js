@@ -246,7 +246,9 @@ CompositionDomElement.prototype = {
 						layer.element,
 						mat,
 						(layer.model.is3D) ? camera : null,
-						layer.model.getDepthPoint()
+						layer.model.getDepthPoint(),
+						layer.model.width,
+						layer.model.height
 					);
 					
 				}
@@ -286,7 +288,7 @@ CompositionDomElement.prototype = {
 										'scale('+scale.toFixed(4)+','+scale.toFixed(4)+')' : '';
 	},
 	
-	setMatrix: function(elem, matrix, camera, depth_point) {
+	setMatrix: function(elem, matrix, camera, depth_point, width, height) {
 		
 		if (Browser.have3DTransform) {
 			elem.style[Browser.TRANSFORM] = matrix.toCSS();
@@ -303,24 +305,38 @@ CompositionDomElement.prototype = {
 			
 			if (camera) {
 				
+				var p_x = matrix.multiplyVector(new Vector(1, 0, 0));
+				var p_y = matrix.multiplyVector(new Vector(0, 1, 0));
+				
+				/*
 				if (depth_point) {
 					z += matrix.m31 * depth_point.x + matrix.m32 * depth_point.y;
 				}
+				*/
 				
 				scale = camera.zoom / (camera.zoom - z);
-				m11 *= scale;
-				m12 *= scale;
-				m21 *= scale;
-				m22 *= scale;
-				x *= scale;
-				y *= scale;
-				x += camera.center.x*(1-scale);
-				y += camera.center.y*(1-scale);
+				x = x * scale + camera.center.x * (1-scale);
+				y = y * scale + camera.center.y * (1-scale);
+				
+				scale = camera.zoom / (camera.zoom - p_x.z);
+				p_x.x = (p_x.x * scale + camera.center.x * (1-scale)) - x;
+				p_x.y = (p_x.y * scale + camera.center.y * (1-scale)) - y;
+				
+				scale = camera.zoom / (camera.zoom - p_y.z);
+				p_y.x = (p_y.x * scale + camera.center.x * (1-scale)) - x;
+				p_y.y = (p_y.y * scale + camera.center.y * (1-scale)) - y;
+				
+				
+				m11 = p_x.x;
+				m12 = p_x.y;
+				m21 = p_y.x;
+				m22 = p_y.y;
+				
 			}
 			
 			if (Browser.haveTransform) {
 				
-				console.log(matrix.clone(),z,matrix.m43);
+				//console.log(matrix.clone(),m11,m12,m21,m22,x,y,p_y,p_x);
 				
 				elem.style[Browser.TRANSFORM] = "matrix("+
 					m11.toFixed(4)+","+m12.toFixed(4)+","+
