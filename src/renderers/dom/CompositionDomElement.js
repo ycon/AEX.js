@@ -36,6 +36,10 @@ var CompositionDomElement = function(model) {
 		this.tempMatrix_ = new Matrix();
 };
 
+CompositionDomElement.v1_ = new Vector();
+CompositionDomElement.v2_ = new Vector();
+CompositionDomElement.v3_ = new Vector();
+
 CompositionDomElement.prototype = {
 	
 	constructor: CompositionDomElement,
@@ -275,7 +279,9 @@ CompositionDomElement.prototype = {
 			style[Browser.PERSPECTIVE_ORIGIN] = "";
 			style.clip = "";
 			style.overflow = "";
+			
 		} else {
+			
 			style.overflow = 'hidden';
 			style[Browser.TRANSFORM_STYLE] = 'flat';
 		}
@@ -288,10 +294,12 @@ CompositionDomElement.prototype = {
 										'scale('+scale.toFixed(4)+','+scale.toFixed(4)+')' : '';
 	},
 	
-	setMatrix: function(elem, matrix, camera, depth_point, width, height) {
+	setMatrix: function(elem, matrix, camera, depth_point) {
 		
 		if (Browser.have3DTransform) {
+			
 			elem.style[Browser.TRANSFORM] = matrix.toCSS();
+			
 		} else {
 			
 			var m11 = matrix.m11,
@@ -301,51 +309,57 @@ CompositionDomElement.prototype = {
 				x = matrix.m41,
 				y = matrix.m42,
 				z = matrix.m43,
-				scale;
+				scale, center, p, p_x, p_y;
 			
 			if (camera) {
 				
-				var p_x = matrix.multiplyVector(new Vector(1, 0, 0));
-				var p_y = matrix.multiplyVector(new Vector(0, 1, 0));
+				center = camera.center;
+				zoom = camera.zoom;
+				p = matrix.multiplyVector(CompositionDomElement.v1_.copy(depth_point));
+				p_x = matrix.multiplyVector(
+					CompositionDomElement.v2_.set(depth_point.x + 1, depth_point.y, 0)
+				);
+				p_y = matrix.multiplyVector(
+					CompositionDomElement.v3_.set(depth_point.x, depth_point.y + 1, 0)
+				);
 				
-				/*
-				if (depth_point) {
-					z += matrix.m31 * depth_point.x + matrix.m32 * depth_point.y;
-				}
-				*/
+				scale = zoom / (zoom - z);
+				x = x * scale + center.x * (1-scale);
+				y = y * scale + center.y * (1-scale);
 				
-				scale = camera.zoom / (camera.zoom - z);
-				x = x * scale + camera.center.x * (1-scale);
-				y = y * scale + camera.center.y * (1-scale);
+				scale = zoom / (zoom - p.z);
+				p.x = p.x * scale + center.x * (1-scale);
+				p.y = p.y * scale + center.y * (1-scale);
 				
-				scale = camera.zoom / (camera.zoom - p_x.z);
-				p_x.x = (p_x.x * scale + camera.center.x * (1-scale)) - x;
-				p_x.y = (p_x.y * scale + camera.center.y * (1-scale)) - y;
+				scale = zoom / (zoom - p_x.z);
+				p_x.x = p_x.x * scale + center.x * (1-scale);
+				p_x.y = p_x.y * scale + center.y * (1-scale);
 				
-				scale = camera.zoom / (camera.zoom - p_y.z);
-				p_y.x = (p_y.x * scale + camera.center.x * (1-scale)) - x;
-				p_y.y = (p_y.y * scale + camera.center.y * (1-scale)) - y;
+				scale = zoom / (zoom - p_y.z);
+				p_y.x = p_y.x * scale + center.x * (1-scale);
+				p_y.y = p_y.y * scale + center.y * (1-scale);
 				
+				m11 = p_x.x - p.x;
+				m12 = p_x.y - p.y;
+				m21 = p_y.x - p.x;
+				m22 = p_y.y - p.y;
 				
-				m11 = p_x.x;
-				m12 = p_x.y;
-				m21 = p_y.x;
-				m22 = p_y.y;
+				x = p.x - (depth_point.x * m11 + depth_point.y * m21);
+				y = p.y - (depth_point.x * m12 + depth_point.y * m22);
 				
 			}
 			
 			if (Browser.haveTransform) {
-				
-				//console.log(matrix.clone(),m11,m12,m21,m22,x,y,p_y,p_x);
 				
 				elem.style[Browser.TRANSFORM] = "matrix("+
 					m11.toFixed(4)+","+m12.toFixed(4)+","+
 					m21.toFixed(4)+","+m22.toFixed(4)+","+
 					x.toFixed(4)+","+y.toFixed(4)+
 				")";
+				
 			} else {
-				elem.style.left = x + 'px';
-				elem.style.top = y + 'px';
+				elem.style.left = x.toFixed(4) + 'px';
+				elem.style.top = y.toFixed(4) + 'px';
 			}
 			
 		}
