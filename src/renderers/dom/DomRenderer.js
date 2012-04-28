@@ -32,6 +32,12 @@ var DomRenderer = function(scene,opt_camera){
 				"-moz-transform-origin:0% 0%;" +
 				"-webkit-transform-origin:0% 0%;" +
 				"-ms-transform-origin:0% 0%;" +
+			"}" +
+			"scene layer {" +
+				"-ms-filter: \"progid:DXImageTransform.Microsoft.Matrix(M11='2.0', sizingMethod='auto expand')\"" +
+			"}" +
+			"scene solid {" +
+				"position: absolute" +
 			"}";
 		
 		cssNode.id = 'AEStyleSheet';
@@ -41,10 +47,10 @@ var DomRenderer = function(scene,opt_camera){
 		cssNode.title = 'AEStyleSheet';
 		
 		if (cssNode.styleSheet){
-			console.log(cssNode.styleSheet.cssText );
+			
 			cssNode.styleSheet.cssText = cssRules;
+			console.log(cssNode.styleSheet.cssText );
 		} else {
-			console.log('cssNode.styleSheet.cssText' );
 			cssNode.innerHTML = cssRules;
 		}
 		

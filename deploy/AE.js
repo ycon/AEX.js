@@ -2,7 +2,7 @@
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 17813 (2012/04/26 08:29 AM)
+ * Version: 0.1.1 - Build: 18027 (2012/04/28 07:55 PM)
  */
 
 
@@ -175,8 +175,64 @@ var Browser = {
 	TRANSFORM: 'Transform',
 	TRANSFORM_STYLE: 'transformStyle',
 	PERSPECTIVE: 'perspective',
-	ORIGIN: 'perspectiveOrigin'
+	ORIGIN: 'perspectiveOrigin',
+	
+	getLocalBound : function(element, opt_deep){
+		
+		var left = 0,
+			right = 0,
+			top = 0,
+			bottom = 0,
+			children = element.childNodes,
+			l = children.length,
+			i = 0,
+			min = Math.min,
+			max = Math.max,
+			zoom = 1,
+			child, c_children, c_child, c_l, c_i;
 
+		
+		for ( ; i < l; i += 1) {
+			
+			child = children[0];
+			
+			if (child.nodeType === 1 && child.childNodes.length) {
+				
+				zoom = parseFloat(child.style.zoom) || 1;
+				
+				c_children = child.childNodes;
+				c_l = c_children.length;
+				
+				for ( c_i = 0; c_i < c_l; c_i += 1) {
+					
+					c_child = c_children[c_i];
+					
+					left = min(c_child.offsetLeft * zoom, left);
+					top = min(c_child.offsetTop * zoom, top);
+					right = max((c_child.offsetWidth + c_child.offsetLeft) * zoom, right);
+					bottom = max((c_child.offsetHeight + c_child.offsetTop) * zoom, bottom);
+					
+				}
+				
+			} else {
+				
+				left = min(child.offsetLeft, left);
+				top = min(child.offsetTop, top);
+				right = max(child.offsetWidth + child.offsetLeft, right);
+				bottom = max(child.offsetHeight + child.offsetTop, bottom);
+				
+			}
+			
+		}
+		
+		return {
+			x: left,
+			y: top,
+			width: right - left,
+			height: bottom - top
+		};
+	}
+	
 };
 
 Browser.haveTransform = (function() {
@@ -210,6 +266,7 @@ Browser.have3DTransform = (function() {
 		vendor;
 
 	if (element) {
+		
 		for (; i < l; i += 1) {
 			if (i && element.style[props[i]] !== undefined) {
 				
@@ -222,6 +279,24 @@ Browser.have3DTransform = (function() {
 
 			}
 		}
+	}
+
+	return false;
+
+}.call(Browser));
+
+
+Browser.haveIEFilter = (function() {
+
+	var element = document.createElement('div');
+
+	if (element && element.style.filter !== undefined) {
+		
+		element.style.width = element.style.height = '100px';
+		element.style.filter = "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand')";
+		
+		return element.onfilterchange !== undefined;
+		
 	}
 
 	return false;
@@ -2926,8 +3001,8 @@ SolidDomElement.prototype = {
 		var style = this.element.style,
 			model = this.model;
 		
-		style.width = model.width;
-		style.height = model.height;
+		style.width = model.width+'px';
+		style.height = model.height+'px';
 		style.backgroundColor = model.color;
 		
 	}
@@ -3163,10 +3238,19 @@ CompositionDomElement.prototype = {
 			break;
 		}
 		
+		
+		
 		if (handler && handler.element) {
 			element.appendChild(handler.element);
 			result.content = handler.element;
 			result.handler = handler;
+		}
+		
+		if (!Browser.haveTransform && Browser.haveIEFilter){
+			
+			element.style.filter = "progid:DXImageTransform.Microsoft.Matrix(M11='1.0', sizingMethod='auto expand'); " +
+								   "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+			
 		}
 		
 		return result;
@@ -3182,7 +3266,7 @@ CompositionDomElement.prototype = {
 					 opt_camera :
 					 model.getCamera(),
 			cam_mat = camera.getCameraMatrix(),
-			i, layer, mat, mat_2D,depth_point;
+			i, layer, mat, mat_2D;
 		
 		if (this.collapse !== model.collapse) {
 			
@@ -3193,36 +3277,41 @@ CompositionDomElement.prototype = {
 				this.width = this.height = this.zoom = null;
 			}
 		}
+		
+		if (this.width !== model.width || this.height !== model.height) {
 
-		if (!this.collapse) {
+			this.width = model.width;
+			this.height = model.height;
+			style.width = this.width.toFixed(4) + 'px';
+			style.height = this.height.toFixed(4) + 'px';
 			
-			if (this.width !== model.width || this.heigh !== model.height) {
-
-				this.width = model.width;
-				this.height = model.height;
-				style.width = this.width.toString() + 'px';
-				style.height = this.height.toString() + 'px';
-				style.clip = "rect(0px , " + this.width + "px, " + this.height + "px, 0px)";
+			if (!this.collapse) {
+				style.clip = "rect(0px, " + this.width + "px, " + this.height + "px, 0px)";
 			}
+		}
+		
+		if (!this.collapse){
 			
-			if (Browser.have3DTransform){
+			if (this.zoom !== camera.zoom) {
 				
-				if (this.zoom !== camera.zoom) {
-					
-					this.zoom = camera.zoom;
+				this.zoom = camera.zoom;
+				if (Browser.have3DTransform){
 					style[Browser.PERSPECTIVE] = this.zoom.toString() + 'px';
 				}
 				
-				if (this.centerX !== camera.center.x || this.centerY !== camera.center.y) {
-					
-					this.centerX = camera.center.x;
-					this.centerY = camera.center.y;
+			}
+			
+			if (this.centerX !== camera.center.x || this.centerY !== camera.center.y) {
+				
+				this.centerX = camera.center.x;
+				this.centerY = camera.center.y;
+				if (Browser.have3DTransform){
 					style[Browser.ORIGIN] = this.centerX.toString() + 'px ' +
 											this.centerY.toString() + 'px';
 				}
 				
 			}
-
+			
 		}
 
 		for (i = 0; i < l; i++) {
@@ -3271,18 +3360,17 @@ CompositionDomElement.prototype = {
 						mat.multiply(cam_mat);
 					}
 					
-					if (layer.model.collapse || !layer.model.is3D) {
+					if (layer.model.collapse) {
 						
 						var mx = mat.m21,
 							my = mat.m22,
 							mz = mat.m23,
 							scale = (
 								(layer.model.is3D) ?
-									Math.sqrt(
-										(mx * mx) + (my * my) + (mz * mz)) *
-										(this.zoom / (this.zoom - mat.m43)
+									Math.sqrt((mx * mx) + (my * my) + (mz * mz)) *
+									(this.zoom / (this.zoom - mat.m43)
 									) :
-									Math.sqrt( (mx * mx) + (my * my) )
+									Math.sqrt((mx * mx) + (my * my))
 							) * 1.2 ,
 							ratio = scale / layer.scale;
 						
@@ -3304,6 +3392,7 @@ CompositionDomElement.prototype = {
 					layer.collapse = layer.model.collapse;
 					
 					layer.handler.render();
+					
 					this.setMatrix(
 						layer.element,
 						mat,
@@ -3332,12 +3421,16 @@ CompositionDomElement.prototype = {
 		
 		if (this.collapse){
 			
-			style[Browser.TRANSFORM_STYLE] = "";
-			style[Browser.PERSPECTIVE] = "";
-			style[Browser.PERSPECTIVE_ORIGIN] = "";
-			style.clip = "";
-			style.overflow = "";
+			if (Browser.have3DTransform) {
+				style[Browser.TRANSFORM_STYLE] = "";
+				style[Browser.PERSPECTIVE] = "";
+				style[Browser.PERSPECTIVE_ORIGIN] = "";
+			}
+			style.clip = 'rect(auto ,auto, auto, auto)';
+			style.overflow = '';
+			
 		} else {
+			
 			style.overflow = 'hidden';
 			style[Browser.TRANSFORM_STYLE] = 'flat';
 		}
@@ -3346,14 +3439,27 @@ CompositionDomElement.prototype = {
 	
 	setScale: function(elem, scale) {
 		
-		elem.style[Browser.TRANSFORM] = (scale !== 1) ?
-										'scale('+scale.toFixed(4)+','+scale.toFixed(4)+')' : '';
+		if (Browser.haveTransform) {
+			
+			elem.style[Browser.TRANSFORM] = (scale !== 1) ?
+											'scale('+scale.toFixed(4)+','+scale.toFixed(4)+')' : '';
+											
+		} else if (elem.style.zoom !== undefined) {
+			
+			elem.style.zoom = scale;
+			
+		}
+		
 	},
 	
 	setMatrix: function(elem, matrix, camera, depth_point) {
 		
+		var style = elem.style;
+		
 		if (Browser.have3DTransform) {
-			elem.style[Browser.TRANSFORM] = matrix.toCSS();
+			
+			style[Browser.TRANSFORM] = matrix.toCSS();
+			
 		} else {
 			
 			var m11 = matrix.m11,
@@ -3405,14 +3511,74 @@ CompositionDomElement.prototype = {
 			
 			if (Browser.haveTransform) {
 				
-				elem.style[Browser.TRANSFORM] = "matrix("+
+				style[Browser.TRANSFORM] = "matrix("+
 					m11.toFixed(4)+","+m12.toFixed(4)+","+
 					m21.toFixed(4)+","+m22.toFixed(4)+","+
 					x.toFixed(4)+","+y.toFixed(4)+
 				")";
+				
 			} else {
-				elem.style.left = x + 'px';
-				elem.style.top = y + 'px';
+				
+				if (Browser.haveIEFilter && elem.filters.length){
+					
+					var bounds = Browser.getLocalBound(elem);
+					
+					style.width = bounds.width+'px';
+					style.height = bounds.height+'px';
+					
+					if (bounds.x || bounds.y) {
+						var children = elem.childNodes,
+							l = children.length,
+							i = 0,
+							child;
+						
+						for ( ; i < l; i += 1) {
+							child = children[i];
+							
+							child.style.left = -bounds.x + 'px';
+							child.style.top = -bounds.y + 'px';
+							
+						}
+						
+						x += bounds.x * m11 + bounds.y * m21;
+						y += bounds.x * m12 + bounds.y * m22;
+						
+					}
+					
+					var filter = elem.filters.item(0);
+					var min = Math.min;
+					
+					x += min(
+						0,
+						min(
+							bounds.width * m11 + bounds.height * m21,
+							min(
+								bounds.width * m11,
+								bounds.height * m21
+							)
+						)
+					);
+					
+					y += min(
+						0,
+						min(
+							bounds.width * m12 + bounds.height * m22,
+							min(
+								bounds.width * m12,
+								bounds.height * m22
+							)
+						)
+					);
+					
+					filter.M11 = m11;
+					filter.M12 = m21;
+					filter.M21 = m12;
+					filter.M22 = m22;
+					
+				}
+				
+				style.left = x.toFixed(4) + 'px';
+				style.top = y.toFixed(4) + 'px';
 			}
 			
 		}
@@ -3422,11 +3588,20 @@ CompositionDomElement.prototype = {
 	cleanTransform: function(elem) {
 		
 		elem.style[Browser.TRANSFORM] = '';
+		elem.style.filter = '';
 	},
 	
 	setOpacity: function(elem, opacity) {
+		if (elem.style.opacity !== undefined) {
+			
+			elem.style.opacity = ( opacity !== 1 ) ? opacity : "";
+			
+		} else if (Browser.haveIEFilter && elem.filters.length === 2) {
+			
+			elem.filters.item(1).Opacity = opacity*100;
+			
+		}
 		
-		elem.style.opacity = ( opacity !== 1 ) ? opacity : "";
 	}
 };
 
@@ -3463,6 +3638,12 @@ var DomRenderer = function(scene,opt_camera){
 				"-moz-transform-origin:0% 0%;" +
 				"-webkit-transform-origin:0% 0%;" +
 				"-ms-transform-origin:0% 0%;" +
+			"}" +
+			"scene layer {" +
+				"-ms-filter: \"progid:DXImageTransform.Microsoft.Matrix(M11='2.0', sizingMethod='auto expand')\"" +
+			"}" +
+			"scene solid {" +
+				"position: absolute" +
 			"}";
 		
 		cssNode.id = 'AEStyleSheet';
@@ -3472,10 +3653,10 @@ var DomRenderer = function(scene,opt_camera){
 		cssNode.title = 'AEStyleSheet';
 		
 		if (cssNode.styleSheet){
-			console.log(cssNode.styleSheet.cssText );
+			
 			cssNode.styleSheet.cssText = cssRules;
+			console.log(cssNode.styleSheet.cssText );
 		} else {
-			console.log('cssNode.styleSheet.cssText' );
 			cssNode.innerHTML = cssRules;
 		}
 		

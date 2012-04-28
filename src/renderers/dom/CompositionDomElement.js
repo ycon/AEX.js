@@ -105,10 +105,19 @@ CompositionDomElement.prototype = {
 			break;
 		}
 		
+		
+		
 		if (handler && handler.element) {
 			element.appendChild(handler.element);
 			result.content = handler.element;
 			result.handler = handler;
+		}
+		
+		if (!Browser.haveTransform && Browser.haveIEFilter){
+			
+			element.style.filter = "progid:DXImageTransform.Microsoft.Matrix(M11='1.0', sizingMethod='auto expand'); " +
+								   "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+			
 		}
 		
 		return result;
@@ -124,7 +133,7 @@ CompositionDomElement.prototype = {
 					 opt_camera :
 					 model.getCamera(),
 			cam_mat = camera.getCameraMatrix(),
-			i, layer, mat, mat_2D,depth_point;
+			i, layer, mat, mat_2D;
 		
 		if (this.collapse !== model.collapse) {
 			
@@ -135,36 +144,41 @@ CompositionDomElement.prototype = {
 				this.width = this.height = this.zoom = null;
 			}
 		}
+		
+		if (this.width !== model.width || this.height !== model.height) {
 
-		if (!this.collapse) {
+			this.width = model.width;
+			this.height = model.height;
+			style.width = this.width.toFixed(4) + 'px';
+			style.height = this.height.toFixed(4) + 'px';
 			
-			if (this.width !== model.width || this.heigh !== model.height) {
-
-				this.width = model.width;
-				this.height = model.height;
-				style.width = this.width.toString() + 'px';
-				style.height = this.height.toString() + 'px';
-				style.clip = "rect(0px , " + this.width + "px, " + this.height + "px, 0px)";
+			if (!this.collapse) {
+				style.clip = "rect(0px, " + this.width + "px, " + this.height + "px, 0px)";
 			}
+		}
+		
+		if (!this.collapse){
 			
-			if (Browser.have3DTransform){
+			if (this.zoom !== camera.zoom) {
 				
-				if (this.zoom !== camera.zoom) {
-					
-					this.zoom = camera.zoom;
+				this.zoom = camera.zoom;
+				if (Browser.have3DTransform){
 					style[Browser.PERSPECTIVE] = this.zoom.toString() + 'px';
 				}
 				
-				if (this.centerX !== camera.center.x || this.centerY !== camera.center.y) {
-					
-					this.centerX = camera.center.x;
-					this.centerY = camera.center.y;
+			}
+			
+			if (this.centerX !== camera.center.x || this.centerY !== camera.center.y) {
+				
+				this.centerX = camera.center.x;
+				this.centerY = camera.center.y;
+				if (Browser.have3DTransform){
 					style[Browser.ORIGIN] = this.centerX.toString() + 'px ' +
 											this.centerY.toString() + 'px';
 				}
 				
 			}
-
+			
 		}
 
 		for (i = 0; i < l; i++) {
@@ -213,18 +227,17 @@ CompositionDomElement.prototype = {
 						mat.multiply(cam_mat);
 					}
 					
-					if (layer.model.collapse || !layer.model.is3D) {
+					if (layer.model.collapse) {
 						
 						var mx = mat.m21,
 							my = mat.m22,
 							mz = mat.m23,
 							scale = (
 								(layer.model.is3D) ?
-									Math.sqrt(
-										(mx * mx) + (my * my) + (mz * mz)) *
-										(this.zoom / (this.zoom - mat.m43)
+									Math.sqrt((mx * mx) + (my * my) + (mz * mz)) *
+									(this.zoom / (this.zoom - mat.m43)
 									) :
-									Math.sqrt( (mx * mx) + (my * my) )
+									Math.sqrt((mx * mx) + (my * my))
 							) * 1.2 ,
 							ratio = scale / layer.scale;
 						
@@ -246,6 +259,7 @@ CompositionDomElement.prototype = {
 					layer.collapse = layer.model.collapse;
 					
 					layer.handler.render();
+					
 					this.setMatrix(
 						layer.element,
 						mat,
@@ -274,11 +288,13 @@ CompositionDomElement.prototype = {
 		
 		if (this.collapse){
 			
-			style[Browser.TRANSFORM_STYLE] = "";
-			style[Browser.PERSPECTIVE] = "";
-			style[Browser.PERSPECTIVE_ORIGIN] = "";
-			style.clip = "";
-			style.overflow = "";
+			if (Browser.have3DTransform) {
+				style[Browser.TRANSFORM_STYLE] = "";
+				style[Browser.PERSPECTIVE] = "";
+				style[Browser.PERSPECTIVE_ORIGIN] = "";
+			}
+			style.clip = 'rect(auto ,auto, auto, auto)';
+			style.overflow = '';
 			
 		} else {
 			
@@ -290,15 +306,26 @@ CompositionDomElement.prototype = {
 	
 	setScale: function(elem, scale) {
 		
-		elem.style[Browser.TRANSFORM] = (scale !== 1) ?
-										'scale('+scale.toFixed(4)+','+scale.toFixed(4)+')' : '';
+		if (Browser.haveTransform) {
+			
+			elem.style[Browser.TRANSFORM] = (scale !== 1) ?
+											'scale('+scale.toFixed(4)+','+scale.toFixed(4)+')' : '';
+											
+		} else if (elem.style.zoom !== undefined) {
+			
+			elem.style.zoom = scale;
+			
+		}
+		
 	},
 	
 	setMatrix: function(elem, matrix, camera, depth_point) {
 		
+		var style = elem.style;
+		
 		if (Browser.have3DTransform) {
 			
-			elem.style[Browser.TRANSFORM] = matrix.toCSS();
+			style[Browser.TRANSFORM] = matrix.toCSS();
 			
 		} else {
 			
@@ -351,15 +378,74 @@ CompositionDomElement.prototype = {
 			
 			if (Browser.haveTransform) {
 				
-				elem.style[Browser.TRANSFORM] = "matrix("+
+				style[Browser.TRANSFORM] = "matrix("+
 					m11.toFixed(4)+","+m12.toFixed(4)+","+
 					m21.toFixed(4)+","+m22.toFixed(4)+","+
 					x.toFixed(4)+","+y.toFixed(4)+
 				")";
 				
 			} else {
-				elem.style.left = x.toFixed(4) + 'px';
-				elem.style.top = y.toFixed(4) + 'px';
+				
+				if (Browser.haveIEFilter && elem.filters.length){
+					
+					var bounds = Browser.getLocalBound(elem);
+					
+					style.width = bounds.width+'px';
+					style.height = bounds.height+'px';
+					
+					if (bounds.x || bounds.y) {
+						var children = elem.childNodes,
+							l = children.length,
+							i = 0,
+							child;
+						
+						for ( ; i < l; i += 1) {
+							child = children[i];
+							
+							child.style.left = -bounds.x + 'px';
+							child.style.top = -bounds.y + 'px';
+							
+						}
+						
+						x += bounds.x * m11 + bounds.y * m21;
+						y += bounds.x * m12 + bounds.y * m22;
+						
+					}
+					
+					var filter = elem.filters.item(0);
+					var min = Math.min;
+					
+					x += min(
+						0,
+						min(
+							bounds.width * m11 + bounds.height * m21,
+							min(
+								bounds.width * m11,
+								bounds.height * m21
+							)
+						)
+					);
+					
+					y += min(
+						0,
+						min(
+							bounds.width * m12 + bounds.height * m22,
+							min(
+								bounds.width * m12,
+								bounds.height * m22
+							)
+						)
+					);
+					
+					filter.M11 = m11;
+					filter.M12 = m21;
+					filter.M21 = m12;
+					filter.M22 = m22;
+					
+				}
+				
+				style.left = x.toFixed(4) + 'px';
+				style.top = y.toFixed(4) + 'px';
 			}
 			
 		}
@@ -369,10 +455,20 @@ CompositionDomElement.prototype = {
 	cleanTransform: function(elem) {
 		
 		elem.style[Browser.TRANSFORM] = '';
+		elem.style.filter = '';
 	},
 	
 	setOpacity: function(elem, opacity) {
 		
-		elem.style.opacity = ( opacity !== 1 ) ? opacity : "";
+		if (elem.style.opacity !== undefined) {
+			
+			elem.style.opacity = ( opacity !== 1 ) ? opacity : "";
+			
+		} else if (Browser.haveIEFilter && elem.filters.length === 2) {
+			
+			elem.filters.item(1).Opacity = opacity*100;
+			
+		}
+		
 	}
 };
