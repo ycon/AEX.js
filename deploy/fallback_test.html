@@ -60,12 +60,14 @@ $(document).ready(function(){
 				renderer.render();
 				AE.Browser.have3DTransform = false;
 				renderer2.render();
-				requestAnimationFrame(loop);
+				//requestAnimationFrame(loop);
 			} else {
 				pauseOffset = t-animStart;
 			}
 			
 		}
+		
+		
 		
 		loop(animStart);
 		

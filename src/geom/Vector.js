@@ -202,6 +202,23 @@ Vector.prototype = {
 
     },
 
+	flatten: function(zoom, center) {
+
+		var scale = zoom / (zoom - this.z);
+		this.x = this.x * scale + center.x * (1 - scale);
+		this.y = this.y * scale + center.y * (1 - scale);
+		
+		return this;
+
+	},
+	
+	multiplyMatrix: function(m) {
+		
+		m.multiplyVector(this);
+		return this;
+		
+	},
+
     distance: function (v) {
 
         return Math.sqrt(this.distanceSq(v));

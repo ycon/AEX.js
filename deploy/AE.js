@@ -2,7 +2,7 @@
 /** @license
  * Released under the MIT license
  * Author: Yannick Connan
- * Version: 0.1.1 - Build: 18027 (2012/04/28 07:55 PM)
+ * Version: 0.1.1 - Build: 18036 (2012/04/30 08:11 AM)
  */
 
 
@@ -984,6 +984,23 @@ Vector.prototype = {
 
     },
 
+	flatten: function(zoom, center) {
+
+		var scale = zoom / (zoom - this.z);
+		this.x = this.x * scale + center.x * (1 - scale);
+		this.y = this.y * scale + center.y * (1 - scale);
+		
+		return this;
+
+	},
+	
+	multiplyMatrix: function(m) {
+		
+		m.multiplyVector(this);
+		return this;
+		
+	},
+
     distance: function (v) {
 
         return Math.sqrt(this.distanceSq(v));
@@ -1256,9 +1273,6 @@ Matrix.prototype = {
 			t.m33 = a * c;
 			
 			t.m41 = t.m42 = t.m43 = 0;
-			
-			
-			//console.log(this.toCSS());
 			
 			return this;
 			
@@ -1533,7 +1547,7 @@ Matrix.prototype = {
 		/**
 		 * @returns {String}
 		 */
-		toCSS:function(){
+		toCSS: function(){
 			var m = this;
 			return "matrix3d("+m.m11.toFixed(4)+","+m.m12.toFixed(4)+","+m.m13.toFixed(4)+","+m.m14.toFixed(4)+","+
 							   m.m21.toFixed(4)+","+m.m22.toFixed(4)+","+m.m23.toFixed(4)+","+m.m24.toFixed(4)+","+
@@ -1545,7 +1559,7 @@ Matrix.prototype = {
 		/**
 		 * @returns {Array}
 		 */
-		toArray:function(){
+		toArray: function() {
 			var m = this;
 			return [
 			        m.m11, m.m12, m.m13, m.m14,
@@ -1558,6 +1572,352 @@ Matrix.prototype = {
 
 
 externs.Matrix = Matrix;
+
+
+
+/** @constructor */
+var Matrix2D = function(){
+	if (arguments.length){
+		this.injectArray(arguments);
+	}
+};
+
+Matrix2D.matrix_ = new Matrix2D();
+Matrix2D.v1_ = new Vector();
+Matrix2D.v2_ = new Vector();
+Matrix2D.v3_ = new Vector();
+
+Matrix2D.prototype = {
+		
+		constructor : Matrix2D,
+		
+		m11:1,m12:0,m21:0,m22:1,x:0,y:0,z:0,
+		
+		/**
+		 * @param {number} n11
+		 * @param {number} n12
+		 * @param {number} n21
+		 * @param {number} n22
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 *
+		 * @returns {Matrix2D}
+		 */
+		set:function(n11, n12, n21, n22, x, y, z){
+			
+			var m = this;
+			
+			m.m11 = n11;m.m12 = n12;
+			m.m21 = n21;m.m22 = n22;
+			m.x = x;m.y = y;m.z = z;
+			
+			return this;
+		},
+		
+		/**
+		 *
+		 * @param {Array.<Number>} a
+		 * @returns {Matrix2D}
+		 */
+		injectArray:function(a){
+			
+			return this.set.apply(this,a);
+		},
+		
+		/**
+		 *
+		 * @param {Matrix2D} m
+		 * @returns {Matrix2D}
+		 */
+		injectMatrix:function(m){
+			
+			/** @type Matrix2D */
+			var t = this;
+			
+			t.m11 = m.m11;t.m12 = m.m12;
+			t.m21 = m.m21;t.m22 = m.m22;
+			t.x = m.x;t.y = m.y;t.z = m.z;
+			
+			return t;
+		},
+		
+		/** @returns {Matrix} */
+		identity:function(){
+			
+			this.set(
+					
+				1,0,
+				0,1,
+				0,0,0
+				
+			);
+			
+			return this;
+		},
+		
+		/**
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @returns {Matrix}
+		 */
+		translation:function(x,y,z){
+			
+			this.set(
+				1,0,
+				0,1,
+				x||0,y||0,z||0,1
+			);
+			
+			return this;
+		},
+		
+		/**
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @returns {Matrix2D}
+		 */
+		translate:function(x, y, z){
+			
+			this.x += x||0;
+			this.y += y||0;
+			this.z += z||0;
+			
+			return this;
+			
+		},
+		
+		/**
+		 * @param {number} x
+		 * @param {number} y
+		 * @param {number} z
+		 * @returns {Matrix2D}
+		 */
+		preTranslate:function(x, y, z){
+			
+			this.x += x * this.m11 + y * this.m21;
+			this.y += x * this.m12 + y * this.m22;
+			this.z += z||0;
+			
+			return this;
+			
+		},
+		
+		
+		/**
+		 * @param {number} scaleX
+		 * @param {number} scaleY
+		 * @returns {Matrix2D}
+		 */
+		scaling:function(scaleX, scaleY){
+			
+			this.set(
+					
+				scaleX||0,
+				0,scaleY||0,
+				0,0,0
+				
+			);
+			
+			return this;
+			
+		},
+		
+		/**
+		 * @param {number} scaleX
+		 * @param {number} scaleY
+		 * @returns {Matrix2D}
+		 */
+		scale:function(scaleX, scaleY){
+			
+			scaleX = scaleX||0.000001;
+			scaleY = scaleY||0.000001;
+			
+			var t = this;
+			
+			if (scaleX !== 1 || scaleY !== 1){
+				
+				t.m11*=scaleX;t.m12*=scaleX;t.x*=scaleX;
+				
+				t.m21*=scaleY;t.m22*=scaleY;t.y*=scaleY;
+				
+			}
+
+			return t;
+			
+		},
+		
+		/**
+		 * @param {number} rotation
+		 * @returns {Matrix2D}
+		 */
+		rotation:function(rotation){
+			
+			
+			//TODO implement 2D rotation that have 3D rotation interface
+			return this;
+			
+		},
+		
+		/**
+		 * @param {number} rotationX
+		 * @param {number} rotationY
+		 * @param {number} rotationZ
+		 * @returns {Matrix}
+		 */
+		rotate:function(rotation){
+
+			return (rotation) ? this.multiply(Matrix2D.matrix_.rotation(rotation)) : this;
+			
+		},
+		
+		/**
+		 * @returns {Matrix}
+		 */
+		clone:function(){
+			var m = this;
+			
+			return new Matrix2D().set(	
+				m.m11,m.m12,
+				m.m21,m.m22,
+				m.x,m.y,m.z
+			);
+			
+		},
+		
+		/**
+		 * @param {Matrix2D} a
+		 * @param {Matrix2D} b
+		 * @returns {Matrix2D}
+		 */
+		join:function(a,b){
+			
+			var a11 = a.m11, a12 = a.m12,
+				a21 = a.m21, a22 = a.m22,
+				ax = a.x, ay = a.y,
+				
+				b11 = b.m11, b12 = b.m12,
+				b21 = b.m21, b22 = b.m22,
+				bx = b.x, by = b.y;
+
+			this.m11 = a11 * b11 + a12 * b21;
+			this.m12 = a11 * b12 + a12 * b22;
+
+			this.m21 = a21 * b11 + a22 * b21;
+			this.m22 = a21 * b12 + a22 * b22;
+			
+			this.x = ax * b11 + ay * b21 + bx;
+			this.y = ax * b12 + ay * b22 + by;
+			
+			return this;
+			
+		},
+		
+		/**
+		 * @param {Matrix2D} matrix
+		 * @returns {Matrix2D}
+		 */
+		multiply:function(matrix){
+			
+			return this.join(this, matrix);
+			
+		},
+		
+		/**
+		 * @param {Matrix2D} matrix
+		 * @returns {Matrix2D}
+		 */
+		preMultiply:function(matrix){
+			
+			return this.join(matrix, this);
+			
+			
+		},
+		
+		multiplyVector:function(v){
+			
+			var vx = v.x;
+				vy = v.y;
+			
+			v.x = this.m11 * vx + this.m21 * vy + this.x;
+			v.y = this.m12 * vx + this.m22 * vy + this.y;
+			
+			return v;
+		},
+		
+		copy3D: function(m) {
+			
+			var t = this;
+			
+			t.m11 = m.m11;t.m12 = m.m12;
+			t.m21 = m.m21;t.m22 = m.m22;
+			t.x = m.m41;t.y = m.m42;
+			
+			return this;
+		},
+		
+		simulate3D: function(m, center_v, depth_v, zoom) {
+			
+			var v = Matrix2D.v1_
+					.copy(depth_v)
+					.multiplyMatrix(m)
+					.flatten(zoom, center_v),
+					
+				vx = Matrix2D.v2_
+					 .set(depth_v.x + 1, depth_v.y, 0)
+					 .multiplyMatrix(m)
+					 .flatten(zoom, center_v)
+					 .sub(v),
+					
+				vy = Matrix2D.v3_
+					 .set(depth_v.x, depth_v.y + 1, 0)
+					 .multiplyMatrix(m)
+					 .flatten(zoom, center_v)
+					 .sub(v);
+			
+			this.m11 = vx.x;
+			this.m12 = vx.y;
+			this.m21 = vy.x;
+			this.m22 = vy.y;
+			
+			this.x = v.x - (depth_v.x * this.m11 + depth_v.y * this.m21);
+			this.y = v.y - (depth_v.x * this.m12 + depth_v.y * this.m22);
+			
+			return this;
+		},
+		
+		/**
+		 * @returns {String}
+		 */
+		toCSS:function(){
+			
+			var m = this;
+			
+			return "matrix("+
+				m.m11.toFixed(4)+","+m.m12.toFixed(4)+","+
+				m.m21.toFixed(4)+","+m.m22.toFixed(4)+","+
+				m.x.toFixed(4)+","+m.y.toFixed(4)+
+			")";
+			
+		},
+		
+		/**
+		 * @returns {Array}
+		 */
+		toArray:function(){
+			var m = this;
+			return [
+			        m.m11, m.m12,
+			        m.m21, m.m22,
+			        m.x, m.y
+			];
+		}
+};
+
+
+externs.Matrix2D = Matrix2D;
 /**
  * @author mr.doob / http://mrdoob.com/
  * @author kile / http://kile.stravaganza.org/
@@ -3172,6 +3532,7 @@ var CompositionDomElement = function(model) {
 CompositionDomElement.v1_ = new Vector();
 CompositionDomElement.v2_ = new Vector();
 CompositionDomElement.v3_ = new Vector();
+CompositionDomElement.m2D_ = new Matrix2D();
 
 CompositionDomElement.prototype = {
 	
@@ -3250,7 +3611,6 @@ CompositionDomElement.prototype = {
 			
 			element.style.filter = "progid:DXImageTransform.Microsoft.Matrix(M11='1.0', sizingMethod='auto expand'); " +
 								   "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
-			
 		}
 		
 		return result;
@@ -3266,7 +3626,7 @@ CompositionDomElement.prototype = {
 					 opt_camera :
 					 model.getCamera(),
 			cam_mat = camera.getCameraMatrix(),
-			i, layer, mat, mat_2D;
+			i = 0;
 		
 		if (this.collapse !== model.collapse) {
 			
@@ -3314,108 +3674,120 @@ CompositionDomElement.prototype = {
 			
 		}
 
-		for (i = 0; i < l; i++) {
+		for ( ; i < l; i++) {
 
-			layer = layers[i];
-
-			if (layer.visible !== layer.model.visible) {
-				layer.visible = layer.model.visible;
-				style.display = (layer.visible) ? 'block' : 'none';
-			}
-
-			if (layer.visible && layer.handler && layer.content) {
-				
-				mat = this.matrix_.injectMatrix(layer.model.getMatrix());
-				
-				if (opt_parent && layer.model.is3D){
-					mat.multiply(opt_parent);
-				} else if (opt_parent_2D && !layer.model.is3D) {
-					mat.multiply(opt_parent_2D);
-				}
-				
-				if (layer.model.type === 'composition' && layer.model.collapse){
-					
-					if (!layer.collapse) {
-						layer.collapse  = true;
-						this.cleanTransform(layer.element);
-					}
-					
-					mat_2D = mat;
-					
-					if (layer.model.is3D){
-						
-						mat_2D = this.matrix2D_.injectMatrix(layer.model.getMatrix2D());
-						if (opt_parent_2D){
-							mat_2D.multiply(opt_parent_2D);
-						}
-						
-					}
-					
-					
-					layer.handler.render(camera, mat, mat_2D);
-					
-				} else if (layer.handler && layer.content) {
-					
-					if (layer.model.is3D){
-						mat.multiply(cam_mat);
-					}
-					
-					if (layer.model.collapse) {
-						
-						var mx = mat.m21,
-							my = mat.m22,
-							mz = mat.m23,
-							scale = (
-								(layer.model.is3D) ?
-									Math.sqrt((mx * mx) + (my * my) + (mz * mz)) *
-									(this.zoom / (this.zoom - mat.m43)
-									) :
-									Math.sqrt((mx * mx) + (my * my))
-							) * 1.2 ,
-							ratio = scale / layer.scale;
-						
-						if (ratio > 1.3 || ratio < 0.77) {
-							layer.scale = (scale > 0.77 && scale < 1.1) ? 1 : scale;
-							this.setScale(layer.content, scale);
-						}
-						
-						scale = 1/layer.scale;
-						mat.preMultiply(this.tempMatrix_.scaling(scale, scale, 1));
-						
-					} else if (!layer.model.collapse && layer.model.is3D && layer.scale !== 1) {
-						
-						layer.scale = 1;
-						this.setScale(layer.content, layer.scale);
-						
-					}
-					
-					layer.collapse = layer.model.collapse;
-					
-					layer.handler.render();
-					
-					this.setMatrix(
-						layer.element,
-						mat,
-						(layer.model.is3D) ? camera : null,
-						layer.model.getDepthPoint(),
-						layer.model.width,
-						layer.model.height
-					);
-					
-				}
-				
-				if (layer.opacity !== layer.model.opacity){
-					layer.opacity = layer.model.opacity;
-					this.setOpacity(layer.element, layer.model.opacity);
-				}
-
-				mat.identity();
-
-			}
+			this.renderLayer(layers[i], camera, cam_mat, opt_parent, opt_parent_2D);
+			
 		}
 	},
 	
-	setCollapse: function(){
+	renderLayer: function(layer, camera, cam_mat, opt_parent, opt_parent_2D) {
+		
+		var model = layer.model,
+			element = layer.element,
+			handler = layer.handler,
+			content = layer.content,
+			style = element.style,
+			is3D = model.is3D,
+			mat,
+			mat_2D;
+		
+		if (layer.visible !== model.visible) {
+			layer.visible = model.visible;
+			style.display = (layer.visible) ? 'block' : 'none';
+		}
+
+		if (layer.visible && handler && content) {
+			
+			mat = this.matrix_.injectMatrix(model.getMatrix());
+			
+			if (opt_parent && is3D){
+				mat.multiply(opt_parent);
+			} else if (opt_parent_2D && !is3D) {
+				mat.multiply(opt_parent_2D);
+			}
+			
+			if (model.type === 'composition' && model.collapse){
+				
+				if (!layer.collapse) {
+					layer.collapse  = true;
+					this.cleanTransform(element);
+				}
+				
+				mat_2D = mat;
+				
+				if (is3D){
+					
+					mat_2D = this.matrix2D_.injectMatrix(model.getMatrix2D());
+					if (opt_parent_2D){
+						mat_2D.multiply(opt_parent_2D);
+					}
+					
+				}
+				
+				handler.render(camera, mat, mat_2D);
+				
+			} else if (handler && content) {
+				
+				if (is3D){
+					mat.multiply(cam_mat);
+				}
+				
+				if (model.collapse) {
+					
+					var mx = mat.m21,
+						my = mat.m22,
+						mz = mat.m23,
+						scale = (
+							(is3D) ?
+								Math.sqrt((mx * mx) + (my * my) + (mz * mz)) *
+								(this.zoom / (this.zoom - mat.m43)
+								) :
+								Math.sqrt((mx * mx) + (my * my))
+						) * 1.2 ,
+						ratio = scale / layer.scale;
+					
+					if (ratio > 1.3 || ratio < 0.77) {
+						layer.scale = (scale > 0.77 && scale < 1.1) ? 1 : scale;
+						this.setScale(content, scale);
+					}
+					
+					scale = 1/layer.scale;
+					mat.preMultiply(this.tempMatrix_.scaling(scale, scale, 1));
+					
+				} else if (!model.collapse && is3D && layer.scale !== 1) {
+					
+					layer.scale = 1;
+					this.setScale(content, layer.scale);
+					
+				}
+				
+				layer.collapse = model.collapse;
+				
+				handler.render();
+				
+				this.setMatrix(
+					element,
+					mat,
+					(model.is3D) ? camera : null,
+					model.getDepthPoint(),
+					model.width,
+					model.height
+				);
+				
+			}
+			
+			if (layer.opacity !== model.opacity){
+				layer.opacity = model.opacity;
+				this.setOpacity(element, model.opacity);
+			}
+
+			mat.identity();
+
+		}
+	},
+	
+	setCollapse: function() {
 		
 		var style = this.element.style;
 		
@@ -3426,7 +3798,13 @@ CompositionDomElement.prototype = {
 				style[Browser.PERSPECTIVE] = "";
 				style[Browser.PERSPECTIVE_ORIGIN] = "";
 			}
-			style.clip = 'rect(auto ,auto, auto, auto)';
+			
+			try {
+				style.clip = '';
+			} catch (e) {
+				style.clip = 'rect(auto ,auto, auto, auto)';
+			}
+			
 			style.overflow = '';
 			
 		} else {
@@ -3454,7 +3832,8 @@ CompositionDomElement.prototype = {
 	
 	setMatrix: function(elem, matrix, camera, depth_point) {
 		
-		var style = elem.style;
+		var style = elem.style,
+			matrix2D, filter;
 		
 		if (Browser.have3DTransform) {
 			
@@ -3462,60 +3841,17 @@ CompositionDomElement.prototype = {
 			
 		} else {
 			
-			var m11 = matrix.m11,
-				m12 = matrix.m12,
-				m21 = matrix.m21,
-				m22 = matrix.m22,
-				x = matrix.m41,
-				y = matrix.m42,
-				z = matrix.m43,
-				scale, center, p, p_x, p_y;
+			matrix2D = CompositionDomElement.m2D_;
 			
 			if (camera) {
-				
-				center = camera.center;
-				zoom = camera.zoom;
-				p = matrix.multiplyVector(CompositionDomElement.v1_.copy(depth_point));
-				p_x = matrix.multiplyVector(
-					CompositionDomElement.v2_.set(depth_point.x + 1, depth_point.y, 0)
-				);
-				p_y = matrix.multiplyVector(
-					CompositionDomElement.v3_.set(depth_point.x, depth_point.y + 1, 0)
-				);
-				
-				scale = zoom / (zoom - z);
-				x = x * scale + center.x * (1-scale);
-				y = y * scale + center.y * (1-scale);
-				
-				scale = zoom / (zoom - p.z);
-				p.x = p.x * scale + center.x * (1-scale);
-				p.y = p.y * scale + center.y * (1-scale);
-				
-				scale = zoom / (zoom - p_x.z);
-				p_x.x = p_x.x * scale + center.x * (1-scale);
-				p_x.y = p_x.y * scale + center.y * (1-scale);
-				
-				scale = zoom / (zoom - p_y.z);
-				p_y.x = p_y.x * scale + center.x * (1-scale);
-				p_y.y = p_y.y * scale + center.y * (1-scale);
-				
-				m11 = p_x.x - p.x;
-				m12 = p_x.y - p.y;
-				m21 = p_y.x - p.x;
-				m22 = p_y.y - p.y;
-				
-				x = p.x - (depth_point.x * m11 + depth_point.y * m21);
-				y = p.y - (depth_point.x * m12 + depth_point.y * m22);
-				
+				matrix2D.simulate3D(matrix, camera.center, depth_point, camera.zoom);
+			} else {
+				matrix2D.copy3D(matrix);
 			}
 			
 			if (Browser.haveTransform) {
 				
-				style[Browser.TRANSFORM] = "matrix("+
-					m11.toFixed(4)+","+m12.toFixed(4)+","+
-					m21.toFixed(4)+","+m22.toFixed(4)+","+
-					x.toFixed(4)+","+y.toFixed(4)+
-				")";
+				style[Browser.TRANSFORM] = matrix2D.toCSS();
 				
 			} else {
 				
@@ -3527,6 +3863,7 @@ CompositionDomElement.prototype = {
 					style.height = bounds.height+'px';
 					
 					if (bounds.x || bounds.y) {
+						
 						var children = elem.childNodes,
 							l = children.length,
 							i = 0,
@@ -3539,50 +3876,52 @@ CompositionDomElement.prototype = {
 							child.style.top = -bounds.y + 'px';
 							
 						}
-						
-						x += bounds.x * m11 + bounds.y * m21;
-						y += bounds.x * m12 + bounds.y * m22;
-						
 					}
 					
-					var filter = elem.filters.item(0);
-					var min = Math.min;
+					matrix2D.preTranslate(bounds.x, bounds.y);
+					this.slideMatrixBounds(matrix2D, bounds);
 					
-					x += min(
-						0,
-						min(
-							bounds.width * m11 + bounds.height * m21,
-							min(
-								bounds.width * m11,
-								bounds.height * m21
-							)
-						)
-					);
 					
-					y += min(
-						0,
-						min(
-							bounds.width * m12 + bounds.height * m22,
-							min(
-								bounds.width * m12,
-								bounds.height * m22
-							)
-						)
-					);
+					filter = elem.filters.item(0);
 					
-					filter.M11 = m11;
-					filter.M12 = m21;
-					filter.M21 = m12;
-					filter.M22 = m22;
+					filter.M11 = matrix2D.m11;
+					filter.M12 = matrix2D.m21;
+					filter.M21 = matrix2D.m12;
+					filter.M22 = matrix2D.m22;
 					
 				}
 				
-				style.left = x.toFixed(4) + 'px';
-				style.top = y.toFixed(4) + 'px';
+				style.left = matrix2D.x.toFixed(4) + 'px';
+				style.top = matrix2D.y.toFixed(4) + 'px';
 			}
 			
 		}
 		
+	},
+	
+	slideMatrixBounds: function(matrix, bounds) {
+		
+		var min = Math.min;
+		
+		matrix.x += min(
+			0, min(
+				bounds.width * matrix.m11 + bounds.height * matrix.m21,
+				min(
+					bounds.width * matrix.m11,
+					bounds.height * matrix.m21
+				)
+			)
+		);
+		
+		matrix.y += min(
+			0, min(
+				bounds.width * matrix.m12 + bounds.height * matrix.m22,
+				min(
+					bounds.width * matrix.m12,
+					bounds.height * matrix.m22
+				)
+			)
+		);
 	},
 	
 	cleanTransform: function(elem) {
@@ -3592,6 +3931,7 @@ CompositionDomElement.prototype = {
 	},
 	
 	setOpacity: function(elem, opacity) {
+		
 		if (elem.style.opacity !== undefined) {
 			
 			elem.style.opacity = ( opacity !== 1 ) ? opacity : "";

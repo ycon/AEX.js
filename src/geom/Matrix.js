@@ -224,9 +224,6 @@ Matrix.prototype = {
 			
 			t.m41 = t.m42 = t.m43 = 0;
 			
-			
-			//console.log(this.toCSS());
-			
 			return this;
 			
 		},
@@ -500,7 +497,7 @@ Matrix.prototype = {
 		/**
 		 * @returns {String}
 		 */
-		toCSS:function(){
+		toCSS: function(){
 			var m = this;
 			return "matrix3d("+m.m11.toFixed(4)+","+m.m12.toFixed(4)+","+m.m13.toFixed(4)+","+m.m14.toFixed(4)+","+
 							   m.m21.toFixed(4)+","+m.m22.toFixed(4)+","+m.m23.toFixed(4)+","+m.m24.toFixed(4)+","+
@@ -512,7 +509,7 @@ Matrix.prototype = {
 		/**
 		 * @returns {Array}
 		 */
-		toArray:function(){
+		toArray: function() {
 			var m = this;
 			return [
 			        m.m11, m.m12, m.m13, m.m14,

@@ -116,6 +116,7 @@
     			BezierEasing.js,
     			Vector.js,
     			Matrix.js,
+    			Matrix2D.js,
     			Quaternion.js,
     			Rectangle.js
     		"/>
