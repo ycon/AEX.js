@@ -1,0 +1,9 @@
+{
+	"name" : "aex",
+	"version" : "0.1.0",
+	"main" : "./src/main",
+	"scripts": {
+		"build": "build.js",
+		"test": "test.js"
+   }
+}

@@ -1,0 +1,214 @@
+<html>
+<head>
+<script src="../lib/extern/require.js"></script>
+
+
+</head>
+<body>
+
+<canvas id="myCanvas" width="960" height="540"></canvas>
+
+</body>
+
+<script type="text/javascript">
+
+window.requestAnimFrame = (function(){
+    return  window.requestAnimationFrame       ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame    ||
+            window.oRequestAnimationFrame      ||
+            window.msRequestAnimationFrame     ||
+            function( callback ){
+              window.setTimeout(callback, 1000 / 60);
+            };
+})();
+
+
+require({baseUrl: '../lib',}, [
+    'main',
+    'geom/Vector',
+    'path/CubicCurve',
+    'path/QuadCurve'
+], function (
+    aex,
+    Vector,
+    CubicCurve,
+    QuadCurve
+) {
+
+    canvas = document.getElementById('myCanvas');
+
+    context = canvas.getContext('2d');
+
+    console.log(context);
+
+    var start = new Vector(Math.random()*canvas.width,Math.random()*canvas.height,0);
+
+    var anchorIn = new Vector(Math.random()*canvas.width,Math.random()*canvas.height,0);
+
+    var anchorOut = new Vector(Math.random()*canvas.width,Math.random()*canvas.height,0);
+
+    var end = new Vector(Math.random()*canvas.width,Math.random()*canvas.height,0);
+
+    var curve = new CubicCurve(start,anchorIn,anchorOut,end);
+
+    //var curve = new QuadCurve(start,anchorIn,end);
+
+
+    curve.length();
+
+
+
+
+
+
+
+
+    var loop = function(){
+
+
+
+        curve.length();
+
+
+
+
+
+        canvas.width = canvas.width;
+
+        context.beginPath();
+
+        context.moveTo(start.x,start.y);
+
+        context.bezierCurveTo(anchorIn.x, anchorIn.y, anchorOut.x, anchorOut.y, end.x, end.y);
+        //context.quadraticCurveTo(anchorIn.x, anchorIn.y, end.x, end.y);
+        context.lineWidth = 2;
+        context.strokeStyle = "#00FFFF";
+        context.stroke();
+
+
+
+
+        context.beginPath();
+        context.moveTo(start.x,start.y);
+
+
+        var elem = curve.path.elements;
+        for ( var i = 0; i < elem.length; i++) {
+
+            var c = elem[i];
+            context.quadraticCurveTo(c.anchor.x, c.anchor.y, c.end.x, c.end.y);
+            context.moveTo(c.end.x, c.end.y);
+            context.arc(c.end.x, c.end.y,4,0,360);
+            context.moveTo(c.end.x, c.end.y);
+        }
+
+        context.lineWidth = 1;
+        context.strokeStyle = "#000000";
+        context.stroke();
+
+
+
+        context.beginPath();
+        context.moveTo(start.x,start.y);
+        for ( var i = 0; i < 30; i++) {
+
+            var p = curve.getVect(i/30);
+
+            context.moveTo(p.x, p.y);
+            context.arc(p.x, p.y,2,0,360);
+            context.moveTo(p.x, p.y);
+        }
+        context.strokeStyle = "#0000FF";
+        context.stroke();
+
+
+
+
+        context.beginPath();
+
+        context.arc(start.x,start.y,10,0,360);
+
+        context.moveTo(anchorIn.x+10,anchorIn.y);
+        context.arc(anchorIn.x,anchorIn.y,10,0,360);
+
+        context.moveTo(start.x,start.y);
+        context.lineTo(anchorIn.x,anchorIn.y);
+
+        context.lineWidth = 1;
+        context.strokeStyle = "#FF0000";
+
+        context.stroke();
+
+        context.beginPath();
+
+        context.moveTo(anchorOut.x+10,anchorOut.y);
+        context.arc(anchorOut.x,anchorOut.y,10,0,360);
+
+        context.moveTo(end.x+10,end.y);
+        context.arc(end.x,end.y,10,0,360);
+
+        context.moveTo(end.x,end.y);
+        context.lineTo(anchorOut.x,anchorOut.y);
+
+        context.lineWidth = 1;
+        context.strokeStyle = "#FF00FF";
+
+        context.stroke();
+
+
+
+        //requestAnimFrame(loop);
+    };
+
+    var mouseDown = false;
+    var mouse = new Vector(0,0);
+
+    var dragPoint = null;
+
+    canvas.addEventListener('mousedown', function(e){
+        mouseDown = true;
+        mouse.x = e.pageX - canvas.offsetLeft;
+        mouse.y = e.pageY - canvas.offsetTop;
+
+        if (mouse.distance(start) < 12){
+            dragPoint = start;
+        } else if (mouse.distance(end) < 12) {
+            dragPoint = end;
+        } else if (mouse.distance(anchorIn) < 12) {
+            dragPoint = anchorIn;
+        } else if (mouse.distance(anchorOut) < 12) {
+            dragPoint = anchorOut;
+        } else {
+            dragPoint = null;
+        }
+
+    });
+
+
+    document.body.addEventListener('mouseup', function(e){
+        mouseDown = false;
+    });
+
+    canvas.addEventListener('mousemove', function(e){
+
+        if (mouseDown){
+            mouse.x = e.pageX - canvas.offsetLeft;
+            mouse.y = e.pageY - canvas.offsetTop;
+
+            if (dragPoint){
+                curve.update = true;
+                dragPoint.copy(mouse);
+                loop();
+            }
+        }
+    });
+
+
+    loop();
+
+});
+
+</script>
+
+</html>

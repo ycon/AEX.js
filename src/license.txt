@@ -1,5 +1,0 @@
-/** @license
- * Released under the MIT license
- * Author: Yannick Connan
- * Version: ::VERSION_NUMBER:: - Build: ::BUILD_NUMBER:: (::BUILD_DATE::)
- */
