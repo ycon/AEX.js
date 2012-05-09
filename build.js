@@ -1,5 +1,5 @@
 
-/*global require */
+/*global require console */
 
 var requirejs = require('requirejs');
 var fs = require('fs');
@@ -59,8 +59,7 @@ requirejs.optimize(exporter_config, function (buildResponse) {
 
     console.log("Exporter built");
 
-    var contents = fs.readFileSync(exporter_config.out, 'utf8'),
-        ae_cs55  = '/Applications/Adobe After Effects CS5.5/Scripts/ScriptUI Panels',
+    var ae_cs55  = '/Applications/Adobe After Effects CS5.5/Scripts/ScriptUI Panels',
         ae_cs5   = '/Applications/Adobe After Effects CS5/Scripts/ScriptUI Panels',
         old_jsx  = fs.createReadStream('./build/exporter/aex_export.jsx'),
         old_swf  = fs.createReadStream('./build/exporter/timeout.swf'),

@@ -8,22 +8,22 @@
 
 <script type="text/javascript">
 
-window.requestAnimationFrame || (window.requestAnimationFrame =
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame    ||
-    window.oRequestAnimationFrame      ||
-    window.msRequestAnimationFrame     ||
-    function(callback, element) {
-        return window.setTimeout(function() {
-            callback(+new Date());
-    }, 1000 / 60);
-});
+    window.requestAnimationFrame || (window.requestAnimationFrame =
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame    ||
+        window.oRequestAnimationFrame      ||
+        window.msRequestAnimationFrame     ||
+        function(callback, element) {
+            return window.setTimeout(function() {
+                callback(+new Date());
+        }, 1000 / 60);
+    });
 
 </script>
 
 <script>
 
-    require({baseUrl: '../lib',}, ['extern/jquery','main'], function ($, aex) {
+    require({baseUrl: '../lib'}, ['extern/jquery','main'], function ($, aex) {
 
         $(document).ready(function() {
 
@@ -74,7 +74,6 @@ window.requestAnimationFrame || (window.requestAnimationFrame =
     });
 
 </script>
-
 </head>
 <body>
 
