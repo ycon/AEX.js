@@ -9,13 +9,14 @@ var config = {
     baseUrl    : './lib',
     name       : 'extern/almond',
     include    : ["main"],
+    exclude    : ["text"],
     out        : './build/aex.build.js',
     optimize   : "none",
     inlineText : true,
     wrap       : true
 };
 
-console.log("building optimized library");
+console.log("Building optimized library");
 
 requirejs.optimize(config, function (buildResponse) {
 
@@ -100,6 +101,4 @@ requirejs.optimize(exporter_config, function (buildResponse) {
     } catch (e) {
 
     }
-
-    //fs.writeFileSync('./build/aex.min.js', final_contents, 'utf8');
 });

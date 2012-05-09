@@ -1,0 +1,1037 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"cl",
+				"className"
+			],
+			[
+				"sc",
+				"sceneCss"
+			],
+			[
+				"n",
+				"new_swf"
+			],
+			[
+				"ae",
+				"ae_cs55"
+			],
+			[
+				"re",
+				"require"
+			],
+			[
+				"ex",
+				"exporter_config"
+			],
+			[
+				"h",
+				"hasOwnProperty"
+			],
+			[
+				"te",
+				"text_obj"
+			],
+			[
+				"get",
+				"getProperty"
+			],
+			[
+				"ge",
+				"getColor"
+			],
+			[
+				"pro",
+				"propertyExporter"
+			],
+			[
+				"pr",
+				"propertyExporter"
+			],
+			[
+				"p",
+				"properties"
+			],
+			[
+				"I",
+				"ItemSubPanel"
+			],
+			[
+				"Layer",
+				"LayerPanel"
+			],
+			[
+				"r",
+				"render"
+			],
+			[
+				"an",
+				"animator"
+			],
+			[
+				"b",
+				"browser"
+			],
+			[
+				"l",
+				"log"
+			],
+			[
+				"j",
+				"jquery"
+			],
+			[
+				"S",
+				"Stack"
+			],
+			[
+				"g",
+				"graph"
+			],
+			[
+				"L",
+				"Layer"
+			],
+			[
+				"proto",
+				"prototype"
+			],
+			[
+				"An",
+				"Animator"
+			],
+			[
+				"A",
+				"AnimatorStack"
+			],
+			[
+				"K",
+				"Keys"
+			],
+			[
+				"Anim",
+				"AnimatorStack"
+			],
+			[
+				"cu",
+				"cubicToQuadratic"
+			],
+			[
+				"Ke",
+				"KeyFrame"
+			],
+			[
+				"prope",
+				"property"
+			],
+			[
+				"t",
+				"target"
+			],
+			[
+				"item",
+				"items"
+			],
+			[
+				"be",
+				"bezierEase"
+			],
+			[
+				"Ma",
+				"Matrix2D"
+			],
+			[
+				"retu",
+				"return"
+			],
+			[
+				"M",
+				"Matrix2D"
+			],
+			[
+				"requi",
+				"requireq  (variable)"
+			],
+			[
+				"req",
+				"require  (function)"
+			],
+			[
+				"m",
+				"main"
+			],
+			[
+				"require",
+				"requirejs"
+			],
+			[
+				"my",
+				"myVal"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "build.js",
+			"settings":
+			{
+				"buffer_size": 2958,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "lib/text.js",
+			"settings":
+			{
+				"buffer_size": 12351,
+				"line_ending": "Unix",
+				"name": "/**"
+			}
+		},
+		{
+			"file": "lib/style/scene.css",
+			"settings":
+			{
+				"buffer_size": 1004,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "lib/renderers/dom/Renderer.js",
+			"settings":
+			{
+				"buffer_size": 2312,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "lib/renderers/dom/Composition.js",
+			"settings":
+			{
+				"buffer_size": 12547,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "test/aeBuilder_test.html",
+			"settings":
+			{
+				"buffer_size": 1928,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Build AEX",
+	"command_palette":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+			[
+				"in",
+				"Package Control: Install Package"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"pa",
+				"Package Control: Install Package"
+			],
+			[
+				"Pa",
+				"Package Control: Install Package"
+			],
+			[
+				"format",
+				"Snippet: for (…) {…} (Improved Native For-Loop)"
+			],
+			[
+				"pack",
+				"Package Control: Install Package"
+			],
+			[
+				"Pack",
+				"Package Control: Install Package"
+			],
+			[
+				"tab",
+				"Indentation: Convert to Tabs"
+			]
+		],
+		"width": 467.0
+	},
+	"console":
+	{
+		"height": 153.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/Users/yannick/Documents/AEX/build/aex.build.js",
+		"/Users/yannick/Documents/AEX/aex.sublime-project",
+		"/Users/yannick/Documents/AEX/build.js",
+		"/Users/yannick/Library/Application Support/Sublime Text 2/Packages/Alignment/Base File.sublime-settings",
+		"/Users/yannick/Library/Application Support/Sublime Text 2/Packages/User/JavaScript.sublime-settings",
+		"/Users/yannick/Library/Application Support/Sublime Text 2/Packages/Alignment/Default (OSX).sublime-keymap",
+		"/Users/yannick/Documents/workspace_js/AMD/test/curve_test.html",
+		"/Users/yannick/Documents/workspace_js/AMD/test/fallback_test.html",
+		"/Users/yannick/Documents/workspace_js/AMD/test/aeBuilder_test.html",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/path/Path.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/path/CubicCurve.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/exporter/propertyExporter.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/exporter/propertyCleaner.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/exporter/projectExporter.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/exporter/ItemSubPanel.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/exporter/LayerPanel.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/exporter/LayerWatcher.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/path/SimplePath.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/utils/AfterEffects.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/exporter/LayerSetting.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/exporter/blendingModes.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/exporter/PanelBase.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/tools/PanelBase.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/exporter/exporter.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/extern/json.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/libs/json2.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/animation/AnimatorStack.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/builders/aeBuilder.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/main.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/core/Stack.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/extern/jquery.js",
+		"/Users/yannick/Documents/workspace_js/AMD/build/aex.build.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/animation/Keys.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/animation/SpatialKeys.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/animation/KeyFrame.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/animation/Animator.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/geom/bezierEase.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/geom/cubicToQuadratic.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/graph/Text.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/path/QuadCurve.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/path/Line.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/renderers/dom/Text.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/renderers/dom/Solid.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/renderers/dom/Renderer.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/renderers/dom/Composition.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/utils/Browser.js",
+		"/Users/yannick/Documents/workspace_js/AMD/build.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/graph/Solid.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/graph/Layer.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/graph/Composition.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/graph/Camera.js",
+		"/Users/yannick/Documents/workspace_js/AMD/build/aex.min.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/animation.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/graph.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/utils/browser.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/animation/animation.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/extern/ES5.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/utils/ES5.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/graph/main.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/animation/main.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/graph/LayerBase.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/extern/require.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/extern/r.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/utils/Curve.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/geom/Vector.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/geom/Matrix2D.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/geom/Matrix.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/geom/Quaternion.js",
+		"/Users/yannick/Library/Application Support/Sublime Text 2/Packages/SublimeLinter/SublimeLinter.sublime-settings",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/geom/Rectangle.js",
+		"/Users/yannick/Library/Application Support/Sublime Text 2/Packages/SublimeCodeIntel/Base File.sublime-settings",
+		"/Users/yannick/Library/Application Support/Sublime Text 2/Packages/User/Base File.sublime-settings",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/MyClass.js",
+		"/Users/yannick/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
+		"/Users/yannick/Documents/workspace_js/AMD/.codeintel/config",
+		"/Users/yannick/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+		"/Users/yannick/Library/Application Support/Sublime Text 2/Packages/User/JS-Node.sublime-build",
+		"/Users/yannick/Documents/workspace_js/AMD/build/aex.js",
+		"/Users/yannick/Documents/workspace_js/AMD/test.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/extern/almond.js",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/almond.js",
+		"/Users/yannick/Documents/workspace_js/AMD/package.json",
+		"/Users/yannick/Documents/workspace_js/AMD/lib/signals/signals.js"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"cleanTransform",
+			"setCollapse",
+			"micr",
+			"Micr",
+			"collapse",
+			"AE",
+			"json",
+			"this",
+			"propertyCleaner",
+			"propertyE",
+			"Quater",
+			"Vector",
+			"this",
+			"get",
+			"return",
+			"get",
+			"buildItem",
+			"this",
+			"v1",
+			"m2",
+			"v1",
+			"add",
+			"swap",
+			"remove",
+			"gene",
+			"ths",
+			"thsi",
+			"requirejs",
+			"require",
+			"isDirectory",
+			"direct"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 4,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "build.js",
+					"settings":
+					{
+						"buffer_size": 2958,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								214,
+								214
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"text-indent": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"devel": true,
+								"eqeqeq": true,
+								"eqnull": true,
+								"evil": true,
+								"forin": true,
+								"latedef": true,
+								"laxbreak": true,
+								"newcap": true,
+								"plusplus": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"undef": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "lib/text.js",
+					"settings":
+					{
+						"buffer_size": 12351,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								486,
+								503
+							]
+						],
+						"settings":
+						{
+							"auto_name": "/**",
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "lib/style/scene.css",
+					"settings":
+					{
+						"buffer_size": 1004,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								788,
+								788
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/CSS/CSS.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "lib/renderers/dom/Renderer.js",
+					"settings":
+					{
+						"buffer_size": 2312,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								153,
+								153
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"text-indent": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"devel": true,
+								"eqeqeq": true,
+								"eqnull": true,
+								"evil": true,
+								"forin": true,
+								"latedef": true,
+								"laxbreak": true,
+								"newcap": true,
+								"plusplus": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"undef": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "lib/renderers/dom/Composition.js",
+					"settings":
+					{
+						"buffer_size": 12547,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								20,
+								20
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"text-indent": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"devel": true,
+								"eqeqeq": true,
+								"eqnull": true,
+								"evil": true,
+								"forin": true,
+								"latedef": true,
+								"laxbreak": true,
+								"newcap": true,
+								"plusplus": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"undef": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "test/aeBuilder_test.html",
+					"settings":
+					{
+						"buffer_size": 1928,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								758,
+								752
+							]
+						],
+						"settings":
+						{
+							"annotations":
+							[
+								"TODO",
+								"README",
+								"FIXME"
+							],
+							"csslint_options":
+							{
+								"adjoining-classes": "warning",
+								"box-model": true,
+								"box-sizing": "warning",
+								"compatible-vendor-prefixes": "warning",
+								"display-property-grouping": true,
+								"duplicate-background-images": "warning",
+								"duplicate-properties": true,
+								"empty-rules": true,
+								"errors": true,
+								"fallback-colors": "warning",
+								"floats": "warning",
+								"font-faces": "warning",
+								"font-sizes": "warning",
+								"gradients": "warning",
+								"ids": "warning",
+								"import": "warning",
+								"important": "warning",
+								"known-properties": true,
+								"outline-none": "warning",
+								"overqualified-elements": "warning",
+								"qualified-headings": "warning",
+								"regex-selectors": "warning",
+								"rules-count": "warning",
+								"shorthand": "warning",
+								"text-indent": "warning",
+								"unique-headings": "warning",
+								"universal-selector": "warning",
+								"vendor-prefix": true,
+								"zero-units": "warning"
+							},
+							"gjslint_ignore":
+							[
+								110.0
+							],
+							"gjslint_options":
+							[
+							],
+							"javascript_linter": "jshint",
+							"jshint_options":
+							{
+								"browser": true,
+								"devel": true,
+								"eqeqeq": true,
+								"eqnull": true,
+								"evil": true,
+								"forin": true,
+								"latedef": true,
+								"laxbreak": true,
+								"newcap": true,
+								"plusplus": true,
+								"regexdash": true,
+								"sub": true,
+								"trailing": true,
+								"undef": true,
+								"wsh": true
+							},
+							"pep8_ignore":
+							[
+								"E501"
+							],
+							"perl_linter": "perlcritic",
+							"pyflakes_ignore":
+							[
+							],
+							"pyflakes_ignore_import_*": true,
+							"sublimelinter": true,
+							"sublimelinter_delay": 0.0,
+							"sublimelinter_disable":
+							[
+							],
+							"sublimelinter_executable_map":
+							{
+							},
+							"sublimelinter_fill_outlines": false,
+							"sublimelinter_gutter_marks": false,
+							"sublimelinter_notes": false,
+							"sublimelinter_objj_check_ascii": false,
+							"sublimelinter_popup_errors_on_save": false,
+							"sublimelinter_syntax_map":
+							{
+								"Python Django": "python"
+							},
+							"sublimelinter_wrap_find": true,
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 0.0
+	},
+	"input":
+	{
+		"height": 35.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.exec":
+	{
+		"height": 124.0
+	},
+	"replace":
+	{
+		"height": 0.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"",
+				"build.js"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+		],
+		"width": 380.0
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 250.0,
+	"status_bar_visible": true
+}

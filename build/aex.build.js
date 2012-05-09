@@ -3514,6 +3514,8 @@ define('builders/aeBuilder',[
     };
 });
 
+define('text!style/scene.css',[],function () { return '\nscene * {\n    position:absolute;\n    display:block;\n    top:0px;\n    left:0px;\n    margin:0px;\n    padding:0px;\n    border:0px;\n    word-wrap:break-word;\n    -webkit-font-smoothing:antialiased;\n    transform-origin:0% 0%;\n    -o-transform-origin:0% 0%;\n    -khtml-transform-origin:0% 0%;\n    -moz-transform-origin:0% 0%;\n    -webkit-transform-origin:0% 0%;\n    -ms-transform-origin:0% 0%;\n}\n\nscene layer.filter {\n\n    -ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=\'1.0\', sizingMethod=\'auto expand\'); progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";\n    filter: progid:DXImageTransform.Microsoft.Matrix(M11=\'2.0\', sizingMethod=\'auto expand\');\n    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100)\n}\n\nscene.no_collapse > composition, .no_collapse > composition {\n    overflow: hidden;\n    transform-style: flat;\n    -o-transform-style: flat;\n    -khtml-transform-style: flat;\n    -moz-transform-style: flat;\n    -webkit-transform-style: flat;\n    -ms-transform-style: flat;\n}\n';});
+
 
 define('geom/Matrix2D',['./Vector'], function(Vector){
 
@@ -4214,8 +4216,8 @@ define('renderers/dom/Composition',[
         }
 
         if (!browser.haveTransform && browser.haveIEFilter){
-            element.style.filter = "progid:DXImageTransform.Microsoft.Matrix(M11='1.0', sizingMethod='auto expand'); " +
-                                   "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
+            //element.style.filter = "progid:DXImageTransform.Microsoft.Matrix(M11='1.0', sizingMethod='auto expand'); " +
+                                   //"progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
         }
 
         return result;
@@ -4223,19 +4225,19 @@ define('renderers/dom/Composition',[
 
     function Composition (model) {
 
-        var sig     = model.layers.on,
-            self    = this,
+        var sig  = model.layers.on,
+            self = this,
             e;
 
-        this.model      = model;
-        this.element    = document.createElement('composition');
-        this.collapse   = null;
-        this.zoom       = 0;
-        this.centerX    = 0;
-        this.centerY    = 0;
-        this.width      = 0;
-        this.height     = 0;
-        this.layers     = [];
+        this.model    = model;
+        this.element  = document.createElement('composition');
+        this.collapse = null;
+        this.zoom     = 0;
+        this.centerX  = 0;
+        this.centerY  = 0;
+        this.width    = 0;
+        this.height   = 0;
+        this.layers   = [];
 
         model.layers.each(function(layer) {
             e = generate.call(self, layer);
@@ -4253,9 +4255,9 @@ define('renderers/dom/Composition',[
         sig.remove.add(remove, this);
         sig.swap.add(swap, this);
 
-        this.matrix_        = new Matrix();
-        this.matrix2D_      = new Matrix();
-        this.tempMatrix_    = new Matrix();
+        this.matrix_     = new Matrix();
+        this.matrix2D_   = new Matrix();
+        this.tempMatrix_ = new Matrix();
     }
 
     Composition.prototype = {
@@ -4264,31 +4266,33 @@ define('renderers/dom/Composition',[
 
         render: function(opt_camera, opt_parent, opt_parent_2D) {
 
-            var layers = this.layers,
-                l = this.layers.length,
-                model = this.model,
-                style = this.element.style,
-                camera = (opt_camera)?
-                         opt_camera :
-                         model.getCamera(),
-                cam_mat = camera.getCameraMatrix(),
-                i = 0;
+            var layers  = this.layers,
+                l       = this.layers.length,
+                i       = 0,
+                model   = this.model,
+                style   = this.element.style,
+                camera  = (opt_camera)
+                          ? opt_camera
+                          : model.getCamera(),
+                cam_mat = camera.getCameraMatrix();
 
             if (this.collapse !== model.collapse) {
 
                 this.collapse = model.collapse;
-                this.setCollapse();
 
-                if (!this.collapse) {
+                if (this.collapse) {
+                    this.element.removeAttribute('style');
+                } else {
                     this.width = this.height = this.zoom = null;
                 }
+
             }
 
             if (this.width !== model.width || this.height !== model.height) {
 
-                this.width = model.width;
-                this.height = model.height;
-                style.width = this.width.toFixed(4) + 'px';
+                this.width   = model.width;
+                this.height  = model.height;
+                style.width  = this.width.toFixed(4) + 'px';
                 style.height = this.height.toFixed(4) + 'px';
 
                 if (!this.collapse) {
@@ -4324,12 +4328,12 @@ define('renderers/dom/Composition',[
 
         renderLayer: function(layer, camera, cam_mat, opt_parent, opt_parent_2D) {
 
-            var model = layer.model,
+            var model   = layer.model,
                 element = layer.element,
                 handler = layer.handler,
                 content = layer.content,
-                style = element.style,
-                is3D = model.is3D,
+                style   = element.style,
+                is3D    = model.is3D,
                 mat,
                 mat_2D;
 
@@ -4348,12 +4352,22 @@ define('renderers/dom/Composition',[
                     mat.multiply(opt_parent_2D);
                 }
 
-                if (model.type === 'composition' && model.collapse){
+                if (model.collapse !== layer.collapse) {
 
-                    if (!layer.collapse) {
-                        layer.collapse  = true;
-                        this.cleanTransform(element);
+                    layer.collapse = model.collapse;
+                    layer.className = (model.collapse)
+                                      ? 'collapse'
+                                      : 'no_collapse';
+
+                    if (model.type === 'composition') {
+
+                        element.removeAttribute('style');
+                    } else {
+                        layer.className += ' filter';
                     }
+                }
+
+                if (model.type === 'composition' && model.collapse){
 
                     mat_2D = mat;
 
@@ -4392,7 +4406,9 @@ define('renderers/dom/Composition',[
                         }
 
                         scale = 1/layer.scale;
-                        mat.preMultiply(this.tempMatrix_.scaling(scale, scale, 1));
+                        if (scale !== 1) {
+                            mat.preMultiply(this.tempMatrix_.scaling(scale, scale, 1));
+                        }
 
                     } else if (!model.collapse && is3D && layer.scale !== 1) {
 
@@ -4426,34 +4442,6 @@ define('renderers/dom/Composition',[
             }
         },
 
-        setCollapse: function() {
-
-            var style = this.element.style;
-
-            if (this.collapse){
-
-                if (browser.have3DTransform) {
-                    style[browser.TRANSFORM_STYLE] = "";
-                    style[browser.PERSPECTIVE] = "";
-                    style[browser.PERSPECTIVE_ORIGIN] = "";
-                }
-
-                try {
-                    style.clip = '';
-                } catch (e) {
-                    style.clip = 'rect(auto ,auto, auto, auto)';
-                }
-
-                style.overflow = '';
-
-            } else {
-
-                style.overflow = 'hidden';
-                style[browser.TRANSFORM_STYLE] = 'flat';
-            }
-
-        },
-
         setScale: function(elem, scale) {
 
             if (browser.haveTransform) {
@@ -4485,9 +4473,7 @@ define('renderers/dom/Composition',[
                 }
 
                 if (browser.haveTransform) {
-
                     style[browser.TRANSFORM] = matrix2D.toCSS();
-
                 } else {
 
                     if (browser.haveIEFilter && elem.filters.length){
@@ -4515,22 +4501,18 @@ define('renderers/dom/Composition',[
                         matrix2D.preTranslate(bounds.x, bounds.y);
                         this.slideMatrixBounds(matrix2D, bounds);
 
-
                         filter = elem.filters.item(0);
 
                         filter.M11 = matrix2D.m11;
                         filter.M12 = matrix2D.m21;
                         filter.M21 = matrix2D.m12;
                         filter.M22 = matrix2D.m22;
-
                     }
 
                     style.left = matrix2D.x.toFixed(4) + 'px';
                     style.top = matrix2D.y.toFixed(4) + 'px';
                 }
-
             }
-
         },
 
         slideMatrixBounds: function(matrix, bounds) {
@@ -4558,12 +4540,6 @@ define('renderers/dom/Composition',[
             );
         },
 
-        cleanTransform: function(elem) {
-
-            elem.style[browser.TRANSFORM] = '';
-            elem.style.filter = '';
-        },
-
         setOpacity: function(elem, opacity) {
 
             if (elem.style.opacity !== undefined) {
@@ -4578,20 +4554,24 @@ define('renderers/dom/Composition',[
 });
 
 
-define('renderers/dom/Renderer',['./Composition'], function (Composition) {
+define('renderers/dom/Renderer',['text!style/scene.css', './Composition'], function (sceneCss, Composition) {
 
     function Renderer (scene, opt_camera) {
 
-        this.scene      = new Composition(scene);
-        this.camera     = opt_camera;
-        this.element    = document.createElement('scene');
+        this.scene   = new Composition(scene);
+        this.camera  = opt_camera;
+        this.element = document.createElement('scene');
 
+        this.element.className = 'no_collapse';
         this.element.appendChild(this.scene.element);
 
         if (!document.getElementById('AEStyleSheet')){
 
             var cssNode = document.createElement('style');
 
+            var cssRules = sceneCss;
+
+            /*
             var cssRules = "scene * {" +
                     "position:absolute;" +
                     "display:block;" +
@@ -4615,7 +4595,7 @@ define('renderers/dom/Renderer',['./Composition'], function (Composition) {
                 "scene solid {" +
                     "position: absolute" +
                 "}";
-
+            */
             cssNode.id = 'AEStyleSheet';
             cssNode.type = 'text/css';
             cssNode.rel = 'stylesheet';
