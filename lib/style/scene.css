@@ -2,11 +2,11 @@
 scene * {
     position:absolute;
     display:block;
-    top:0px;
-    left:0px;
-    margin:0px;
-    padding:0px;
-    border:0px;
+    top:0;
+    left:0;
+    margin:0;
+    padding:0;
+    border:0;
     word-wrap:break-word;
     -webkit-font-smoothing:antialiased;
     transform-origin:0% 0%;
@@ -17,11 +17,9 @@ scene * {
     -ms-transform-origin:0% 0%;
 }
 
-scene layer.filter {
-
-    -ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11='1.0', sizingMethod='auto expand'); progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
-    filter: progid:DXImageTransform.Microsoft.Matrix(M11='2.0', sizingMethod='auto expand');
-    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100)
+scene .filter {
+    -ms-filter: "progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand') progid:DXImageTransform.Microsoft.Alpha(opacity=100)";
+    filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod='auto expand') progid:DXImageTransform.Microsoft.Alpha(opacity=100);
 }
 
 scene.no_collapse > composition, .no_collapse > composition {

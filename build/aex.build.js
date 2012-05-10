@@ -3514,7 +3514,7 @@ define('builders/aeBuilder',[
     };
 });
 
-define('text!style/scene.css',[],function () { return '\nscene * {\n    position:absolute;\n    display:block;\n    top:0px;\n    left:0px;\n    margin:0px;\n    padding:0px;\n    border:0px;\n    word-wrap:break-word;\n    -webkit-font-smoothing:antialiased;\n    transform-origin:0% 0%;\n    -o-transform-origin:0% 0%;\n    -khtml-transform-origin:0% 0%;\n    -moz-transform-origin:0% 0%;\n    -webkit-transform-origin:0% 0%;\n    -ms-transform-origin:0% 0%;\n}\n\nscene layer.filter {\n\n    -ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=\'1.0\', sizingMethod=\'auto expand\'); progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";\n    filter: progid:DXImageTransform.Microsoft.Matrix(M11=\'2.0\', sizingMethod=\'auto expand\');\n    filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=100)\n}\n\nscene.no_collapse > composition, .no_collapse > composition {\n    overflow: hidden;\n    transform-style: flat;\n    -o-transform-style: flat;\n    -khtml-transform-style: flat;\n    -moz-transform-style: flat;\n    -webkit-transform-style: flat;\n    -ms-transform-style: flat;\n}\n';});
+define('text!style/scene.css',[],function () { return '\nscene * {\n    position:absolute;\n    display:block;\n    top:0;\n    left:0;\n    margin:0;\n    padding:0;\n    border:0;\n    word-wrap:break-word;\n    -webkit-font-smoothing:antialiased;\n    transform-origin:0% 0%;\n    -o-transform-origin:0% 0%;\n    -khtml-transform-origin:0% 0%;\n    -moz-transform-origin:0% 0%;\n    -webkit-transform-origin:0% 0%;\n    -ms-transform-origin:0% 0%;\n}\n\nscene .filter {\n    -ms-filter: "progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\'auto expand\') progid:DXImageTransform.Microsoft.Alpha(opacity=100)";\n    filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\'auto expand\') progid:DXImageTransform.Microsoft.Alpha(opacity=100);\n}\n\nscene.no_collapse > composition, .no_collapse > composition {\n    overflow: hidden;\n    transform-style: flat;\n    -o-transform-style: flat;\n    -khtml-transform-style: flat;\n    -moz-transform-style: flat;\n    -webkit-transform-style: flat;\n    -ms-transform-style: flat;\n}\n';});
 
 
 define('geom/Matrix2D',['./Vector'], function(Vector){
@@ -4135,6 +4135,8 @@ define('utils/browser',[],function () {
 });
 
 
+/*global define */
+
 define('renderers/dom/Composition',[
     'geom/Matrix2D',
     'geom/Matrix',
@@ -4213,11 +4215,6 @@ define('renderers/dom/Composition',[
             element.appendChild(handler.element);
             result.content = handler.element;
             result.handler = handler;
-        }
-
-        if (!browser.haveTransform && browser.haveIEFilter){
-            //element.style.filter = "progid:DXImageTransform.Microsoft.Matrix(M11='1.0', sizingMethod='auto expand'); " +
-                                   //"progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
         }
 
         return result;
@@ -4335,7 +4332,8 @@ define('renderers/dom/Composition',[
                 style   = element.style,
                 is3D    = model.is3D,
                 mat,
-                mat_2D;
+                mat_2D,
+                className;
 
             if (layer.visible !== model.visible) {
                 layer.visible = model.visible;
@@ -4355,16 +4353,17 @@ define('renderers/dom/Composition',[
                 if (model.collapse !== layer.collapse) {
 
                     layer.collapse = model.collapse;
-                    layer.className = (model.collapse)
-                                      ? 'collapse'
-                                      : 'no_collapse';
+                    className = (model.collapse)
+                                ? 'collapse'
+                                : 'no_collapse';
 
-                    if (model.type === 'composition') {
-
+                    if (model.type === 'composition' && layer.collapse) {
                         element.removeAttribute('style');
                     } else {
-                        layer.className += ' filter';
+                        className += ' filter';
                     }
+                    element.className = className;
+                    //element.setAttribute('class', className);
                 }
 
                 if (model.type === 'composition' && model.collapse){
@@ -4392,11 +4391,12 @@ define('renderers/dom/Composition',[
                             my = mat.m22,
                             mz = mat.m23,
                             scale = (
-                                (is3D) ?
-                                    Math.sqrt((mx * mx) + (my * my) + (mz * mz)) *
+                                (is3D)
+                                ? Math.sqrt(
+                                    (mx * mx) + (my * my) + (mz * mz)) *
                                     (this.zoom / (this.zoom - mat.m43)
-                                    ) :
-                                    Math.sqrt((mx * mx) + (my * my))
+                                )
+                                : Math.sqrt((mx * mx) + (my * my))
                             ) * 1.2 ,
                             ratio = scale / layer.scale;
 
@@ -4476,6 +4476,8 @@ define('renderers/dom/Composition',[
                     style[browser.TRANSFORM] = matrix2D.toCSS();
                 } else {
 
+
+                    
                     if (browser.haveIEFilter && elem.filters.length){
 
                         var bounds = browser.getLocalBound(elem);

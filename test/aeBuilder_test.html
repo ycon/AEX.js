@@ -42,7 +42,7 @@ window.requestAnimationFrame || (window.requestAnimationFrame =
                     if (play){
                         animator.animate(((t - animStart) + pauseOffset) / 1000);
                         renderer.render();
-                        requestAnimationFrame(loop);
+                        //requestAnimationFrame(loop);
                     } else {
                         pauseOffset = t-animStart;
                     }

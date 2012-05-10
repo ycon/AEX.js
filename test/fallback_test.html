@@ -1,4 +1,5 @@
 <html>
+<html>
 <head>
 <!--[if IE]>
 <script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>
@@ -32,13 +33,13 @@
                 var animator = aex.build(data),
                     comp = animator.item;
                     renderer = new aex.DomRenderer(comp);
-                    renderer2 = new aex.DomRenderer(comp);
+                    //renderer2 = new aex.DomRenderer(comp);
 
-                console.log(comp,renderer,renderer2);
+                //console.log(comp,renderer,renderer2);
                 $('body').append(renderer.element);
-                $('body').append(renderer2.element);
+                //$('body').append(renderer2.element);
 
-                renderer2.element.style.opacity = "0.5";
+                //renderer2.element.style.opacity = "0.5";
 
                 var animStart = new Date().getTime();
                 var play = true;
@@ -47,10 +48,10 @@
 
                     if (play){
                         animator.animate(((t - animStart) + pauseOffset) / 1000);
-                        aex.browser.have3DTransform = true;
+                        //aex.browser.have3DTransform = true;
                         renderer.render();
-                        aex.browser.have3DTransform = false;
-                        renderer2.render();
+                        //aex.browser.have3DTransform = false;
+                        //renderer2.render();
                         //requestAnimationFrame(loop);
                     } else {
                         pauseOffset = t-animStart;
