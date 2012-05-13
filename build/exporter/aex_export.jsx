@@ -1607,6 +1607,8 @@ define('exporter/blendingModes',[],function () {
  * @author egraether / http://egraether.com/
  */
 
+/*global define*/
+
 define('geom/Vector',[],function(){
 
     function Vector (x, y, z) {
@@ -1614,7 +1616,7 @@ define('geom/Vector',[],function(){
         this.x = x || 0;
         this.y = y || 0;
         this.z = z || 0;
-    };
+    }
 
     Vector.isVector = function (v) {
 
@@ -2509,6 +2511,8 @@ define('path/QuadCurve',[],function() {
 
 
 
+/*global define */
+
 define('path/SimplePath',['./Line','./QuadCurve'], function(Line, QuadCurve) {
 
     function Path (start) {
@@ -2545,7 +2549,13 @@ define('path/SimplePath',['./Line','./QuadCurve'], function(Line, QuadCurve) {
             return this.length_;
         },
 
-        getItem : function(pos){
+        add: function (item) {
+            this.elements.push(item);
+            this.start = item.end;
+            this.update = true;
+        },
+
+        getItem : function (pos) {
 
             pos *= this.length();
 
@@ -2572,7 +2582,7 @@ define('path/SimplePath',['./Line','./QuadCurve'], function(Line, QuadCurve) {
             pos *= this.length();
 
             if (item){
-                return item.getVect((pos-this.lastPos_) / item.length(), vec);
+                return item.getVect((pos - this.lastPos_) / item.length(), vec);
             } else {
                 return (vec) ? vec.copy(this.start) : this.start.clone();
             }
@@ -2580,16 +2590,12 @@ define('path/SimplePath',['./Line','./QuadCurve'], function(Line, QuadCurve) {
 
         lineTo : function(end){
 
-            this.elements.push(new Line(this.start,end));
-            this.start = end;
-            this.update = true;
+            this.add(new Line(this.start, end));
         },
 
         curveTo : function(anchor,end){
 
-            this.elements.push( new QuadCurve( this.start,anchor,end ) );
-            this.start = end;
-            this.update = true;
+            this.add(new QuadCurve(this.start, anchor, end));
         }
     };
 
@@ -2935,7 +2941,10 @@ define('exporter/propertyExporter',['extern/json', 'geom/Vector', 'path/CubicCur
                 delete key.e;
             }
 
-            if (prop.isSpatial) {
+            if (
+                   prop.propertyValueType === PropertyValueType.ThreeD_SPATIAL
+                || prop.propertyValueType === PropertyValueType.TwoD_SPATIAL
+            ) {
 
                 in_anchor = prop.keyInSpatialTangent(index);
                 out_anchor = prop.keyOutSpatialTangent(index);

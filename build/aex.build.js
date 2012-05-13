@@ -419,6 +419,8 @@ define('extern/ES5',[],function () {
  * @author egraether / http://egraether.com/
  */
 
+/*global define*/
+
 define('geom/Vector',[],function(){
 
     function Vector (x, y, z) {
@@ -426,7 +428,7 @@ define('geom/Vector',[],function(){
         this.x = x || 0;
         this.y = y || 0;
         this.z = z || 0;
-    };
+    }
 
     Vector.isVector = function (v) {
 
@@ -847,29 +849,6 @@ define('geom/Quaternion',[],function(){
     quat = new Quaternion();
 
     return Quaternion;
-});
-
-
-define('animation/KeyFrame',[],function () {
-
-	function KeyFrame (offset, value, is_hold) {
-
-		this.offset = offset;
-		this.position_ = 0;
-
-		this.value = value;
-		this.isHold = is_hold;
-		this.inX = 0;
-		this.inY = 0;
-		this.outX = 0;
-		this.outY = 0;
-		this.inTangent = null;
-		this.outTangent = null;
-		this.path = null;
-		this.update = false;
-	}
-
-	return KeyFrame;
 });
 
 /*jslint onevar:true, undef:true, newcap:true, regexp:true, bitwise:true, maxerr:50, indent:4, white:false, nomen:false, plusplus:false */
@@ -1470,340 +1449,192 @@ define('core/Stack',['extern/signals'], function (signals) {
     return Stack;
 });
 
-define('animation/AnimatorStack',['core/Stack'], function (Stack) {
 
-    function AnimatorStack (item) {
+/*global define */
+define('path/Anchor',[
+    'geom/Vector'
+], function (
+    Vector
+) {
 
-        Stack.call(this);
+    function Anchor (x, y, inX, inY, outX, outY) {
 
-        this.item = item;
-        this.duration = 1;
-        this.frameRate = 25;
-        this.clamp = false;
+        Vector.call(this, x, y);
+
+        this.inVector = new Vector(inX, inY);
+        this.outVector = new Vector(outX, outY);
     }
 
-    AnimatorStack.prototype = new Stack();
-    AnimatorStack.prototype.constructor = AnimatorStack;
+    Anchor.prototype = new Vector();
+    Anchor.prototype.constructor = Anchor;
 
-    AnimatorStack.prototype.animate = function(time){
+    Anchor.prototype.clone = function() {
 
-        var items = this.items_,
-            l = items.length,
-            i = 0;
-
-        time = time%this.duration;
-
-        if (this.clamp){
-            time = Math.floor(time*this.frameRate)/this.frameRate;
-        }
-
-        if (time !== this.prevTime_){
-            for ( ; i < l; i += 1) {
-                items[i].animate(time);
-            }
-            this.prevTime_ = time;
-        }
-
+        return new Anchor(
+            this.x,
+            this.y,
+            this.inVector.x,
+            this.inVector.y,
+            this.outVector.x,
+            this.outVector.y
+        );
     };
 
-    return AnimatorStack;
+    Anchor.prototype.copy = function(a) {
 
+        Vector.prototype.copy.call(this,a);
+        if (a.inVector && a.outVector) {
+            this.inVector.copy(a.inVector);
+            this.outVector.copy(a.outVector);
+        }
+        return this;
+    };
+
+    Anchor.prototype.equals = function(a) {
+
+        if (
+               a.inVector
+            && a.outVector
+            && this.inVector.equals(a.inVector)
+            && this.outVector.equals(a.outVector)
+            && Vector.prototype.equals.call(this, a)
+        ) {
+            return true;
+        }
+        return false;
+    };
+
+    return Anchor;
 });
+
 
 /**
- * Cubic Bezier timing function compatible with CSS3 transition-timing-function
- * <p>
- * The timing function is specified using a cubic Bezier curve,
- * which is defined by four control points.
- * The first and last control points are always set to (0,0) and (1,1),
- * so you just need to specify the two in-between control points.
- * The points are specified as a percentage of the overall duration
- * (percentage: interpolated as a real number between 0 and 1).
- * The timing function takes as its input the current elapsed percentage
- * of the transition duration and outputs a percentage that determines
- * how close the transition is to its goal state.
- * </p>
- * <p>
- * currently used function to determine time
- * conversion to js from webkit source files
- * js port from www.netzgesta.de/dev/cubic-bezier-timing-function.html
- * </p>
+ * Will divide a cubic curve into a set of quadratic curves.
+ * this is based on the adaptive division algorythm defined here :
+ * http://www.caffeineowl.com/graphics/2d/vectorial/cubic2quad01.html
  */
 
- define('geom/bezierEase',[],function () {
+define('geom/cubicToQuadratic',[],function () {
 
-    function bezierEase (p1x, p1y, p2x, p2y, t, epsilon) {
+    function cubicToQuadratic (p1, c1, c2, p2, path, precision) {
 
-        p1y = p1y || 0;
-        p2y = p2y || 0;
+        var res1 = p1.clone();
+        var res2 = p2.clone();
 
-        var t2 = solveCurveX(p1x || 0, p2x || 0, t || 0, epsilon),
-            cy = p1y * 3,
-            by = 3 * (p2y - p1y) - cy,
-            ay = 1 - cy - by;
-
-        return ((ay * t2 + by) * t2 + cy) * t2;
-    }
-
-    // Given an x value, find a parametric value it came from.
-    function solveCurveX (p1x, p2x, x, epsilon) {
-
-        var cx = 3 * p1x,
-            bx = 3 * (p2x - p1x) - cx,
-            ax = 1 - cx - bx,
-            bx2 = bx * 2,
-            ax3 = ax * 3,
-            t0, t1, t2, x2, d2, i;
-
-        if (!epsilon) {
-            //epsilon = 1.0 / (100.0 * (precision||100));
-            epsilon = 0.0001;
+        if (c2.equals(p2)) {
+            // exception made when an anchor is the same as end point, we just 1
+            // quad curve to approximate that.
+            path.curveTo(res1.lerp(c1, 0.89), p2);
+            return path;
         }
 
-        // First try a few iterations of Newton's method -- normally very fast.
-        t2 = x;
-
-        for (i = 0; i < 8; i += 1) {
-            x2 = (((ax * t2 + bx) * t2 + cx) * t2) - x;
-            if (fabs(x2) < epsilon) {
-                return t2;
-            }
-            d2 = (ax3 * t2 + bx2) * t2 + cx;
-            if (fabs(d2) < 1e-6) {
-                break;
-            }
-            t2 = t2 - x2 / d2;
+        if (c1.equals(p1)) {
+            // same as before
+            path.curveTo(res2.lerp(c2, 0.89), p2);
+            return path;
         }
 
-        // Fall back to the bisection method for reliability.
-        t0 = 0;
-        t1 = 1;
-        t2 = x;
-        if (t2 < t0) {
-            return t0;
-        }
-        if (t2 > t1) {
-            return t1;
-        }
-        i = 0;
+        // we first guess where the quadratic mid-points candidate are
 
-        while (t0 < t1 && i < 10) {
-            x2 = ((ax * t2 + bx) * t2 + cx) * t2;
-            if (fabs(x2 - x) < epsilon) {
-                return t2;
-            }
-            if (x > x2) {
-                t0 = t2;
-            } else {
-                t1 = t2;
-            }
-            t2 = (t1 - t0) * 0.5 + t0;
-            i += 1;
+        res1.lerp(c1, 1.5);
+        res2.lerp(c2, 1.5);
+
+        if (!precision) {
+            // if precision isn't set, we come up with one.
+            // This one is a guess based on overall curve haul width and height.
+
+            precision = (
+                Math.max(
+                    Math.max(res1.max(), res2.max()),
+                    Math.max(p1.max(), p2.max())
+                ) -
+                Math.min(
+                    Math.min(res1.min(), res2.min()),
+                    Math.min(p1.min(), p2.min())
+                )
+            ) / 350;
         }
 
-        return t2;
-    }
+        // d will define where we will need to split the curve.
+        // d is the distance between the 2 possible quadratic approximations.
+        // the closer they are, the less curves we need.
+        // if (d >= 1) = we only need one quadratic curve
+        // if (d < 1 && >=.5) = We'll split it in 2 at d point
+        // if (d < .5) = We'll split the curve is 3, one will be 0>d the other
+        // (1-d)>1.
+        // we will then iterate the algorithm in the remaining bit.
 
-    function fabs (n) {
+        var d = Math.sqrt(10.3923048 / res1.distance(res2) * precision);
 
-        if (n >= 0) {
-            return n;
-        }
+        if (d > 1) {
 
-        return 0 - n;
-    }
-
-    return bezierEase;
- });
-
-
-define('animation/Keys',['geom/bezierEase','./KeyFrame'], function (bezierEase, KeyFrame) {
-
-    function Keys (target, property) {
-        this.target = target;
-        this.property = property;
-
-        this.keys_ = [];
-        this.length_ = 0;
-    }
-
-    Keys.prototype = {
-
-        constructor : Keys,
-
-        length : function () {
-
-            var keys = this.keys_,
-                key,i,l,pos;
-
-            if (this.update){
-
-                l = keys.length;
-                pos = 0,
-                i = 0;
-
-                for ( ; i < l; i += 1) {
-                    key = keys[i];
-                    pos += key.offset;
-                    key.position_ = pos;
-                    if (key.update && key.path && (key.inTangent || key.outTangent)){
-                        this.path = null;
-                        key.update = false;
-                    }
-                }
-
-                this.length_ = pos;
-                this.update = false;
-            }
-
-            return this.length_;
-        },
-
-        num : function () {
-            return this.keys_.length;
-        },
-
-        indexAt : function (pos) {
-
-            var keys = this.keys_,
-                i = this.prevIndex_ || 0,
-                iterator = (pos >= (this.prevPosition_||0)) ? 1 : -1;
-
-            this.length();
-            this.prevPosition_ = pos;
-
-            if (pos <= keys[0].position_) {
-                this.prevIndex_ = 0;
-                return this.prevIndex_;
-            } else if (pos >= keys[keys.length-1].position_) {
-                this.prevIndex_ = keys.length-1;
-                return this.prevIndex_;
-            } else {
-
-                while (keys[i]){
-
-                    if ( pos >= keys[i].position_ && (
-                        !keys[i+1] || pos < keys[i+1].position_
-                    )) {
-                        this.prevIndex_ = i;
-                        this.prevPosition_ = pos;
-                        return this.prevIndex_;
-                    }
-
-                    i += iterator;
-                }
-            }
-
-            this.prevIndex_ = 0;
-
-            return this.prevIndex_;
-        },
-
-        get : function (pos, opt_obj) {
-
-            var index = this.indexAt(pos),
-                key = this.keys_[index],
-                next_key, i;
-
-            if ( (index === 0 && pos <= key.offset) || index >= this.num()-1 || key.isHold){
-                return key.value;
-            } else {
-                next_key = this.keys_[index+1];
-
-                i = (pos-key.position_)/next_key.offset;
-
-                if (key.outX || key.outY || next_key.inX || next_key.inY){
-
-                    i = bezierEase(key.outX, key.outY, next_key.inX, next_key.inY, i);
-
-                }
-
-                return this.interpolate(key, next_key, i, opt_obj);
-            }
-        },
-
-        interpolate: function (key, next_key, pos) {
-
-            return key.value + (next_key.value - key.value) * pos;
-        },
-
-        set: function(pos){
-
-            var res = this.get(pos);
-            if (this.target[this.property] !== res){
-                this.target[this.property] = res;
-            }
-        },
-
-        add : function(offset,val,is_hold){
-
-            var key = new KeyFrame(offset, val, is_hold);
-
-            this.length_ += offset;
-            key.position_ = this.length_;
-            this.keys_.push(key);
-
-            return key;
-        }
-    };
-
-    return Keys;
-});
-
-
-define('animation/Animator',['core/Stack','./Keys'], function (Stack, Keys) {
-
-    function Animator (layer, in_point, out_point, source) {
-
-        Stack.call(this);
-
-        this.layer = layer;
-        this.inPoint = in_point || 0;
-        this.outPoint = out_point || 1/0;
-        this.source = source;
-
-        this.startTime = 0;
-        this.speed = 1;
-
-        this.remap = new Keys();
-    }
-
-    Animator.prototype = new Stack();
-    Animator.prototype.constructor = Animator;
-
-    Animator.prototype.animate = function(time){
-
-        var layer = this.layer,
-            items = this.items_,
-            i = 0,
-            l;
-
-        if (time >= this.inPoint && time <= this.outPoint){
-
-            layer.visible = true;
-            l = items.length;
-
-            for ( ; i < l; i += 1) {
-                items[i].set(time);
-            }
-
-            if (this.source){
-                if (!this.remap.num()){
-                    this.source.animate((time - this.startTime) * this.speed);
-                } else {
-                    this.source.animate(this.remap.get(time - this.startTime));
-                }
-            }
+            path.curveTo(res1.lerp(res2, 0.5), p2);
 
         } else {
-            layer.visible = false;
+            // Lets do some curve spliting!
+            /*
+             * var begin =p1.clone(); var end = p2.clone(); var mid =
+             * c1.clone().lerp(c2,d);
+             *
+             * var d1_c1 = begin.lerp(c1,d).clone(); var d1_c2 =
+             * begin.lerp(mid,d).clone();
+             *
+             * var d2_c2 = end.lerp(c2,1-d).clone(); var d2_c1 =
+             * mid.lerp(end,d).clone();
+             *
+             * mid.lerp(begin,1-d); end.set(p2); begin.set(p1);
+             */
+
+            var d1_p1 = p1.clone(),
+                d1_c1 = d1_p1.clone().lerp(c1, d),
+                d2_p2 = p2,
+                d2_c2 = c2.clone().lerp(p2, d),
+                temp_c = c1.clone().lerp(c2, d),
+                d1_c2 = d1_c1.clone().lerp(temp_c, d),
+                d2_c1 = temp_c.lerp(d2_c2, d),
+                p = d1_c2.clone().lerp(d2_c1, d);
+
+            // trace(d);
+
+            res1 = d1_p1.clone().lerp(d1_c1, 1.5);
+            res2.copy(p).lerp(d1_c2, 1.5);
+
+            path.curveTo(res1.lerp(res2, 0.5), p.clone());
+
+            if (d < 0.5) {
+                // mmm, we need to split it again.
+                d = 1 - (d / (1 - d));
+
+                c1 = d2_c1.clone();
+                c2 = d2_c2.clone();
+
+                p1 = d1_p1.copy(p);
+
+                d1_c1.copy(d1_p1).lerp(c1, d);
+                d2_c2.copy(c2).lerp(p2, d);
+                temp_c.copy(c1).lerp(c2, d);
+                d1_c2.copy(d1_c1).lerp(temp_c, d);
+                d2_c1 = temp_c.lerp(d2_c2, d);
+                p.copy(d1_c2).lerp(d2_c1, d);
+
+                // path.curveTo(p.clone(),p.clone());
+                cubicToQuadratic(d1_p1, d1_c1, d1_c2.clone(), p.clone(), path, precision);
+
+                // cubicToQuadratic(d1_p1,d1_c1,d1_c2.clone(),p.clone(),path,precision*3);
+            }
+
+            res1 = p.clone().lerp(d2_c1, 1.5);
+            res2 = d2_p2.clone().lerp(d2_c2, 1.5);
+
+            // and finally the remaining
+            path.curveTo(res1.lerp(res2, 0.5), p2.clone());
+
         }
-    };
+        return path;
+    }
 
-    return Animator;
+    return cubicToQuadratic;
 });
-
-
 
 
 define('path/Line',[],function () {
@@ -1970,6 +1801,8 @@ define('path/QuadCurve',[],function() {
 
 
 
+/*global define */
+
 define('path/SimplePath',['./Line','./QuadCurve'], function(Line, QuadCurve) {
 
     function Path (start) {
@@ -2006,7 +1839,13 @@ define('path/SimplePath',['./Line','./QuadCurve'], function(Line, QuadCurve) {
             return this.length_;
         },
 
-        getItem : function(pos){
+        add: function (item) {
+            this.elements.push(item);
+            this.start = item.end;
+            this.update = true;
+        },
+
+        getItem : function (pos) {
 
             pos *= this.length();
 
@@ -2033,7 +1872,7 @@ define('path/SimplePath',['./Line','./QuadCurve'], function(Line, QuadCurve) {
             pos *= this.length();
 
             if (item){
-                return item.getVect((pos-this.lastPos_) / item.length(), vec);
+                return item.getVect((pos - this.lastPos_) / item.length(), vec);
             } else {
                 return (vec) ? vec.copy(this.start) : this.start.clone();
             }
@@ -2041,16 +1880,12 @@ define('path/SimplePath',['./Line','./QuadCurve'], function(Line, QuadCurve) {
 
         lineTo : function(end){
 
-            this.elements.push(new Line(this.start,end));
-            this.start = end;
-            this.update = true;
+            this.add(new Line(this.start, end));
         },
 
         curveTo : function(anchor,end){
 
-            this.elements.push( new QuadCurve( this.start,anchor,end ) );
-            this.start = end;
-            this.update = true;
+            this.add(new QuadCurve(this.start, anchor, end));
         }
     };
 
@@ -2062,133 +1897,527 @@ define('path/SimplePath',['./Line','./QuadCurve'], function(Line, QuadCurve) {
 
 
 
-/**
- * Will divide a cubic curve into a set of quadratic curves.
- * this is based on the adaptive division algorythm defined here :
- * http://www.caffeineowl.com/graphics/2d/vectorial/cubic2quad01.html
- */
+/*global define */
 
-define('geom/cubicToQuadratic',[],function () {
+define('path/CurvePatch',[
+    './SimplePath',
+    'geom/cubicToQuadratic',
+    'geom/Vector',
+    './Line'
+], function (
+    SimplePath,
+    cubicToQuadratic,
+    Vector,
+    Line
+) {
 
-    function cubicToQuadratic (p1, c1, c2, p2, path, precision) {
+    var v0 = new Vector(),
+        v1 = new Vector(),
+        v2 = new Vector();
 
-        var res1 = p1.clone();
-        var res2 = p2.clone();
 
-        if (c2.equals(p2)) {
-            // exception made when an anchor is the same as end point, we just 1
-            // quad curve to approximate that.
-            path.curveTo(res1.lerp(c1, 0.89), p2);
-            return path;
-        }
+    function CurvePatch (start, end) {
 
-        if (c1.equals(p1)) {
-            // same as before
-            path.curveTo(res2.lerp(c2, 0.89), p2);
-            return path;
-        }
-
-        // we first guess where the quadratic mid-points candidate are
-
-        res1.lerp(c1, 1.5);
-        res2.lerp(c2, 1.5);
-
-        if (!precision) {
-            // if precision isn't set, we come up with one.
-            // This one is a guess based on overall curve haul width and height.
-
-            precision = (
-                Math.max(
-                    Math.max(res1.max(), res2.max()),
-                    Math.max(p1.max(), p2.max())
-                ) -
-                Math.min(
-                    Math.min(res1.min(), res2.min()),
-                    Math.min(p1.min(), p2.min())
-                )
-            ) / 350;
-        }
-
-        // d will define where we will need to split the curve.
-        // d is the distance between the 2 possible quadratic approximations.
-        // the closer they are, the less curves we need.
-        // if (d >= 1) = we only need one quadratic curve
-        // if (d < 1 && >=.5) = We'll split it in 2 at d point
-        // if (d < .5) = We'll split the curve is 3, one will be 0>d the other
-        // (1-d)>1.
-        // we will then iterate the algorithm in the remaining bit.
-
-        var d = Math.sqrt(10.3923048 / res1.distance(res2) * precision);
-
-        if (d > 1) {
-
-            path.curveTo(res1.lerp(res2, 0.5), p2);
-
-        } else {
-            // Lets do some curve spliting!
-            /*
-             * var begin =p1.clone(); var end = p2.clone(); var mid =
-             * c1.clone().lerp(c2,d);
-             *
-             * var d1_c1 = begin.lerp(c1,d).clone(); var d1_c2 =
-             * begin.lerp(mid,d).clone();
-             *
-             * var d2_c2 = end.lerp(c2,1-d).clone(); var d2_c1 =
-             * mid.lerp(end,d).clone();
-             *
-             * mid.lerp(begin,1-d); end.set(p2); begin.set(p1);
-             */
-
-            var d1_p1 = p1.clone(),
-                d1_c1 = d1_p1.clone().lerp(c1, d),
-                d2_p2 = p2,
-                d2_c2 = c2.clone().lerp(p2, d),
-                temp_c = c1.clone().lerp(c2, d),
-                d1_c2 = d1_c1.clone().lerp(temp_c, d),
-                d2_c1 = temp_c.lerp(d2_c2, d),
-                p = d1_c2.clone().lerp(d2_c1, d);
-
-            // trace(d);
-
-            res1 = d1_p1.clone().lerp(d1_c1, 1.5);
-            res2.copy(p).lerp(d1_c2, 1.5);
-
-            path.curveTo(res1.lerp(res2, 0.5), p.clone());
-
-            if (d < 0.5) {
-                // mmm, we need to split it again.
-                d = 1 - (d / (1 - d));
-
-                c1 = d2_c1.clone();
-                c2 = d2_c2.clone();
-
-                p1 = d1_p1.copy(p);
-
-                d1_c1.copy(d1_p1).lerp(c1, d);
-                d2_c2.copy(c2).lerp(p2, d);
-                temp_c.copy(c1).lerp(c2, d);
-                d1_c2.copy(d1_c1).lerp(temp_c, d);
-                d2_c1 = temp_c.lerp(d2_c2, d);
-                p.copy(d1_c2).lerp(d2_c1, d);
-
-                // path.curveTo(p.clone(),p.clone());
-                cubicToQuadratic(d1_p1, d1_c1, d1_c2.clone(), p.clone(), path, precision);
-
-                // cubicToQuadratic(d1_p1,d1_c1,d1_c2.clone(),p.clone(),path,precision*3);
-            }
-
-            res1 = p.clone().lerp(d2_c1, 1.5);
-            res2 = d2_p2.clone().lerp(d2_c2, 1.5);
-
-            // and finally the remaining
-            path.curveTo(res1.lerp(res2, 0.5), p2.clone());
-
-        }
-        return path;
+        this.start = start;
+        this.end = end;
+        this.update = true;
     }
 
-    return cubicToQuadratic;
+    CurvePatch.prototype = {
+
+        constructor : CurvePatch,
+
+        length : function(){
+
+            if (this.update){
+                this.update = false;
+                this.path = (! this.isLine())
+                            ? cubicToQuadratic(
+                                this.start,
+                                v1.copy(this.start.outVector).add(this.start),
+                                v2.copy(this.end.inVector).add(this.end),
+                                this.end,
+                                new SimplePath(this.start)
+                            )
+                            : new Line(this.start, this.end);
+
+                this.length_ = this.path.length();
+            }
+
+            return this.length_;
+        },
+
+        isLine : function() {
+            return (this.start.outVector == null && this.end.inVector == null) ||
+                   (this.start.outVector.equals(v0) && this.end.inVector.equals(v0));
+        },
+
+        getVect : function(pos, vec){
+
+            this.length();
+
+            return this.path.getVect(pos, vec);
+        }
+    };
+
+    return CurvePatch;
 });
+
+
+
+
+/*global define */
+
+define('path/Path',[
+    'core/Stack',
+    './Anchor',
+    'path/CurvePatch',
+    'path/SimplePath',
+    'geom/Vector'
+], function (
+    Stack,
+    Anchor,
+    CurvePatch,
+    SimplePath,
+    Vector
+) {
+
+
+    function Path () {
+
+        Stack.call(this);
+
+        this.closed    = false;
+        this.update    = true;
+        this.path_     = null;
+
+        var onChange = function () {
+            this.update = true;
+        };
+        this.on.add.add(onChange, this);
+        this.on.remove.add(onChange, this);
+        this.on.swap.add(onChange, this);
+    }
+
+    Path.prototype = new Stack();
+    Path.prototype.constructor = Path;
+
+    Path.prototype.create = function(x, y, inX, inY, outX, outY) {
+
+        var anchor = new Anchor(x, y, inX, inY, outX, outY);
+
+        this.add(anchor);
+
+        return anchor;
+    };
+
+    Path.prototype.getLogicalPath = function() {
+
+        var last, path, previous;
+
+        // We populate a new path when the mask had been updated
+        if (this.update) {
+
+            this.update = false;
+
+            path = new SimplePath();
+            this.each(function(anchor){
+                if (previous) {
+                    path.add(new CurvePatch(previous, anchor));
+                }
+                previous = anchor;
+            });
+            this.path_ = path;
+        }
+
+        // We update the path if the closed attribute has changed
+        last = this.path_.elements[this.path_.elements.length - 1];
+
+        if ( this.closed !== (this.get(0) === last.end)) {
+
+            if (this.closed) {
+                last  = this.get(this.getLength() - 1);
+                this.path_.add(new CurvePatch(
+                    last,
+                    last.outVector,
+                    this.get(0).inVector,
+                    this.get(0)
+                ));
+            } else {
+                this.path_.remove(last);
+                this.path_.update = true;
+            }
+        }
+
+        return this.path_;
+    };
+
+    return Path;
+});
+
+
+
+
+
+
+define('animation/KeyFrame',[],function () {
+
+	function KeyFrame (offset, value, is_hold) {
+
+		this.offset = offset;
+		this.position_ = 0;
+
+		this.value = value;
+		this.isHold = is_hold;
+		this.inX = 0;
+		this.inY = 0;
+		this.outX = 0;
+		this.outY = 0;
+		this.inTangent = null;
+		this.outTangent = null;
+		this.path = null;
+		this.update = false;
+	}
+
+	return KeyFrame;
+});
+
+define('animation/AnimatorStack',['core/Stack'], function (Stack) {
+
+    function AnimatorStack (item) {
+
+        Stack.call(this);
+
+        this.item = item;
+        this.duration = 1;
+        this.frameRate = 25;
+        this.clamp = false;
+    }
+
+    AnimatorStack.prototype = new Stack();
+    AnimatorStack.prototype.constructor = AnimatorStack;
+
+    AnimatorStack.prototype.animate = function(time){
+
+        var items = this.items_,
+            l = items.length,
+            i = 0;
+
+        time = time%this.duration;
+
+        if (this.clamp){
+            time = Math.floor(time*this.frameRate)/this.frameRate;
+        }
+
+        if (time !== this.prevTime_){
+            for ( ; i < l; i += 1) {
+                items[i].animate(time);
+            }
+            this.prevTime_ = time;
+        }
+
+    };
+
+    return AnimatorStack;
+
+});
+
+/**
+ * Cubic Bezier timing function compatible with CSS3 transition-timing-function
+ * <p>
+ * The timing function is specified using a cubic Bezier curve,
+ * which is defined by four control points.
+ * The first and last control points are always set to (0,0) and (1,1),
+ * so you just need to specify the two in-between control points.
+ * The points are specified as a percentage of the overall duration
+ * (percentage: interpolated as a real number between 0 and 1).
+ * The timing function takes as its input the current elapsed percentage
+ * of the transition duration and outputs a percentage that determines
+ * how close the transition is to its goal state.
+ * </p>
+ * <p>
+ * currently used function to determine time
+ * conversion to js from webkit source files
+ * js port from www.netzgesta.de/dev/cubic-bezier-timing-function.html
+ * </p>
+ */
+
+ define('geom/bezierEase',[],function () {
+
+    function bezierEase (p1x, p1y, p2x, p2y, t, epsilon) {
+
+        p1y = p1y || 0;
+        p2y = p2y || 0;
+
+        var t2 = solveCurveX(p1x || 0, p2x || 0, t || 0, epsilon),
+            cy = p1y * 3,
+            by = 3 * (p2y - p1y) - cy,
+            ay = 1 - cy - by;
+
+        return ((ay * t2 + by) * t2 + cy) * t2;
+    }
+
+    // Given an x value, find a parametric value it came from.
+    function solveCurveX (p1x, p2x, x, epsilon) {
+
+        var cx = 3 * p1x,
+            bx = 3 * (p2x - p1x) - cx,
+            ax = 1 - cx - bx,
+            bx2 = bx * 2,
+            ax3 = ax * 3,
+            t0, t1, t2, x2, d2, i;
+
+        if (!epsilon) {
+            //epsilon = 1.0 / (100.0 * (precision||100));
+            epsilon = 0.0001;
+        }
+
+        // First try a few iterations of Newton's method -- normally very fast.
+        t2 = x;
+
+        for (i = 0; i < 8; i += 1) {
+            x2 = (((ax * t2 + bx) * t2 + cx) * t2) - x;
+            if (fabs(x2) < epsilon) {
+                return t2;
+            }
+            d2 = (ax3 * t2 + bx2) * t2 + cx;
+            if (fabs(d2) < 1e-6) {
+                break;
+            }
+            t2 = t2 - x2 / d2;
+        }
+
+        // Fall back to the bisection method for reliability.
+        t0 = 0;
+        t1 = 1;
+        t2 = x;
+        if (t2 < t0) {
+            return t0;
+        }
+        if (t2 > t1) {
+            return t1;
+        }
+        i = 0;
+
+        while (t0 < t1 && i < 10) {
+            x2 = ((ax * t2 + bx) * t2 + cx) * t2;
+            if (fabs(x2 - x) < epsilon) {
+                return t2;
+            }
+            if (x > x2) {
+                t0 = t2;
+            } else {
+                t1 = t2;
+            }
+            t2 = (t1 - t0) * 0.5 + t0;
+            i += 1;
+        }
+
+        return t2;
+    }
+
+    function fabs (n) {
+
+        if (n >= 0) {
+            return n;
+        }
+
+        return 0 - n;
+    }
+
+    return bezierEase;
+ });
+
+
+/*global define*/
+
+define('animation/Keys',['geom/bezierEase','./KeyFrame'], function (bezierEase, KeyFrame) {
+
+    function Keys (target, property) {
+        this.target = target;
+        this.property = property;
+
+        this.keys_ = [];
+        this.length_ = 0;
+    }
+
+    Keys.prototype = {
+
+        constructor : Keys,
+
+        length: function () {
+
+            var keys = this.keys_,
+                key,i,l,pos;
+
+            if (this.update){
+
+                l = keys.length;
+                pos = 0,
+                i = 0;
+
+                for ( ; i < l; i += 1) {
+                    key = keys[i];
+                    pos += key.offset;
+                    key.position_ = pos;
+                    if (key.update && key.path && (key.inTangent || key.outTangent)){
+                        this.path = null;
+                        key.update = false;
+                    }
+                }
+
+                this.length_ = pos;
+                this.update = false;
+            }
+
+            return this.length_;
+        },
+
+        num: function () {
+            return this.keys_.length;
+        },
+
+        indexAt: function (pos) {
+
+            var keys = this.keys_,
+                i = this.prevIndex_ || 0,
+                iterator = (pos >= (this.prevPosition_||0)) ? 1 : -1;
+
+            this.length();
+            this.prevPosition_ = pos;
+
+            if (pos <= keys[0].position_) {
+                this.prevIndex_ = 0;
+                return this.prevIndex_;
+            } else if (pos >= keys[keys.length-1].position_) {
+                this.prevIndex_ = keys.length-1;
+                return this.prevIndex_;
+            } else {
+
+                while (keys[i]){
+
+                    if ( pos >= keys[i].position_ && (
+                        !keys[i+1] || pos < keys[i+1].position_
+                    )) {
+                        this.prevIndex_ = i;
+                        this.prevPosition_ = pos;
+                        return this.prevIndex_;
+                    }
+
+                    i += iterator;
+                }
+            }
+
+            this.prevIndex_ = 0;
+
+            return this.prevIndex_;
+        },
+
+        get: function (pos, opt_obj) {
+
+            var index = this.indexAt(pos),
+                key = this.keys_[index],
+                next_key, i;
+
+            if ( (index === 0 && pos <= key.offset) || index >= this.num()-1 || key.isHold){
+                return key.value;
+            } else {
+                next_key = this.keys_[index+1];
+
+                i = (pos-key.position_)/next_key.offset;
+
+                if (key.outX || key.outY || next_key.inX || next_key.inY){
+
+                    i = bezierEase(key.outX, key.outY, next_key.inX, next_key.inY, i);
+
+                }
+
+                return this.interpolate(key, next_key, i, opt_obj);
+            }
+        },
+
+        interpolate: function (key, next_key, pos) {
+
+            return key.value + (next_key.value - key.value) * pos;
+        },
+
+        set: function(pos){
+
+            var res = this.get(pos);
+            if (this.target[this.property] !== res){
+                this.target[this.property] = res;
+            }
+        },
+
+        add : function(offset,val,is_hold){
+
+            var key = new KeyFrame(offset, val, is_hold);
+
+            this.length_ += offset;
+            key.position_ = this.length_;
+            this.keys_.push(key);
+
+            return key;
+        }
+    };
+
+    return Keys;
+});
+
+
+define('animation/Animator',['core/Stack','./Keys'], function (Stack, Keys) {
+
+    function Animator (layer, in_point, out_point, source) {
+
+        Stack.call(this);
+
+        this.layer = layer;
+        this.inPoint = in_point || 0;
+        this.outPoint = out_point || 1/0;
+        this.source = source;
+
+        this.startTime = 0;
+        this.speed = 1;
+
+        this.remap = new Keys();
+    }
+
+    Animator.prototype = new Stack();
+    Animator.prototype.constructor = Animator;
+
+    Animator.prototype.animate = function(time){
+
+        var layer = this.layer,
+            items = this.items_,
+            i = 0,
+            l;
+
+        if (time >= this.inPoint && time <= this.outPoint){
+
+            layer.visible = true;
+            l = items.length;
+
+            for ( ; i < l; i += 1) {
+                items[i].set(time);
+            }
+
+            if (this.source){
+                if (!this.remap.num()){
+                    this.source.animate((time - this.startTime) * this.speed);
+                } else {
+                    this.source.animate(this.remap.get(time - this.startTime));
+                }
+            }
+
+        } else {
+            layer.visible = false;
+        }
+    };
+
+    return Animator;
+});
+
+
 
 
 /*global define */
@@ -2240,6 +2469,7 @@ define('path/CubicCurve',['./SimplePath','geom/cubicToQuadratic'], function (Pat
 
 
 
+/*global define*/
 define('animation/SpatialKeys',['./Keys','path/CubicCurve'], function (Keys, CubicCurve) {
 
     function SpatialKeys (target, property) {
@@ -2291,18 +2521,94 @@ define('animation/SpatialKeys',['./Keys','path/CubicCurve'], function (Keys, Cub
 
 
 
+/*global define*/
+define('animation/PathKeys',[
+    './Keys',
+    'path/Path',
+    'path/Anchor'
+], function (
+    Keys,
+    Path,
+    Anchor
+) {
+
+    var v1 = new Anchor();
+
+    function PathKeys (target) {
+
+        Keys.call(this, target, '');
+
+        this.path = target;
+    }
+
+    PathKeys.prototype = new Keys();
+    PathKeys.prototype.constructor = PathKeys;
+
+    PathKeys.prototype.interpolate = function (key, next_key, pos, opt_path) {
+
+        if (!opt_path) {
+            opt_path = new Path();
+        }
+
+        var prev_path = key.value,
+            next_path = next_key.value,
+            i = opt_path.getLength(),
+            l = prev_path.getLength(),
+            anchor, prev_anchor, next_anchor;
+
+        if (i !== l) {
+            opt_path.update = true;
+        }
+
+        if (i < l) {
+            for ( ; i < l; i += 1) {
+                opt_path.add(prev_path.get(i).clone());
+            }
+        } else if (i > l) {
+            for ( ; i > l; i -= 1) {
+                opt_path.remove(opt_path.get(i - 1));
+            }
+        }
+
+        i = 0;
+        l = Math.min(l, next_path.getLength());
+        for ( ; i < l; i += 1) {
+            anchor = opt_path.get(i);
+            prev_anchor = prev_path.get(i);
+            next_anchor = next_path.get(i);
+
+            anchor.copy(prev_anchor).lerp(next_anchor, pos);
+            if (anchor.inVector && anchor.outVector) {
+                anchor.inVector.copy(prev_anchor.inVector).lerp(next_anchor.inVector, pos);
+                anchor.outVector.copy(prev_anchor.outVector).lerp(next_anchor.outVector, pos);
+            }
+        }
+    };
+
+    PathKeys.prototype.set = function(pos){
+
+        this.get(pos, this.path);
+    };
+
+    return PathKeys;
+});
+
+
+
 define('animation',[
     'animation/KeyFrame',
     'animation/Animator',
     'animation/AnimatorStack',
     'animation/Keys',
-    'animation/SpatialKeys'
+    'animation/SpatialKeys',
+    'animation/PathKeys'
 ], function (
     KeyFrame,
     Animator,
     AnimatorStack,
     Keys,
-    SpatialKeys
+    SpatialKeys,
+    PathKeys
 ) {
 
     return {
@@ -2310,7 +2616,8 @@ define('animation',[
         Animator        : Animator,
         AnimatorStack   : AnimatorStack,
         Keys            : Keys,
-        SpatialKeys     : SpatialKeys
+        SpatialKeys     : SpatialKeys,
+        PathKeys        : PathKeys
     };
 });
 
@@ -3197,35 +3504,70 @@ define('graph/Composition',[
 });
 
 
+/*global define*/
+
+define('graph/Mask',[
+    'path/Path',
+    'geom/Vector'
+], function (
+    Path,
+    Vector
+) {
+
+    function Mask () {
+
+        Path.call(this);
+
+        this.inverted  = false;
+        this.feather   = new Vector();
+        this.opacity   = 1;
+        this.expansion = 0;
+        this.blending  = 'normal';
+    }
+
+    Mask.prototype = new Path();
+    Mask.prototype.constructor = Mask;
+
+    return Mask;
+});
+
+
 define('graph',[
     'graph/Solid',
     'graph/Text',
     'graph/Camera',
-    'graph/Composition'
+    'graph/Composition',
+    'graph/Mask'
 ], function (
     Solid,
     Text,
     Camera,
-    Composition
+    Composition,
+    Mask
 ) {
 
     return {
         Solid       : Solid,
         Text        : Text,
         Camera      : Camera,
-        Composition : Composition
-    }
+        Composition : Composition,
+        Mask        : Mask
+    };
 });
 
+
+/*global define */
 
 define('builders/aeBuilder',[
     'geom/Vector',
     'geom/Quaternion',
+    'path/Path',
     'animation',
     'graph'
 ], function(
     Vector,
     Quaternion,
+    Path,
     animation,
     graph
 ) {
@@ -3264,7 +3606,6 @@ define('builders/aeBuilder',[
             case 'Camera':
                 animator = buildCameraLayer(layer_data);
                 animator.layer.center.set(comp.width / 2, comp.height / 2);
-
                 break;
             case 'Text':
                 animator = buildTextLayer(layer_data);
@@ -3412,17 +3753,78 @@ define('builders/aeBuilder',[
             layer.collapse = (data.collapse === true);
         }
 
-        setProp(layer, "position", animator, data.position);
-        setProp(layer, "anchor", animator, data.anchor);
-        setProp(layer, "scale", animator, data.scale);
-        setProp(layer, "opacity", animator, data.opacity);
+        if (data.masks) {
+            setMasks(layer.masks, data.masks, animator);
+        }
+
+        setProp(layer, 'position', animator, data.position);
+        setProp(layer, 'anchor', animator, data.anchor);
+        setProp(layer, 'scale', animator, data.scale);
+        setProp(layer, 'opacity', animator, data.opacity);
 
         if (layer.is3D) {
-            setProp(layer, "rotation", animator, data.rotation);
-            setProp(layer, "orientation", animator, data.orientation);
+            setProp(layer, 'rotation', animator, data.rotation);
+            setProp(layer, 'orientation', animator, data.orientation);
         } else {
-            setProp(layer.rotation, "z", animator, data.rotation);
+            setProp(layer.rotation, 'z', animator, data.rotation);
         }
+    }
+
+    function setMasks (stack, data, animator) {
+        var i = 0,
+            l = data.length,
+            mask_data,
+            path_data,
+            mask,
+            a,
+            y,
+            y_l;
+
+
+        for ( ; i < l; i += 1) {
+            mask_data = data[i];
+
+            if (mask_data.maskPath) {
+
+                mask = new graph.Mask();
+
+                mask.closed = mask_data.maskPath.closed || true;
+                mask.reversed = mask_data.reversed || false;
+                mask.blending = mask_data.maskMode || 'normal';
+
+                setProp(mask, '', animator, mask_data.maskPath);
+                setProp(mask, 'feather', animator, mask_data.maskFeather);
+                setProp(mask, 'opacity', animator, mask_data.maskOpacity);
+                setProp(mask, 'expansion', animator, mask_data.maskExpansion);
+
+                stack.add(mask);
+
+            }
+        }
+    }
+
+    function buildPath (path_data, obj) {
+        var i = 0,
+            l = path_data.data.length,
+            val;
+
+        for ( ; i < l; i += 1) {
+            val = path_data.data[i];
+            obj.create(
+                val[0],
+                val[1],
+                val[2] || 0,
+                val[3] || 0,
+                val[4] || 0,
+                val[5] || 0
+            );
+        }
+
+        if (path_data.closed){
+            obj.closed = true;
+        }
+
+        return obj;
     }
 
     function setProp (obj, name, animator, value) {
@@ -3430,21 +3832,25 @@ define('builders/aeBuilder',[
         if (!value && value !== 0) {
             return;
         }
-        var i, k, val, offset, is_hold, keys, key, is_object, is_array, is_spatial, is_vector, target = obj[name];
+        var i, k, val, first_value, offset, is_hold, keys, key, is_object, is_array, is_spatial, is_vector, target = obj[name];
 
         if (Array.isArray(value)) {
 
             is_spatial = null;
             offset = 0;
-            is_spatial = value.length
-                         && (Array.isArray(value[0]) && Vector.isVector(value[0][0]))
-                         || Vector.isVector(value[0])
-                         || (typeof value[0] === 'object')
-                         && Vector.isVector(value[0].v);
+            first_value = (Array.isArray(value[0]))
+                          ? value[0][0]
+                          : (typeof value[0] === 'object' && value[0].v)
+                            ? value[0].v
+                            : value[0];
+
+            is_spatial = Vector.isVector(first_value);
 
             keys = (is_spatial)
                    ? new animation.SpatialKeys(obj, name)
-                   : new animation.Keys(obj, name);
+                   : (typeof value[0] === 'object' && first_value.data)
+                     ? new animation.PathKeys(obj)
+                     : new animation.Keys(obj, name);
 
             for (i = 0; i < value.length; i += 1) {
 
@@ -3462,6 +3868,8 @@ define('builders/aeBuilder',[
                     } else {
                         val = new Vector(val.x, val.y, val.z);
                     }
+                } else if (val.data) {
+                    val = buildPath(val, new Path());
                 }
 
                 if (is_array) {
@@ -3503,6 +3911,8 @@ define('builders/aeBuilder',[
                 if (value.w != null) {
                     setProp(target, 'w', animator, value.w);
                 }
+            } else if (value.data){
+                buildPath(value, obj);
             } else {
                 obj[name] = value;
             }
@@ -3863,6 +4273,7 @@ define('renderers/dom/Solid',[],function () {
 
 
 
+/*global define*/
 define('renderers/dom/Text',[],function () {
 
     function checkDifference (source, target) {
@@ -3943,12 +4354,12 @@ define('renderers/dom/Text',[],function () {
                 this.node = node;
 
 
-                style.width         = model.width + 'px';
-                style.color         = model.textColor;
-                style.textAlign     = model.textAlign;
-                style.fontFamily    = model.fontFamily;
-                style.fontSize      = model.fontSize + 'px';
-                style.lineHeight    = model.lineHeight + 'em';
+                style.width      = model.width + 'px';
+                style.color      = model.textColor;
+                style.textAlign  = model.textAlign;
+                style.fontFamily = model.fontFamily;
+                style.fontSize   = model.fontSize + 'px';
+                style.lineHeight = model.lineHeight + 'em';
 
                 offset = (size * model.lineHeight) - size;
                 while (i <= maxResize && (this.text.offsetHeight - offset) >= maxHeight) {
@@ -3987,6 +4398,111 @@ define('renderers/dom/Text',[],function () {
     };
 
     return Text;
+});
+
+
+/*global define */
+
+define('renderers/canvas/maskUtils',[],function(){
+
+    function setBlending (context, mask) {
+
+        var blending = 'source-over';
+
+        switch(mask.blending) {
+        case 'subtract':
+            blending = 'destination-out';
+            break;
+        case 'intersect':
+            blending = 'source-in';
+            break;
+        case 'lighten':
+            blending = 'lighter';
+            break;
+        case 'darken':
+            blending = 'destination-in';
+            break;
+        case 'difference':
+            blending = 'xor';
+            break;
+        }
+
+        context.globalCompositeOperation = blending;
+    }
+
+    function draw (context, inAnchor, outAnchor) {
+        context.bezierCurveTo(
+            inAnchor.x + inAnchor.outVector.x,
+            inAnchor.y + inAnchor.outVector.y,
+            outAnchor.x + outAnchor.inVector.x,
+            outAnchor.y + outAnchor.inVector.y,
+            outAnchor.x,
+            outAnchor.y
+        );
+    }
+
+    function renderMask (context, mask, opt_set_blending) {
+
+        var big_number = 99999999,
+            prev_anchor, blending;
+
+        if (
+            mask.blending == null
+            || mask.blending === 'none'
+            || mask.getLength() === 0
+            || !mask.closed
+        ) {
+            return;
+        }
+
+        context.beginPath();
+
+        if (mask.inverted) {
+
+            context.moveTo(-big_number, -big_number);
+            context.lineTo( big_number, -big_number);
+            context.lineTo( big_number,  big_number);
+            context.lineTo(-big_number,  big_number);
+            context.closePath();
+        }
+
+        mask.each(function (anchor) {
+
+            if (!prev_anchor) {
+                context.moveTo(anchor.x,anchor.y);
+            } else {
+                draw(context, prev_anchor, anchor);
+            }
+
+            prev_anchor = anchor;
+        });
+
+        draw(context, prev_anchor, mask.get(0));
+
+        context.fillStyle = '#000000';
+        context.globalAlpha = mask.opacity;
+        context.closePath();
+
+        if ( opt_set_blending !== false) {
+            setBlending(context, mask);
+        }
+
+        context.fill();
+
+    }
+
+    function renderMasks(context, masks) {
+
+        context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+        masks.each(function (mask) {
+            renderMask(context, mask);
+        });
+    }
+
+    return {
+        renderMasks: renderMasks
+    };
 });
 
 
@@ -4142,16 +4658,43 @@ define('renderers/dom/Composition',[
     'geom/Matrix',
     'utils/browser',
     './Solid',
-    './Text'
+    './Text',
+    '../canvas/maskUtils'
 ], function(
     Matrix2D,
     Matrix,
     browser,
     Solid,
-    Text
+    Text,
+    maskUtils
 ) {
 
     var m2D = new Matrix2D();
+
+    var maskCounter = 0;
+
+
+    function haveActiveMasks (masks) {
+
+        var i, l, mask;
+
+        if (masks == null) {
+             return false;
+        }
+
+        l = masks.getLength();
+        if (l) {
+           for (i = 0; i < l; i += 1) {
+                mask = masks.get(i);
+                if (mask && mask.blending !== 'none' && mask.getLength() && mask.closed){
+                    return true;
+                }
+            }
+        } else {
+            return false;
+        }
+        return false;
+    }
 
     function add (layer, pos) {
 
@@ -4333,6 +4876,8 @@ define('renderers/dom/Composition',[
                 is3D    = model.is3D,
                 mat,
                 mat_2D,
+                mask_canvas,
+                mask_name,
                 className;
 
             if (layer.visible !== model.visible) {
@@ -4430,6 +4975,33 @@ define('renderers/dom/Composition',[
                         model.height
                     );
 
+                    if (haveActiveMasks(model.masks)) {
+                        if (!layer.canvas) {
+
+                            maskCounter += 1;
+                            mask_name = 'layer_mask_' + maskCounter;
+                            mask_canvas = document.getCSSCanvasContext('2d', mask_name, model.width, model.height);
+                            style.WebkitMaskImage = '-webkit-canvas('+mask_name+')';
+
+                            //var cc = document.createElement('canvas');
+                            //cc.width = model.width;
+                            //cc.height = model.height;
+                            //mask_canvas = cc.getContext('2d');
+                            //layer.element.appendChild(cc);
+                            console.log(mask_canvas);
+                            style.width = model.width;
+                            style.height = model.height;
+
+                            layer.canvas = mask_canvas;
+                        }
+
+                        maskUtils.renderMasks(layer.canvas, model.masks);
+
+                    } else if (layer.canvas) {
+                        //style.WebkitMaskImage = '';
+                        delete layer.canvas;
+                    }
+
                 }
 
                 if (layer.opacity !== model.opacity){
@@ -4477,7 +5049,7 @@ define('renderers/dom/Composition',[
                 } else {
 
 
-                    
+
                     if (browser.haveIEFilter && elem.filters.length){
 
                         var bounds = browser.getLocalBound(elem);

@@ -27,7 +27,7 @@ window.requestAnimationFrame || (window.requestAnimationFrame =
 
         $(document).ready(function() {
 
-            $.get("animation/camera_test.js",function (data) {
+            $.get("animation/mask_test.js",function (data) {
 
                 var animator = aex.build(data),
                     comp = animator.item;
@@ -35,6 +35,7 @@ window.requestAnimationFrame || (window.requestAnimationFrame =
 
                 $('body').append(renderer.element);
 
+                console.log(animator);
                 var animStart = new Date().getTime();
                 var play = true;
                 var pauseOffset = 0;
@@ -42,11 +43,15 @@ window.requestAnimationFrame || (window.requestAnimationFrame =
                     if (play){
                         animator.animate(((t - animStart) + pauseOffset) / 1000);
                         renderer.render();
-                        //requestAnimationFrame(loop);
+                        requestAnimationFrame(loop);
                     } else {
                         pauseOffset = t-animStart;
                     }
                 }
+
+                //animator.animate(0.5);
+                //console.log(comp);
+                //renderer.render();
 
                 loop(animStart);
 
