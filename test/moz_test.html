@@ -1,0 +1,50 @@
+<html>
+<head>
+<!--[if IE]>
+<script type="text/javascript" src="https://getfirebug.com/firebug-lite.js"></script>
+<![endif]-->
+
+<script>
+
+document.createElement('scene');
+document.createElement('layer');
+document.createElement('solid');
+document.createElement('composition');
+
+</script>
+
+
+<link rel="stylesheet" type="text/css" href="../lib/style/scene.css" />
+
+<script src="../lib/extern/require.js"></script>
+
+
+<script>
+
+    require({baseUrl: '../lib'}, ['extern/jquery'], function ($) {
+
+        $(document).ready(function() {
+
+
+
+
+
+        });
+    });
+
+</script>
+</head>
+<body>
+
+<scene class="no_collapse">
+    <composition style="width:1024px; height:640px; -moz-perspective: 300px; -moz-transform-style: preserve-3d; -moz-perspective-origin: 50% 50%">
+        <layer class="no_collapse filter" style="background: none repeat scroll 0 0 #00FF00;width: 100px;height: 100px; -moz-transform: translateZ( -500px )">
+        </layer>
+    </composition>
+</scene>
+
+</body>
+
+
+
+</html>

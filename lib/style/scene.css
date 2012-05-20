@@ -23,7 +23,7 @@ scene .filter {
 }
 
 scene.no_collapse > composition, .no_collapse > composition {
-    overflow: hidden;
+
     transform-style: flat;
     -o-transform-style: flat;
     -khtml-transform-style: flat;
@@ -31,3 +31,9 @@ scene.no_collapse > composition, .no_collapse > composition {
     -webkit-transform-style: flat;
     -ms-transform-style: flat;
 }
+
+scene .no_collapse {
+    overflow: hidden;
+}
+
+

@@ -3112,7 +3112,7 @@ define('geom/Matrix',['./Vector'], function(Vector){
                 this.m11.toFixed(4)+","+this.m12.toFixed(4)+","+this.m13.toFixed(4)+","+this.m14.toFixed(4)+","+
                 this.m21.toFixed(4)+","+this.m22.toFixed(4)+","+this.m23.toFixed(4)+","+this.m24.toFixed(4)+","+
                 this.m31.toFixed(4)+","+this.m32.toFixed(4)+","+this.m33.toFixed(4)+","+this.m34.toFixed(4)+","+
-                this.m41.toFixed(4)+","+this.m42.toFixed(4)+","+this.m43.toFixed(4)+","+this.m44.toFixed(4)+
+                this.m41.toFixed(4)+","+this.m42.toFixed(4)+","+(this.m43 + 0.001).toFixed(4)+","+this.m44.toFixed(4)+
             ")";
         },
 
@@ -3305,6 +3305,8 @@ define('graph/Solid',['./Layer'], function(Layer) {
 
 });
 
+
+/*global define*/
 
 define('graph/Text',['geom/Vector', './Layer'], function(Vector, Layer) {
 
@@ -3924,7 +3926,7 @@ define('builders/aeBuilder',[
     };
 });
 
-define('text!style/scene.css',[],function () { return '\nscene * {\n    position:absolute;\n    display:block;\n    top:0;\n    left:0;\n    margin:0;\n    padding:0;\n    border:0;\n    word-wrap:break-word;\n    -webkit-font-smoothing:antialiased;\n    transform-origin:0% 0%;\n    -o-transform-origin:0% 0%;\n    -khtml-transform-origin:0% 0%;\n    -moz-transform-origin:0% 0%;\n    -webkit-transform-origin:0% 0%;\n    -ms-transform-origin:0% 0%;\n}\n\nscene .filter {\n    -ms-filter: "progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\'auto expand\') progid:DXImageTransform.Microsoft.Alpha(opacity=100)";\n    filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\'auto expand\') progid:DXImageTransform.Microsoft.Alpha(opacity=100);\n}\n\nscene.no_collapse > composition, .no_collapse > composition {\n    overflow: hidden;\n    transform-style: flat;\n    -o-transform-style: flat;\n    -khtml-transform-style: flat;\n    -moz-transform-style: flat;\n    -webkit-transform-style: flat;\n    -ms-transform-style: flat;\n}\n';});
+define('text!style/scene.css',[],function () { return '\nscene * {\n    position:absolute;\n    display:block;\n    top:0;\n    left:0;\n    margin:0;\n    padding:0;\n    border:0;\n    word-wrap:break-word;\n    -webkit-font-smoothing:antialiased;\n    transform-origin:0% 0%;\n    -o-transform-origin:0% 0%;\n    -khtml-transform-origin:0% 0%;\n    -moz-transform-origin:0% 0%;\n    -webkit-transform-origin:0% 0%;\n    -ms-transform-origin:0% 0%;\n}\n\nscene .filter {\n    -ms-filter: "progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\'auto expand\') progid:DXImageTransform.Microsoft.Alpha(opacity=100)";\n    filter: progid:DXImageTransform.Microsoft.Matrix(sizingMethod=\'auto expand\') progid:DXImageTransform.Microsoft.Alpha(opacity=100);\n}\n\nscene.no_collapse > composition, .no_collapse > composition {\n\n    transform-style: flat;\n    -o-transform-style: flat;\n    -khtml-transform-style: flat;\n    -moz-transform-style: flat;\n    -webkit-transform-style: flat;\n    -ms-transform-style: flat;\n}\n\nscene .no_collapse {\n    overflow: hidden;\n}\n\n\n';});
 
 
 define('geom/Matrix2D',['./Vector'], function(Vector){
@@ -4636,19 +4638,31 @@ define('renderers/canvas/fastBlur',[],function () {
 });
 
 
-/*global define */
+/*jshint
+    undef:true
+    curly:true
+    browser: true
+    laxbreak: true
+    eqnull: true
+    white: true
+*/
+/*global
+    define
+*/
 
-define('renderers/canvas/maskUtils',['./fastBlur'],function(fastBlur){
+define('renderers/canvas/canvasMask',['./fastBlur'], function (fastBlur) {
+
+    var canvasElement = document.createElement('canvas'),
+        tempContext = (canvasElement.getContext) ? canvasElement.getContext('2d') : null,
+        maskCounter = 0;
 
 
-    var tempContext = document.createElement('canvas').getContext('2d');
 
-
-    function setBlending (context, mask) {
+    function setBlending(context, mask) {
 
         var blending = 'source-over';
 
-        switch(mask.blending) {
+        switch (mask.blending) {
         case 'subtract':
             blending = 'destination-out';
             break;
@@ -4669,7 +4683,7 @@ define('renderers/canvas/maskUtils',['./fastBlur'],function(fastBlur){
         context.globalCompositeOperation = blending;
     }
 
-    function draw (context, inAnchor, outAnchor) {
+    function draw(context, inAnchor, outAnchor) {
         context.bezierCurveTo(
             inAnchor.x + inAnchor.outVector.x,
             inAnchor.y + inAnchor.outVector.y,
@@ -4680,7 +4694,7 @@ define('renderers/canvas/maskUtils',['./fastBlur'],function(fastBlur){
         );
     }
 
-    function renderMask (context, mask, scale, bounds, opt_is_first) {
+    function renderMask(context, mask, scale, bounds, opt_is_first) {
 
         scale = scale || 1;
 
@@ -4702,15 +4716,15 @@ define('renderers/canvas/maskUtils',['./fastBlur'],function(fastBlur){
         if (to_invert) {
 
             buffer.moveTo(-big_number, -big_number);
-            buffer.lineTo( big_number, -big_number);
-            buffer.lineTo( big_number,  big_number);
-            buffer.lineTo(-big_number,  big_number);
+            buffer.lineTo(big_number, -big_number);
+            buffer.lineTo(big_number, big_number);
+            buffer.lineTo(- big_number, big_number);
             buffer.closePath();
         }
 
         mask.each(function (anchor) {
             if (!prev_anchor) {
-                buffer.moveTo(anchor.x,anchor.y);
+                buffer.moveTo(anchor.x, anchor.y);
             } else {
                 draw(buffer, prev_anchor, anchor);
             }
@@ -4738,7 +4752,7 @@ define('renderers/canvas/maskUtils',['./fastBlur'],function(fastBlur){
                 fastBlur.blurAlpha(
                     buffer.getImageData(
                         0, 0,
-                        buffer.canvas.width ,
+                        buffer.canvas.width,
                         buffer.canvas.height
                     ),
                     mask.feather.x * 0.6 * scale, 1
@@ -4760,8 +4774,11 @@ define('renderers/canvas/maskUtils',['./fastBlur'],function(fastBlur){
 
     function renderMasks(context, masks, scale, bounds) {
 
-        context.canvas.width = context.canvas.width;
         var is_first = true;
+
+        context.canvas.width = bounds.width;
+        context.canvas.height = bounds.height;
+
         masks.each(function (mask) {
 
             if (mask.blending && mask.blending !== 'none' && mask.getLength() && mask.closed) {
@@ -4771,11 +4788,256 @@ define('renderers/canvas/maskUtils',['./fastBlur'],function(fastBlur){
         });
     }
 
+    function setMask(element) {
+        var mask_name = 'layer_mask_' + (maskCounter += 1),
+            mask_canvas = document.getCSSCanvasContext('2d', mask_name, 10, 10);
+
+        element.style.WebkitMaskImage = '-webkit-canvas(' + mask_name + ')';
+
+        return mask_canvas;
+    }
+
+    function removeMask(element, context) {
+
+        context.canvas.width = context.canvas.height = 0;
+        element.style.WebkitMaskImage = '';
+    }
+
     return {
-        renderMasks: renderMasks
+        render: renderMasks,
+        set: setMask,
+        remove: removeMask
     };
 });
 
+
+/*global define*/
+
+define('renderers/svg/svgUtils',[],function () {
+
+
+    function draw (seq_path, inAnchor, outAnchor) {
+
+        seq_path.x1 = inAnchor.x + inAnchor.outVector.x;
+        seq_path.y1 = inAnchor.y + inAnchor.outVector.y;
+        seq_path.x2 = outAnchor.x + outAnchor.inVector.x;
+        seq_path.y2 = outAnchor.y + outAnchor.inVector.y;
+
+        seq_path.x = outAnchor.x;
+        seq_path.y = outAnchor.y;
+
+    }
+
+    function setPath (node, path, invert) {
+
+
+        var seq_list = node.pathSegList,
+            l = path.getLength(),
+            i = 1,
+            big_number = 10000,
+            move = 'createSVGPathSegMovetoAbs',
+            line = 'createSVGPathSegLinetoAbs',
+            curve = 'createSVGPathSegCurvetoCubicAbs',
+            padding = (invert ? 5 : 0),
+            patch, prev_anchor, item, anchor;
+
+        if (!l) {
+            return;
+        }
+
+        if (l + (path.closed ? 1 : 0) + padding !== seq_list.numberOfItems) {
+
+            console.log("remove");
+            seq_list.clear();
+
+            if (invert) {
+                seq_list.appendItem(node[move](-big_number, -big_number));
+                seq_list.appendItem(node[line](big_number, -big_number));
+                seq_list.appendItem(node[line](big_number, big_number));
+                seq_list.appendItem(node[line](-big_number, big_number));
+                seq_list.appendItem(node[line](-big_number, -big_number));
+            }
+
+            seq_list.appendItem(node[move](0, 0));
+
+            for (; i < l; i += 1) {
+                seq_list.appendItem(node[curve](0, 0, 0, 0, 0, 0));
+            }
+
+            if (path.closed) {
+                seq_list.appendItem(node[curve](0, 0, 0, 0, 0, 0));
+            }
+
+        }
+
+        i = 1;
+
+        item = seq_list.getItem(padding);
+
+        prev_anchor = path.get(0);
+
+        item.x = prev_anchor.x;
+        item.y = prev_anchor.y;
+
+        for (; i < l; i += 1) {
+            anchor = path.get(i);
+            draw(seq_list.getItem(i + padding), prev_anchor, anchor);
+            prev_anchor = anchor;
+        }
+
+        if (path.closed) {
+            draw(seq_list.getItem(i + padding), prev_anchor, path.get(0));
+        }
+
+    }
+
+    function create (type, opt_attr, opt_style) {
+
+        var elem = document.createElementNS("http://www.w3.org/2000/svg", type),
+            key;
+
+        if (opt_attr) {
+            for (key in opt_attr) {
+                if (opt_attr.hasOwnProperty(key)) {
+                    elem.setAttribute(key, String(opt_attr[key]));
+                }
+            }
+        }
+
+        if (opt_style) {
+            for (key in opt_style) {
+                if (opt_style.hasOwnProperty(key)) {
+                    elem.style[key] = opt_style[key];
+                }
+            }
+        }
+
+        if (this.appendChild) {
+            this.appendChild(elem);
+        }
+
+        elem.create = create;
+
+        return elem;
+    }
+
+    return {
+        create: create,
+        path: setPath
+    };
+
+});
+
+
+/*jshint
+    undef:true
+    curly:true
+    browser: true
+    laxbreak: true
+    eqnull: true
+    white: true
+*/
+/*global
+    define
+*/
+
+define('renderers/svg/svgMask',[
+    './svgUtils'
+], function (
+    utils
+) {
+
+    var svg_mask_counter = 0;
+
+
+    function updateMask(node, mask) {
+
+        utils.path(node.pathNode, mask, mask.inverted);
+        node.style.opacity = mask.opacity;
+
+        if (mask.expansion > 0) {
+
+            node.style.strokeWidth = (mask.expansion * 2) + 'px';
+        } else {
+            node.style.strokeWidth = 0;
+        }
+    }
+
+    function renderMask(root, masks, scale, bounds) {
+
+        var mask_node  = root.maskNode,
+            children   = mask_node.childNodes,
+            l          = masks.getLength(),
+            i          = children.length,
+            to_add     = i < l,
+            big_number = 90000,
+            group;
+
+
+        if (i !== l) {
+            if (to_add) {
+                for (; i < l; i += 1) {
+                    group = mask_node.create('g', {
+                    }, {
+                        'fill': 'white',
+                        'stroke-linejoin': 'round',
+                        'stroke': 'white',
+                        'strokeWidth': '0px',
+                        'fillRulle': 'evenodd'
+                    });
+                    group.pathNode = group.create('path', {
+                        id: mask_node.id + '_' + i + '_shape'
+                    });
+
+                }
+            } else {
+                for (; i >= l; i -= 1) {
+                    //remove mask
+                }
+            }
+
+            children = mask_node.childNodes;
+            l = children.length;
+        }
+
+        i = 0;
+
+        for (; i < l; i += 1) {
+            updateMask(children[i], masks.get(i));
+        }
+
+
+    }
+
+    function setMask(element) {
+
+        var mask_name = 'svg_mask_' + (svg_mask_counter += 1),
+            svg_node = utils.create('svg', {height: 0}),
+            svg_mask = svg_node.create('mask', {
+                id: mask_name
+            });
+
+        svg_node.maskNode = svg_mask;
+        element.appendChild(svg_node);
+        element.firstChild.style.mask = 'url(#' + mask_name + ")";
+
+        return svg_node;
+    }
+
+    function removeMask(element, root) {
+
+
+    }
+
+    return {
+        render: renderMask,
+        set: setMask,
+        remove: removeMask
+    };
+});
+
+
+/*global define*/
 
 define('utils/browser',[],function () {
 
@@ -4869,48 +5131,80 @@ define('utils/browser',[],function () {
 
     }.call(browser));
 
+    browser.haveCanvasMask = (function() {
+
+        return document.createElement('div').style.WebkitMaskImage !== undefined
+               && typeof document.getCSSCanvasContext === 'function';
+
+    }.call(browser));
+
+    browser.haveSvgMask = (function() {
+        var elem = document.createElement('div');
+        elem.style.mask = "url(#idid)";
+        console.log(elem.style.mask);
+        return document.createElement('div').style.mask !== undefined;
+
+    }.call(browser));
+
     return browser;
 });
 
 
-/*global define */
+
+/*jshint
+    undef:true
+    curly:true
+    browser: true
+    laxbreak: true
+    eqnull: true
+    white: true
+*/
+/*global
+    define
+*/
 
 define('renderers/dom/Composition',[
+
     'geom/Matrix2D',
     'geom/Matrix',
     'geom/Rectangle',
     'utils/browser',
     './Solid',
     './Text',
-    '../canvas/maskUtils'
-], function(
+    '../canvas/canvasMask',
+    '../svg/svgMask'
+], function (
+
     Matrix2D,
     Matrix,
     Rectangle,
     browser,
     Solid,
     Text,
-    maskUtils
+    canvasMask,
+    svgMask
 ) {
 
     var m2D = new Matrix2D();
 
-    var maskCounter = 0;
+    var maskUtils = (browser.haveCanvasMask) ? canvasMask : svgMask;
 
 
-    function haveActiveMasks (masks) {
+    function haveActiveMasks(masks) {
 
         var i, l, mask;
+        var y;
+
 
         if (masks == null) {
-             return false;
+            return false;
         }
 
         l = masks.getLength();
         if (l) {
-           for (i = 0; i < l; i += 1) {
+            for (i = 0; i < l; i += 1) {
                 mask = masks.get(i);
-                if (mask && mask.blending !== 'none' && mask.getLength() && mask.closed){
+                if (mask && mask.blending !== 'none' && mask.getLength() && mask.closed) {
                     return true;
                 }
             }
@@ -4920,17 +5214,17 @@ define('renderers/dom/Composition',[
         return false;
     }
 
-    function add (layer, pos) {
+    function add(layer, pos) {
 
-        var e       = generate.call(this,layer),
+        var e       = generate.call(this, layer),
             elem    = this.element,
             children;
 
         if (e) {
             //TODO test DOM layer insertion properly
-            if(elem.hasChildNodes() || pos < 0) {
+            if (elem.hasChildNodes() || pos < 0) {
                 children = elem.childNodes();
-                elem.insertBefore(e.element,children[children.length-pos-1]);
+                elem.insertBefore(e.element, children[children.length - pos - 1]);
             } else {
                 elem.appendChild(e.element);
             }
@@ -4938,7 +5232,7 @@ define('renderers/dom/Composition',[
         }
     }
 
-    function remove (layer, pos) {
+    function remove(layer, pos) {
 
         var e = this.layers[pos];
 
@@ -4946,7 +5240,7 @@ define('renderers/dom/Composition',[
         this.layers.splice(pos, 1);
     }
 
-    function swap (pos_1, pos_2) {
+    function swap(pos_1, pos_2) {
 
         var e = this.layers[pos_1];
 
@@ -4954,7 +5248,7 @@ define('renderers/dom/Composition',[
         this.layers[pos_2] = e;
     }
 
-    function generate (model) {
+    function generate(model) {
 
         var element = document.createElement('layer'),
             result  = {
@@ -4982,13 +5276,13 @@ define('renderers/dom/Composition',[
             element.appendChild(handler.element);
             result.content = handler.element;
             result.handler = handler;
-            result.bounds = new Rectangle(0,0,model.width,model.height);
+            result.bounds = new Rectangle(0, 0, model.width, model.height);
         }
 
         return result;
     }
 
-    function Composition (model) {
+    function Composition(model) {
 
         var sig  = model.layers.on,
             self = this,
@@ -5004,11 +5298,11 @@ define('renderers/dom/Composition',[
         this.height   = 0;
         this.layers   = [];
 
-        model.layers.each(function(layer) {
+        model.layers.each(function (layer) {
             e = generate.call(self, layer);
             if (e) {
-                if(self.element.firstChild){
-                    self.element.insertBefore(e.element,self.element.firstChild);
+                if (self.element.firstChild) {
+                    self.element.insertBefore(e.element, self.element.firstChild);
                 } else {
                     self.element.appendChild(e.element);
                 }
@@ -5029,7 +5323,7 @@ define('renderers/dom/Composition',[
 
         constructor: Composition,
 
-        render: function(bounds, opt_camera, opt_parent, opt_parent_2D) {
+        render: function (bounds, opt_camera, opt_parent, opt_parent_2D) {
 
             var layers  = this.layers,
                 l       = this.layers.length,
@@ -5065,27 +5359,24 @@ define('renderers/dom/Composition',[
                 }
             }
 
-            if (!this.collapse){
-
-                if (this.zoom !== camera.zoom) {
-                    this.zoom = camera.zoom;
-                    if (browser.have3DTransform){
-                        style[browser.PERSPECTIVE] = this.zoom.toString() + 'px';
-                    }
-                }
-
-                if (this.centerX !== camera.center.x || this.centerY !== camera.center.y) {
-
-                    this.centerX = camera.center.x;
-                    this.centerY = camera.center.y;
-                    if (browser.have3DTransform){
-                        style[browser.ORIGIN] = this.centerX.toString() + 'px ' +
-                                                this.centerY.toString() + 'px';
-                    }
+            if (this.zoom !== camera.zoom) {
+                this.zoom = camera.zoom;
+                if (browser.have3DTransform) {
+                    style[browser.PERSPECTIVE] = this.zoom.toString() + 'px';
                 }
             }
 
-            for ( ; i < l; i += 1) {
+            if (this.centerX !== camera.center.x || this.centerY !== camera.center.y) {
+
+                this.centerX = camera.center.x;
+                this.centerY = camera.center.y;
+                if (browser.have3DTransform) {
+                    style[browser.ORIGIN] = this.centerX.toString() + 'px ' +
+                                            this.centerY.toString() + 'px';
+                }
+            }
+
+            for (; i < l; i += 1) {
 
                 this.renderLayer(layers[i], camera, cam_mat, opt_parent, opt_parent_2D);
             }
@@ -5100,7 +5391,7 @@ define('renderers/dom/Composition',[
             return bounds;
         },
 
-        renderLayer: function(layer, camera, cam_mat, opt_parent, opt_parent_2D) {
+        renderLayer: function (layer, camera, cam_mat, opt_parent, opt_parent_2D) {
 
             var model   = layer.model,
                 element = layer.element,
@@ -5112,7 +5403,8 @@ define('renderers/dom/Composition',[
                 mat_2D,
                 mask_canvas,
                 mask_name,
-                className;
+                className,
+                bounds;
 
             if (layer.visible !== model.visible) {
                 layer.visible = model.visible;
@@ -5123,7 +5415,7 @@ define('renderers/dom/Composition',[
 
                 mat = this.matrix_.injectMatrix(model.getMatrix());
 
-                if (opt_parent && is3D){
+                if (opt_parent && is3D) {
                     mat.multiply(opt_parent);
                 } else if (opt_parent_2D && !is3D) {
                     mat.multiply(opt_parent_2D);
@@ -5144,13 +5436,13 @@ define('renderers/dom/Composition',[
                     element.className = className;
                 }
 
-                if (model.type === 'composition' && model.collapse){
+                if (model.type === 'composition' && model.collapse) {
 
                     mat_2D = mat;
 
-                    if (is3D){
+                    if (is3D) {
                         mat_2D = this.matrix2D_.injectMatrix(model.getMatrix2D());
-                        if (opt_parent_2D){
+                        if (opt_parent_2D) {
                             mat_2D.multiply(opt_parent_2D);
                         }
                     }
@@ -5159,7 +5451,7 @@ define('renderers/dom/Composition',[
 
                 } else if (handler && content) {
 
-                    if (is3D){
+                    if (is3D) {
                         mat.multiply(cam_mat);
                     }
 
@@ -5175,7 +5467,7 @@ define('renderers/dom/Composition',[
                                     (this.zoom / (this.zoom - mat.m43)
                                 )
                                 : Math.sqrt((mx * mx) + (my * my))
-                            ) * 1.2 ,
+                            ) * 1.2,
                             ratio = scale / layer.scale;
 
                         if (ratio > 1.3 || ratio < 0.77) {
@@ -5183,10 +5475,7 @@ define('renderers/dom/Composition',[
                             this.setScale(content, scale);
                         }
 
-                        scale = 1/layer.scale;
-                        if (scale !== 1) {
-                            //mat.preMultiply(this.tempMatrix_.scaling(scale, scale, 1));
-                        }
+                        scale = 1 / layer.scale;
 
                     } else if (!model.collapse && is3D && layer.scale !== 1) {
 
@@ -5196,51 +5485,46 @@ define('renderers/dom/Composition',[
                     }
 
                     layer.collapse = model.collapse;
-                    handler.render(layer.bounds);
+                    bounds = handler.render(layer.bounds);
+
 
                     if (layer.scale !== 1 || layer.bounds.x || layer.bounds.y) {
                         mat.preMultiply(this.tempMatrix_.set(
                             1 / layer.scale, 0,               0, 0,
                             0,               1 / layer.scale, 0, 0,
                             0,               0,               1, 0,
-                            layer.bounds.x,  layer.bounds.y,  0, 1
+                            bounds.x,        bounds.y,        0, 1
                         ));
                     }
-                    layer.bounds.multiplyScalar(layer.scale);
+                    bounds.multiplyScalar(layer.scale);
 
                     this.setMatrix(
                         element,
                         mat,
                         (model.is3D) ? camera : null,
                         model.getDepthPoint(),
-                        layer.bounds
+                        bounds
                     );
 
+                    style.width = bounds.width;
+                    style.height = bounds.height;
+
                     if (haveActiveMasks(model.masks)) {
-                        if (!layer.canvas) {
 
-                            maskCounter += 1;
-                            mask_name = 'layer_mask_' + maskCounter;
-                            mask_canvas = document.getCSSCanvasContext('2d', mask_name, 10, 10);
-                            style.WebkitMaskImage = '-webkit-canvas('+mask_name+')';
-
-                            layer.canvas = mask_canvas;
+                        if (!layer.masks) {
+                            layer.masks = maskUtils.set(element);
                         }
+                        maskUtils.render(layer.masks, model.masks, layer.scale, bounds);
 
-                        layer.canvas.canvas.width = style.width = layer.bounds.width;
-                        layer.canvas.canvas.height = style.height = layer.bounds.height;
+                    } else if (layer.masks) {
 
-                        maskUtils.renderMasks(layer.canvas, model.masks, layer.scale, layer.bounds);
-
-                    } else if (layer.canvas) {
-                        layer.canvas.canvas.width = layer.canvas.canvas.height = 0;
-                        style.WebkitMaskImage = '';
-                        delete layer.canvas;
+                        maskUtils.remove(element, layer.masks);
+                        delete layer.masks;
                     }
 
                 }
 
-                if (layer.opacity !== model.opacity){
+                if (layer.opacity !== model.opacity) {
                     layer.opacity = model.opacity;
                     this.setOpacity(element, model.opacity);
                 }
@@ -5250,12 +5534,12 @@ define('renderers/dom/Composition',[
             }
         },
 
-        setScale: function(elem, scale) {
+        setScale: function (elem, scale) {
 
             if (browser.haveTransform) {
 
                 elem.style[browser.TRANSFORM] = (scale !== 1)
-                                                ? 'scale('+scale.toFixed(4)+','+scale.toFixed(4)+')'
+                                                ? 'scale(' + scale.toFixed(4) + ',' + scale.toFixed(4) + ')'
                                                 : '';
 
             } else if (elem.style.zoom !== undefined) {
@@ -5263,7 +5547,7 @@ define('renderers/dom/Composition',[
             }
         },
 
-        setMatrix: function(elem, matrix, camera, depth_point, bounds) {
+        setMatrix: function (elem, matrix, camera, depth_point, bounds) {
 
             var style = elem.style,
                 matrix2D, filter;
@@ -5284,12 +5568,10 @@ define('renderers/dom/Composition',[
                     style[browser.TRANSFORM] = matrix2D.toCSS();
                 } else {
 
+                    if (browser.haveIEFilter && elem.filters.length) {
 
-
-                    if (browser.haveIEFilter && elem.filters.length){
-
-                        style.width = bounds.width +'px';
-                        style.height = bounds.height +'px';
+                        style.width = bounds.width + 'px';
+                        style.height = bounds.height + 'px';
 
                         this.slideMatrixBounds(matrix2D, bounds.width, bounds.height);
 
@@ -5307,7 +5589,7 @@ define('renderers/dom/Composition',[
             }
         },
 
-        slideMatrixBounds: function(matrix, width, height) {
+        slideMatrixBounds: function (matrix, width, height) {
 
             var min = Math.min;
 
@@ -5332,12 +5614,12 @@ define('renderers/dom/Composition',[
             );
         },
 
-        setOpacity: function(elem, opacity) {
+        setOpacity: function (elem, opacity) {
 
             if (elem.style.opacity !== undefined) {
-                elem.style.opacity = ( opacity !== 1 ) ? opacity : "";
+                elem.style.opacity = (opacity !== 1) ? opacity : "";
             } else if (browser.haveIEFilter && elem.filters.length >= 2) {
-                elem.filters.item(1).Opacity = opacity*100;
+                elem.filters.item(1).Opacity = opacity * 100;
             }
         }
     };
@@ -5396,7 +5678,7 @@ define('renderers/dom/Renderer',['text!style/scene.css', './Composition'], funct
 
             if (cssNode.styleSheet){
                 cssNode.styleSheet.cssText = cssRules;
-                console.log(cssNode.styleSheet.cssText );
+                //console.log(cssNode.styleSheet.cssText );
             } else {
                 cssNode.innerHTML = cssRules;
             }
