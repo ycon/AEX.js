@@ -1,0 +1,58 @@
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:svg="http://www.w3.org/2000/svg" >
+
+
+<style>
+
+	div {
+		width: 320px;
+		height: 240px;
+		background: #00FF00;
+		mask: url(#cc_id);
+	}
+
+
+</style>
+
+
+<body>
+
+
+<div></div>
+
+<svg:svg>
+
+
+	<svg:mask id="mask_1">
+			<svg:g>
+				<svg:foreignObject>
+					
+					
+					
+				</svg:foreignObject>
+			</svg:g>
+	</svg:mask>
+
+</svg:svg>
+
+<canvas id="cc_id" width="320px" height="240px"/>
+
+<script type="text/javascript">
+
+var canvas = document.getElementById('cc_id');
+ctx = canvas.getContext('2d');
+ctx.fillStyle = "rgb(200,0,0)";  
+ctx.fillRect (10, 10, 55, 50);  
+
+ctx.fillStyle = "rgba(0, 0, 200, 0.5)";  
+ctx.fillRect (30, 30, 55, 50);  
+
+
+</script>
+
+
+
+
+</body>
+
+</html>
