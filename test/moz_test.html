@@ -14,34 +14,113 @@ document.createElement('composition');
 </script>
 
 
-<link rel="stylesheet" type="text/css" href="../lib/style/scene.css" />
+<style type="text/css">
+
+
+
+</style>
 
 <script src="../lib/extern/require.js"></script>
 
 
 <script>
 
-    require({baseUrl: '../lib'}, ['extern/jquery'], function ($) {
 
-        $(document).ready(function() {
-
-
-
-
-
-        });
-    });
 
 </script>
 </head>
 <body>
 
-<scene class="no_collapse">
-    <composition style="width:1024px; height:640px; -moz-perspective: 300px; -moz-transform-style: preserve-3d; -moz-perspective-origin: 50% 50%">
-        <layer class="no_collapse filter" style="background: none repeat scroll 0 0 #00FF00;width: 100px;height: 100px; -moz-transform: translateZ( -500px )">
-        </layer>
-    </composition>
-</scene>
+    <div style="
+        width:320px;
+        height:240px;
+        background-color: #00FF00;
+        mask: url(#mask_01)
+    ">
+        Hello World!
+    </div>
+
+    <svg>
+
+        <defs>
+            <filter id="inv">
+
+
+
+                <feColorMatrix type="matrix" in="SourceGraphic"
+                   values="0 0 0 0 1
+                           0 0 0 0 1
+                           0 0 0 0 1
+                           -1 0 0 0 1"
+                />
+
+            </filter>
+
+            <filter id="invsub">
+
+
+
+                <feColorMatrix type="matrix" in="SourceGraphic"
+                   values="0 0 0 0 0
+                           0 0 0 0 0
+                           0 0 0 0 0
+                           -1 0 0 0 1"
+                />
+
+            </filter>
+
+            <filter id="sub">
+
+
+
+                <feColorMatrix type="matrix" in="SourceGraphic"
+                   values="0 0 0 0 0
+                           0 0 0 0 0
+                           0 0 0 0 0
+                           1 0 0 0 0"
+                />
+
+            </filter>
+
+
+            <filter id="norm">
+
+
+
+                <feColorMatrix type="matrix" in="SourceGraphic"
+                   values="0 0 0 0 1
+                           0 0 0 0 1
+                           0 0 0 0 1
+                           1 0 0 0 0"
+                />
+
+            </filter>
+
+        </defs>
+
+
+        <mask id="mask_01" >
+
+            <rect width="320" height="240" fill="white"/>
+
+            <g filter="url(#inv)">
+
+                <rect width="320" height="240" fill="black"/>
+
+
+
+                <circle id="c_02" cx="150px" cy="100px" r="100px" fill="white"/>
+            </g>
+
+
+        </mask>
+
+
+
+
+
+    </svg>
+
 
 </body>
 
