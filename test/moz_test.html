@@ -43,74 +43,69 @@ document.createElement('composition');
     <svg>
 
         <defs>
-            <filter id="inv">
 
+            <filter id="inv"><feColorMatrix
+                type="matrix"
+                in="SourceGraphic"
+                values=" 0 0 0 0 1
+                         0 0 0 0 1
+                         0 0 0 0 1
+                        -1 0 0 0 1"
+            /></filter>
 
+            <filter id="invsub"><feColorMatrix
+                type="matrix"
+                in="SourceGraphic"
+                values=" 0 0 0 0 0
+                         0 0 0 0 0
+                         0 0 0 0 0
+                        -1 0 0 0 1"
+            /></filter>
 
-                <feColorMatrix type="matrix" in="SourceGraphic"
-                   values="0 0 0 0 1
-                           0 0 0 0 1
-                           0 0 0 0 1
-                           -1 0 0 0 1"
-                />
+            <filter id="sub"><feColorMatrix
+                type="matrix"
+                in="SourceGraphic"
+                values="  0  0  0  0  0
+                          0  0  0  0  0
+                          0  0  0  0  0
+                          1  0  0  0  0"
+            /></filter>
 
-            </filter>
-
-            <filter id="invsub">
-
-
-
-                <feColorMatrix type="matrix" in="SourceGraphic"
-                   values="0 0 0 0 0
-                           0 0 0 0 0
-                           0 0 0 0 0
-                           -1 0 0 0 1"
-                />
-
-            </filter>
-
-            <filter id="sub">
-
-
-
-                <feColorMatrix type="matrix" in="SourceGraphic"
-                   values="0 0 0 0 0
-                           0 0 0 0 0
-                           0 0 0 0 0
-                           1 0 0 0 0"
-                />
-
-            </filter>
-
-
-            <filter id="norm">
-
-
-
-                <feColorMatrix type="matrix" in="SourceGraphic"
-                   values="0 0 0 0 1
+            <filter id="norm"><feColorMatrix
+                  type="matrix"
+                  in="SourceGraphic"
+                  values=" 0 0 0 0 1
                            0 0 0 0 1
                            0 0 0 0 1
                            1 0 0 0 0"
-                />
+            /></filter>
 
-            </filter>
+            <filter id="noalpha"><feColorMatrix
+                  type="matrix"
+                  in="SourceGraphic"
+                  values=" 1 0 0 0 0
+                           0 1 0 0 0
+                           0 0 1 0 0
+                           0 0 0 0 1"
+            /></filter>
 
         </defs>
 
 
-        <mask id="mask_01" >
-
-            <rect width="320" height="240" fill="white"/>
-
-            <g filter="url(#inv)">
-
-                <rect width="320" height="240" fill="black"/>
+        <mask id="mask_01">
 
 
+                <rect width="320" height="240" fill="white"/>
 
-                <circle id="c_02" cx="150px" cy="100px" r="100px" fill="white"/>
-            </g>
+                <g filter="url(#invsub)">
+
+                    <rect width="320" height="240" fill="black"/>
+
+                    <circle id="c_02" cx="150px" cy="100px" r="100px" fill="white"/>
+                </g>
+
+
+
 
 
         </mask>
